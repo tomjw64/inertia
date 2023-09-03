@@ -1,0 +1,13 @@
+[package]
+name = "inertia-core"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+primitive-types = "0.12.1"
+rand = "0.8.5"
+serde = { version = "1.0.178", features = ["derive"] }
+typeshare = "1.0.1"
+
+[features]
+benchmarks = []
