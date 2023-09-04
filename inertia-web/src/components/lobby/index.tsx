@@ -7,5 +7,10 @@ export const Lobby = ({
   roomId: number;
   players: PlayerName[];
 }) => {
-  return <span>{JSON.stringify({ roomId, players })}</span>;
+  return (
+    <div>
+      <span>{JSON.stringify({ roomId, players })}</span>
+      <button>Start Game</button>
+    </div>
+  );
 };

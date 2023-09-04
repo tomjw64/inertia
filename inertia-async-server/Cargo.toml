@@ -1,0 +1,11 @@
+[package]
+name = "inertia-server"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+axum = { version = "0.6.20", features = ["ws"] }
+inertia-core = { path = "../inertia-core/" }
+serde = { version = "1.0.178", features = ["derive"] }
+serde_json = "1.0.104"
+tokio = { version = "1.32.0", features = ["full"] }
