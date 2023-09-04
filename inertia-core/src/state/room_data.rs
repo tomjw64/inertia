@@ -7,16 +7,18 @@ use crate::solvers::SolutionStep;
 
 #[typeshare(serialized_as = "number")]
 #[derive(Serialize, Deserialize)]
-struct PlayerId(usize);
+pub struct PlayerId(usize);
 
 #[typeshare(serialized_as = "number")]
 #[derive(Serialize, Deserialize)]
-struct RoomId(usize);
+pub struct RoomId(usize);
 
 #[typeshare]
 #[derive(Serialize, Deserialize)]
-struct RoomData {
+pub struct RoomData {
   room_id: RoomId,
+  #[typeshare(typescript(type = "number"))]
+  updated_at_epoch_millis: usize,
   players: Vec<PlayerName>,
   player_scores: Vec<PlayerScore>,
   #[typeshare(typescript(type = "number"))]
@@ -29,7 +31,7 @@ struct RoomData {
 #[typeshare]
 #[derive(Serialize, Deserialize)]
 #[serde(tag = "type", content = "content")]
-enum RoomState {
+pub enum RoomState {
   Lobby,
   RoundSummary,
   RoundStart(RoundStart),
@@ -39,20 +41,20 @@ enum RoomState {
 
 #[typeshare]
 #[derive(Serialize, Deserialize)]
-struct RoundStart {
+pub struct RoundStart {
   board: WalledBoardPosition,
 }
 
 #[typeshare]
 #[derive(Serialize, Deserialize)]
-struct RoundBidding {
+pub struct RoundBidding {
   board: WalledBoardPosition,
   player_bids: Vec<PlayerBid>,
 }
 
 #[typeshare]
 #[derive(Serialize, Deserialize)]
-struct RoundSolving {
+pub struct RoundSolving {
   board: WalledBoardPosition,
   player_bids: Vec<PlayerBid>,
   solver: PlayerId,
@@ -61,14 +63,14 @@ struct RoundSolving {
 
 #[typeshare]
 #[derive(Serialize, Deserialize)]
-struct PlayerName {
+pub struct PlayerName {
   id: PlayerId,
   name: String,
 }
 
 #[typeshare]
 #[derive(Serialize, Deserialize)]
-struct PlayerScore {
+pub struct PlayerScore {
   id: PlayerId,
   #[typeshare(typescript(type = "number"))]
   score: usize,
@@ -76,11 +78,11 @@ struct PlayerScore {
 
 #[typeshare]
 #[derive(Serialize, Deserialize)]
-struct PlayerBid {
+pub struct PlayerBid {
   player: PlayerId,
   bid: Option<Bid>,
 }
 
 #[typeshare(serialized_as = "number")]
 #[derive(Serialize, Deserialize)]
-struct Bid(usize);
+pub struct Bid(usize);
