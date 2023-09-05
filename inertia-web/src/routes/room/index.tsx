@@ -1,5 +1,5 @@
 import { RoomData } from 'inertia-core';
-import { useRef, useState } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
 import { Lobby } from '../../components/lobby';
 
 const RoomStateType = {
@@ -9,6 +9,8 @@ const RoomStateType = {
   ROUND_BIDDING: 'RoundBidding',
   ROUND_SOLVING: 'RoundSolving',
 } as const;
+
+const WS_CONNECTION_URL = 'ws://127.0.0.1:8001/ws';
 
 const buildDefaultRoomData = (roomId: number): RoomData => ({
   room_id: roomId,
@@ -21,36 +23,60 @@ const buildDefaultRoomData = (roomId: number): RoomData => ({
   },
 });
 
-export const Room = ({ roomId }: { roomId: number }) => {
-  const { current: _ws } = useRef<WebSocket>();
-  const [roomData, _setRoomData] = useState<RoomData>(
+export const Room = ({ roomId: roomIdString }: { roomId: string }) => {
+  const websocket = useRef<WebSocket | null>(null);
+  const roomId = parseInt(roomIdString);
+
+  const [roomData, setRoomData] = useState<RoomData>(
     buildDefaultRoomData(roomId)
   );
 
+  useEffect(() => {
+    websocket.current = new WebSocket(WS_CONNECTION_URL);
+    const ws = websocket.current;
+    ws.onopen = () => {
+      ws.send(
+        JSON.stringify({
+          player_name: `Test-${Math.floor(Math.random() * 1000)}`,
+          player_id: Math.floor(Math.random() * 1000),
+          player_reconnect_key: 1,
+          room_id: roomId,
+        })
+      );
+    };
+    ws.onmessage = (msg: MessageEvent<string>) => {
+      setRoomData(JSON.parse(msg.data));
+    };
+    return () => {
+      ws.close();
+    };
+  }, [roomId]);
+
   const {
     players,
+    state,
     // player_scores: playerScores,
     // round_number: roundNumber,
     // data_version: dataVersion,
   } = roomData;
 
-  if (roomData.state.type === RoomStateType.LOBBY) {
+  if (state.type === RoomStateType.LOBBY) {
     return <Lobby {...{ roomId, players }} />;
   }
 
-  if (roomData.state.type === RoomStateType.ROUND_SUMMARY) {
+  if (state.type === RoomStateType.ROUND_SUMMARY) {
     return <Lobby {...{ roomId, players }} />;
   }
 
-  if (roomData.state.type === RoomStateType.ROUND_START) {
+  if (state.type === RoomStateType.ROUND_START) {
     return <Lobby {...{ roomId, players }} />;
   }
 
-  if (roomData.state.type === RoomStateType.ROUND_BIDDING) {
+  if (state.type === RoomStateType.ROUND_BIDDING) {
     return <Lobby {...{ roomId, players }} />;
   }
 
-  if (roomData.state.type === RoomStateType.ROUND_SOLVING) {
+  if (state.type === RoomStateType.ROUND_SOLVING) {
     return <Lobby {...{ roomId, players }} />;
   }
 
