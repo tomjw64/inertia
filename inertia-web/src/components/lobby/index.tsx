@@ -1,11 +1,11 @@
-import { PlayerName } from 'inertia-core';
+import { PlayerId, PlayerName } from 'inertia-core';
 
 export const Lobby = ({
   roomId,
   players,
 }: {
   roomId: number;
-  players: PlayerName[];
+  players: Record<PlayerId, PlayerName>;
 }) => {
   return (
     <div>

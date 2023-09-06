@@ -1,6 +1,7 @@
 import { RoomData } from 'inertia-core';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { Lobby } from '../../components/lobby';
+import { getOrCreatePlayerName } from '../../utils/storage';
 
 const RoomStateType = {
   LOBBY: 'Lobby',
@@ -14,10 +15,10 @@ const WS_CONNECTION_URL = 'ws://127.0.0.1:8001/ws';
 
 const buildDefaultRoomData = (roomId: number): RoomData => ({
   room_id: roomId,
-  players: [],
-  player_scores: [],
+  players: {},
+  player_scores: {},
+  players_connected: {},
   round_number: 0,
-  data_version: 0,
   state: {
     type: RoomStateType.LOBBY,
   },
@@ -37,7 +38,7 @@ export const Room = ({ roomId: roomIdString }: { roomId: string }) => {
     ws.onopen = () => {
       ws.send(
         JSON.stringify({
-          player_name: `Test-${Math.floor(Math.random() * 1000)}`,
+          player_name: getOrCreatePlayerName(),
           player_id: Math.floor(Math.random() * 1000),
           player_reconnect_key: 1,
           room_id: roomId,

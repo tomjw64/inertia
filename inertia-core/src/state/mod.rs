@@ -16,6 +16,7 @@ pub struct PlayerId(pub usize);
 #[derive(Serialize, Deserialize, Eq, PartialEq, Hash, Copy, Clone)]
 pub struct RoomId(pub usize);
 
+#[typeshare]
 #[derive(Serialize, Deserialize, Eq, PartialEq, Clone, Debug)]
 pub struct PlayerName(pub String);
 
@@ -36,14 +37,12 @@ pub struct PlayerBid(usize);
 pub struct RoomData {
   pub room_id: RoomId,
   pub players: HashMap<PlayerId, PlayerName>,
-  // TODO: skip serialize
+  #[serde(skip)]
   pub player_reconnect_keys: HashMap<PlayerId, PlayerReconnectKey>,
-  pub players_connected: HashSet<PlayerId>,
+  pub players_connected: HashMap<PlayerId, bool>,
   pub player_scores: HashMap<PlayerId, PlayerScore>,
   #[typeshare(typescript(type = "number"))]
   pub round_number: usize,
-  #[typeshare(typescript(type = "number"))]
-  pub data_version: usize,
   pub state: RoomState,
 }
 

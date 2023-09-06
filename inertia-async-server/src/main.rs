@@ -37,10 +37,9 @@ impl Room {
         room_id,
         players: HashMap::new(),
         player_reconnect_keys: HashMap::new(),
-        players_connected: HashSet::new(),
+        players_connected: HashMap::new(),
         player_scores: HashMap::new(),
         round_number: 0,
-        data_version: 0,
         state: RoomState::Lobby,
       }),
     }
@@ -58,6 +57,25 @@ async fn ws_handler(
 ) -> Response {
   tracing::debug!("WebSocket connect: {}", socket_address);
   ws.on_upgrade(move |socket| handle_socket(socket, socket_address, state))
+}
+
+async fn broadcast_room_data(state: &Arc<AppState>, room_id: &RoomId) {
+  let rooms = state.rooms.read().await;
+  let room = match rooms.get(&room_id) {
+    Some(room) => room,
+    None => {
+      tracing::debug!(
+        "Could not broadcast room data for room {}. Room disappeared.",
+        room_id.0
+      );
+      return;
+    }
+  };
+  let room_data = room.room_data.lock().await;
+  room
+    .channel
+    .send(serde_json::to_string(&*room_data).unwrap())
+    .ok();
 }
 
 async fn handle_socket(
@@ -139,14 +157,18 @@ async fn handle_socket(
         continue;
       }
 
-      let must_create_room = {
-        let rooms = state.rooms.read().await;
-        rooms.get(&join_message.room_id).is_none()
-      };
+      let should_create_room = state
+        .rooms
+        .read()
+        .await
+        .get(&join_message.room_id)
+        .is_none();
 
-      if must_create_room {
-        let mut rooms = state.rooms.write().await;
-        rooms
+      if should_create_room {
+        state
+          .rooms
+          .write()
+          .await
           .entry(join_message.room_id)
           .or_insert_with(|| Room::new(join_message.room_id));
       }
@@ -198,11 +220,12 @@ async fn handle_socket(
       room_data
         .players
         .insert(join_message.player_id, join_message.player_name.clone());
-      room_data.players_connected.insert(join_message.player_id);
+      room_data
+        .players_connected
+        .insert(join_message.player_id, true);
       room_data
         .player_reconnect_keys
         .insert(join_message.player_id, join_message.player_reconnect_key);
-      room_data.data_version += 1;
 
       break (
         join_message.room_id,
@@ -215,30 +238,30 @@ async fn handle_socket(
     }
   };
 
-  tracing::debug!("WebSocket [{}] connected.", socket_address);
+  tracing::debug!(
+    "WebSocket [{}] connected. Room: {}. Player: {:?}.",
+    socket_address,
+    room_id.0,
+    player_name.0,
+  );
 
-  {
-    let rooms = state.rooms.read().await;
-    let room = match rooms.get(&room_id) {
-      Some(room) => room,
-      None => {
-        tracing::debug!(
-          "Disconnecting WebSocket [{}]. Room disappeared.",
-          socket_address
-        );
-        return;
-      }
-    };
-    let room_data = room.room_data.lock().await;
-    channel_sender
-      .send(serde_json::to_string(&*room_data).unwrap())
-      .ok();
-  }
+  broadcast_room_data(&state, &room_id).await;
 
   let mut send_task = tokio::spawn(async move {
-    while let Ok(msg) = channel_receiver.recv().await {
-      // In any websocket error, break loop.
-      if ws_sender.send(Message::Text(msg)).await.is_err() {
+    loop {
+      let channel_msg = channel_receiver.recv().await;
+      let channel_msg = match channel_msg {
+        Ok(channel_msg) => channel_msg,
+        Err(err) => {
+          tracing::debug!(
+            "WebSocket [{}] receiver error: {}",
+            socket_address,
+            err
+          );
+          continue;
+        }
+      };
+      if ws_sender.send(Message::Text(channel_msg)).await.is_err() {
         break;
       }
     }
@@ -262,8 +285,33 @@ async fn handle_socket(
 
   tracing::debug!("Disconnecting WebSocket [{}].", socket_address);
 
-  // TODO: Remove player from connected players.
-  // TODO: Remove Room if room empty after disconnect.
+  let should_delete_room = {
+    let rooms = state.rooms.read().await;
+    let room = match rooms.get(&room_id) {
+      Some(room) => room,
+      None => {
+        tracing::debug!(
+          "WebSocket [{}] disconnect cleanup aborted. Room disappeared.",
+          socket_address
+        );
+        return;
+      }
+    };
+    let mut room_data = room.room_data.lock().await;
+    room_data.players_connected.remove(&player_id);
+    if let RoomState::Lobby = room_data.state {
+      room_data.players.remove(&player_id);
+      room_data.player_reconnect_keys.remove(&player_id);
+      room_data.player_scores.remove(&player_id);
+    }
+    room_data.players_connected.is_empty()
+  };
+
+  broadcast_room_data(&state, &room_id).await;
+
+  if should_delete_room {
+    state.rooms.write().await.remove(&room_id);
+  }
 }
 
 #[tokio::main]
