@@ -24,11 +24,11 @@ const NAME_PAIRINGS: NamePairing[] = [
   },
   {
     names: ['GORN', 'GUNGAN', 'GERRERA', 'GAMORREAN'],
-    descriptors: ['GOOGLY', 'GREAT', 'GRITTY', 'GLOBAL'],
+    descriptors: ['GOOGLY', 'GREAT', 'GRITTY', 'GLOBAL', 'GIGGLY'],
   },
   {
-    names: ['ERSO', 'EWOK', 'EZRA', ''],
-    descriptors: ['ECCENTRIC', 'EQUALLY', 'ELATED', 'EAGER'],
+    names: ['ERSO', 'EWOK', 'EZRA'],
+    descriptors: ['ECCENTRIC', 'EQUALLY', 'ELATED', 'EAGER', 'EXACTLY'],
   },
   {
     names: [

@@ -1,11 +1,16 @@
-import { useEffect, useRef } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
 import { Starfield } from '../../components/starfield';
 import style from './style.module.scss';
 import debounce from 'lodash/debounce';
+import { getOrCreatePlayerName } from '../../utils/storage';
+import { generatePlayerName } from '../../utils/player-name';
 
 export const Home = () => {
   const homeRef = useRef<HTMLDivElement | null>(null);
   const titleRef = useRef<HTMLDivElement | null>(null);
+
+  const [nameInput, setNameInput] = useState(getOrCreatePlayerName());
+
   useEffect(() => {
     const setAnimationVars = () => {
       const homeElement = homeRef.current;
@@ -28,7 +33,9 @@ export const Home = () => {
 
     const debouncedResetActorFlipRects = debounce(setAnimationVars, 200);
     window.addEventListener('resize', debouncedResetActorFlipRects);
+    const justInCaseInterval = setInterval(debouncedResetActorFlipRects, 1000);
     return () => {
+      clearInterval(justInCaseInterval);
       window.removeEventListener('resize', debouncedResetActorFlipRects);
     };
   }, []);
@@ -46,13 +53,36 @@ export const Home = () => {
               <div className={style.subtitle}>Inertia</div>
               <div className={style.divider}></div>
               <div>
+                <div className={style.inputButtonForm}>
+                  <button className={style.button}>Set Name</button>
+                  <input
+                    className={style.input}
+                    value={nameInput}
+                    onChange={(e) => {
+                      setNameInput(e.currentTarget.value);
+                    }}
+                  />
+                  <button
+                    className={style.button}
+                    onClick={() => {
+                      setNameInput(generatePlayerName());
+                    }}
+                  >
+                    <img src="/refresh.svg" />
+                  </button>
+                </div>
+              </div>
+              <div className={style.divider}></div>
+              <div>
                 <button className={style.button}>Start Game</button>
               </div>
               <div className={style.dividerText}>or</div>
               <div className={style.joinGameSection}>
-                <div className={style.joinGameForm}>
+                <div className={style.inputButtonForm}>
                   <button className={style.button}>Join Game</button>
-                  <input className={style.input}></input>
+                  <input
+                    className={[style.input, style.short].join(' ')}
+                  ></input>
                 </div>
               </div>
             </div>

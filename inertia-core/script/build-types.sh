@@ -21,7 +21,6 @@ cat > ./pkg/package.json <<- PACKAGE
   "module": "inertia_core.ts",
   "types": "inertia_core.ts"
 }
->>
 PACKAGE
 typeshare . --lang=typescript --output-file=./pkg/inertia_core.ts
 cd $ORIGINAL_DIR

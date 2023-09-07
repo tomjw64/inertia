@@ -1,6 +1,5 @@
 @use "../../styles/variables.scss" as *;
 
-$foreground-height: min(300px, 90svh);
 $foreground-width: min(600px, 90svw);
 $button-height: 2.5em;
 
@@ -45,8 +44,7 @@ $button-height: 2.5em;
   display: flex;
   justify-content: center;
   align-items: center;
-  width: calc($foreground-width + 15px);
-  height: calc($foreground-height + 15px);
+  padding: 6px;
   border-radius: 10px;
   margin: 10px;
   background:
@@ -65,8 +63,8 @@ $button-height: 2.5em;
   align-items: center;
   background: #ddd;
   width: $foreground-width;
-  height: $foreground-height;
   border-radius: 10px;
+  padding: 20px;
 }
 
 .joinGameSection {
@@ -81,26 +79,41 @@ $button-height: 2.5em;
   font-weight: bold;
 }
 
-.joinGameForm {
+.inputButtonForm {
   display: flex;
   flex-wrap: nowrap;
-  .button {
+
+  > .button {
     margin: 0;
+  }
+
+  > .button:nth-child(1) {
     border-top-left-radius: 2em 4em;
     border-bottom-left-radius: 2em 4em;
     border-top-right-radius: 0;
     border-bottom-right-radius: 0;
   }
-  
+
   > .input {
     margin: 0;
-    max-width: 120px;
-    border-top-right-radius: 2em 4em;
-    border-bottom-right-radius: 2em 4em;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;
     background-color: white;
     filter: drop-shadow(0px 4px 0px #ccc);
+  }
+  
+  > .input:last-child {
+    border-top-right-radius: 2em 4em;
+    border-bottom-right-radius: 2em 4em;
+  }
+
+  > .button:last-child {
+    border-top-right-radius: 2em 4em;
+    border-bottom-right-radius: 2em 4em;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
   }
 }
 
@@ -121,9 +134,15 @@ $button-height: 2.5em;
   &:focus {
     outline: none;
   }
+
+  &.short {
+    max-width: 120px;
+  }
 }
 
 .button {
+  display: flex;
+  align-items: center;
   white-space: nowrap;
   font-size: 20px;
   height: $button-height;
@@ -198,7 +217,7 @@ $button-height: 2.5em;
   }
   50% {
     color: $canonical-red;
-    filter: drop-shadow(0 0 1em $canonical-red)
+    filter: drop-shadow(0 0 1em $canonical-red);
   }
   100% {
     color: $canonical-yellow;
