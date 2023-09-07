@@ -8,16 +8,14 @@ const NotFound = () => {
 };
 
 const App = () => (
-  <div id="app">
-    <main>
-      <Router>
-        <Route path="/" component={Home} />
-        <Route path="/room/:roomId" component={Room} />
-        <Route path="/sandbox" component={Sandbox} />
-        <Route default component={NotFound} />
-      </Router>
-    </main>
-  </div>
+  <main>
+    <Router>
+      <Route path="/" component={Home} />
+      <Route path="/room/:roomId" component={Room} />
+      <Route path="/sandbox" component={Sandbox} />
+      <Route default component={NotFound} />
+    </Router>
+  </main>
 );
 
 export default App;

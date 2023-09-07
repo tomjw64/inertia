@@ -1,0 +1,14 @@
+@font-face {
+  font-family: "Plexifont";
+  src: url("/plexifont.woff") format("woff");
+}
+
+@font-face {
+  font-family: "Electrolize";
+  src: url("/electrolize.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Chakra Petch";
+  src: url("/chakra-petch.woff2") format("woff2");
+}

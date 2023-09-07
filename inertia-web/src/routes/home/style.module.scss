@@ -1,6 +1,224 @@
+@use "../../styles/variables.scss" as *;
+
+$foreground-height: min(300px, 90svh);
+$foreground-width: min(600px, 90svw);
+$button-height: 2.5em;
+
 .home {
+  --bounce-x-speed: 4s;
+  @media (min-width: 600px) {
+    --bounce-x-speed: 6s;
+  }
+  @media (min-width: 1200px) {
+    --bounce-x-speed: 8s;
+  }
+  @media (min-width: 1440px) {
+    --bounce-x-speed: 10s;
+  }
+
+  --bounce-y-speed: 5s;
+  @media (min-height: 600px) {
+    --bounce-y-speed: 7s;
+  }
+  @media (min-height: 1200px) {
+    --bounce-y-speed: 9s;
+  }
+  @media (min-height: 1440px) {
+    --bounce-y-speed: 11s;
+  }
+
+  width: 100vw;
+  height: 100vh;
+}
+
+.foreground {
+  position: relative;
+  width: 100%;
+  height: 100%;
   display: flex;
-  flex-wrap: wrap;
   justify-content: center;
   align-items: center;
+  z-index: 2;
+}
+
+.foregroundContentOuter {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: calc($foreground-width + 15px);
+  height: calc($foreground-height + 15px);
+  border-radius: 10px;
+  margin: 10px;
+  background:
+    linear-gradient(45deg, $canonical-red, $transparent 50%),
+    linear-gradient(135deg, $canonical-green, $transparent 50%),
+    linear-gradient(225deg, $canonical-yellow, $transparent 50%),
+    linear-gradient(315deg, $canonical-blue, $transparent 50%),
+    #333;
+  filter: drop-shadow(0px 0px 10px #666);
+}
+
+.foregroundContent {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: #ddd;
+  width: $foreground-width;
+  height: $foreground-height;
+  border-radius: 10px;
+}
+
+.joinGameSection {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.subtitle {
+  font-family: 'Chakra Petch';
+  font-size: 40px;
+  font-weight: bold;
+}
+
+.joinGameForm {
+  display: flex;
+  flex-wrap: nowrap;
+  .button {
+    margin: 0;
+    border-top-left-radius: 2em 4em;
+    border-bottom-left-radius: 2em 4em;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+  
+  > .input {
+    margin: 0;
+    max-width: 120px;
+    border-top-right-radius: 2em 4em;
+    border-bottom-right-radius: 2em 4em;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    background-color: white;
+    filter: drop-shadow(0px 4px 0px #ccc);
+  }
+}
+
+.input {
+  background: none;
+  text-align: center;
+  color: #333;
+  font-weight: bold;
+  font-size: 20px;
+  height: 2em;
+  font-family: 'Chakra Petch';
+  border: 0;
+  border-radius: 10px;
+  margin: 0.5em;
+  padding: 0 0.5em;
+  height: $button-height;
+
+  &:focus {
+    outline: none;
+  }
+}
+
+.button {
+  white-space: nowrap;
+  font-size: 20px;
+  height: $button-height;
+  font-family: 'Chakra Petch';
+  font-weight: bold;
+  background-color: #d9d900;
+  filter: drop-shadow(0px 4px 0px #c2c200);
+  border: 0;
+  border-radius: 2em / 4em;
+  padding: 0.5em 1em;
+  margin: 0.25em;
+  cursor: pointer;
+
+  &:hover {
+    background-color: #f0f000;
+  }
+
+  &:active {
+    transform: translateY(2px);
+    background-color: #f0f000;
+    filter: drop-shadow(0px 2px 0px #c2c200);
+  }
+}
+
+.divider {
+  display: block;
+  width: calc(100% - 40px);
+  height: 3px;
+  background-color: #bbb;
+  margin: 20px;
+  color: rgba(50, 50, 50, 0.5);
+}
+
+.dividerText {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  color: rgba(50, 50, 50, 0.5);
+}
+
+.dividerText::before, .dividerText::after {
+  flex: 1;
+  content: '';
+  height: 2px;
+  background-color: #bbb;
+  margin: 20px 40px;
+}
+
+.title {
+  position: absolute;
+  display: inline-block;
+  font-family: 'Plexifont', monospace;
+  font-size: min(20svw, 200px);
+  padding: 0 calc(1em / 15);
+}
+
+.titleX {
+  animation: animationX var(--bounce-x-speed) linear infinite alternate, animationColor 8.5s ease-in-out infinite alternate;
+}
+.titleY {
+  animation: animationY var(--bounce-y-speed) linear infinite alternate;
+}
+
+@keyframes animationColor {
+  0% {
+    color: $canonical-green;
+    filter: drop-shadow(0 0 1em $canonical-green);
+  }
+  25% {
+    color: $canonical-blue;
+    filter: drop-shadow(0 0 1em $canonical-blue);
+  }
+  50% {
+    color: $canonical-red;
+    filter: drop-shadow(0 0 1em $canonical-red)
+  }
+  100% {
+    color: $canonical-yellow;
+    filter: drop-shadow(0 0 1em $canonical-yellow);
+  }
+}
+
+@keyframes animationX {
+  0% {
+    transform: translateX(0px);
+  }
+  100% {
+    transform: translateX(calc(100dvw - var(--bounce-width, 0px)));
+  }
+}
+@keyframes animationY {
+  0% {
+    transform: translateY(0px);
+  }
+  100% {
+    transform: translateY(calc(100dvh - var(--bounce-height, 0px)));
+  }
 }
