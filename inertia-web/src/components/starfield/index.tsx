@@ -21,15 +21,24 @@ const genStar = (): Star => {
   };
 };
 
+const resetStar = (star: Star) => {
+  star.z = 0;
+  star.x = Math.random();
+  star.y = Math.random();
+};
+
 const moveStar = (star: Star, speed: number) => {
-  star.z = (star.z + speed) % Z_LIMIT;
+  star.z = star.z + speed;
+  if (star.z > Z_LIMIT) {
+    resetStar(star);
+  }
 };
 
-const asLastPosition = (star: Star, speed: number): Star => {
-  return { ...star, z: Math.max(0, star.z - speed) };
+const getStarAsNStepsAgo = (star: Star, speed: number, n: number): Star => {
+  return { ...star, z: Math.max(0, star.z - speed * n) };
 };
 
-const getStarArcInfo = (
+const getStarInfo = (
   canvas: HTMLCanvasElement,
   star: Star
 ): {
@@ -56,18 +65,39 @@ const getStarArcInfo = (
   };
 };
 
-const showStar = (
+const getStarInfoNStepsAgo = (
   canvas: HTMLCanvasElement,
-  context: CanvasRenderingContext2D,
   star: Star,
-  speed: number
+  speed: number,
+  n: number
 ) => {
-  const { x, y, radius, opacity } = getStarArcInfo(canvas, star);
   const {
     x: lastX,
     y: lastY,
     radius: lastRadius,
-  } = getStarArcInfo(canvas, asLastPosition(star, speed));
+  } = getStarInfo(canvas, getStarAsNStepsAgo(star, speed, n));
+  return {
+    lastX,
+    lastY,
+    lastRadius,
+  };
+};
+
+const showStar = (
+  canvas: HTMLCanvasElement,
+  context: CanvasRenderingContext2D,
+  star: Star,
+  speed: number,
+  blurNSteps: number
+) => {
+  const { x, y, radius, opacity } = getStarInfo(canvas, star);
+  const { lastX, lastY, lastRadius } = getStarInfoNStepsAgo(
+    canvas,
+    star,
+    speed,
+    blurNSteps
+  );
+
   const deltaY = y - lastY;
   const deltaX = x - lastX;
   const angle = Math.atan2(deltaY, deltaX);
@@ -76,10 +106,12 @@ const showStar = (
 
   const color = `rgba(255, 255, 255, ${opacity})`;
 
+  if (lastX < 0 || lastY < 0 || lastX > canvas.width || lastY > canvas.height) {
+    resetStar(star);
+    return;
+  }
+
   context.beginPath();
-  // Looks cool, but kills performance
-  // context.shadowColor = color;
-  // context.shadowBlur = speed;
   context.fillStyle = color;
   context.arc(lastX, lastY, lastRadius, arcStart, arcEnd);
   context.arc(x, y, radius, arcEnd, arcStart);
@@ -107,34 +139,6 @@ export const Starfield = ({ numStars, speed }: StarfieldProps) => {
   }
 
   useEffect(() => {
-    const animate = (_timestamp: DOMHighResTimeStamp) => {
-      const canvas = canvasRef.current;
-      if (canvas == null) {
-        return;
-      }
-
-      const context = canvas.getContext('2d');
-      if (context == null) {
-        return;
-      }
-
-      context.fillStyle = '#373b55';
-      context.fillRect(0, 0, canvas.width, canvas.height);
-      for (const star of stars.current) {
-        showStar(canvas, context, star, speed);
-        moveStar(star, speed);
-      }
-      animationFrame.current = window.requestAnimationFrame(animate);
-    };
-    animate(0);
-    return () => {
-      if (animationFrame.current != 0) {
-        window.cancelAnimationFrame(animationFrame.current);
-      }
-    };
-  }, [speed]);
-
-  useEffect(() => {
     const setup = () => {
       const canvas = canvasRef.current;
       if (canvas == null) {
@@ -158,6 +162,40 @@ export const Starfield = ({ numStars, speed }: StarfieldProps) => {
       window.removeEventListener('resize', debouncedSetup);
     };
   }, []);
+
+  useEffect(() => {
+    // TODO: Separate animations for hyperspace effects (enter + exit) :)
+    // Don't forget this might help:
+    // context.fillStyle = '#ffffff'; // go full opacity and skip individual
+    // fillStyle for hyperspace effect
+    const animateMotion = (_timestamp: DOMHighResTimeStamp) => {
+      const canvas = canvasRef.current;
+      if (canvas == null) {
+        return;
+      }
+
+      const context = canvas.getContext('2d');
+      if (context == null) {
+        return;
+      }
+
+      context.fillStyle = '#373b55';
+      context.fillRect(0, 0, canvas.width, canvas.height);
+      for (const star of stars.current) {
+        showStar(canvas, context, star, speed, 1);
+        moveStar(star, speed);
+      }
+      animationFrame.current = window.requestAnimationFrame(animateMotion);
+    };
+
+    animateMotion(0);
+
+    return () => {
+      if (animationFrame.current != 0) {
+        window.cancelAnimationFrame(animationFrame.current);
+      }
+    };
+  }, [speed]);
 
   return <canvas className={style.background} ref={canvasRef} />;
 };
