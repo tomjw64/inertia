@@ -1,5 +1,5 @@
 use crate::mechanics::BitBoard;
-use crate::mechanics::Board;
+use crate::mechanics::BlockBoard;
 use crate::mechanics::Direction;
 use crate::mechanics::Square;
 use crate::mechanics::DOWN_MOVE_RAYS;
@@ -7,8 +7,11 @@ use crate::mechanics::LEFT_MOVE_RAYS;
 use crate::mechanics::RIGHT_MOVE_RAYS;
 use crate::mechanics::UP_MOVE_RAYS;
 
+use super::ActorSquares;
+use super::MoveBoard;
+
 pub fn get_movement_ray(
-  board: &Board,
+  board: &BlockBoard,
   actor_square: Square,
   occupied_squares: BitBoard,
   direction: Direction,
@@ -58,8 +61,88 @@ pub fn get_movement_ray(
 //   destination_cell_index.map(Square).unwrap_or(actor_square)
 // }
 
+pub fn get_move_destination_moveboard(
+  board: &MoveBoard,
+  actor_square: Square,
+  actor_squares: ActorSquares,
+  direction: Direction,
+) -> Square {
+  let direction_moves = match direction {
+    Direction::Up => &board.up_moves,
+    Direction::Down => &board.down_moves,
+    Direction::Left => &board.left_moves,
+    Direction::Right => &board.right_moves,
+  };
+  let unimpeded_move = direction_moves[actor_square.0 as usize];
+
+  match direction {
+    Direction::Up => {
+      if unimpeded_move == actor_square
+        || unimpeded_move.0 + 16 == actor_square.0
+      {
+        return unimpeded_move;
+      }
+      for square in actor_squares.0 {
+        if square.0 % 16 == actor_square.0 % 16
+          && square.0 < actor_square.0
+          && square.0 > unimpeded_move.0
+        {
+          return square;
+        }
+      }
+    }
+    Direction::Down => {
+      if unimpeded_move == actor_square
+        || unimpeded_move.0 - 16 == actor_square.0
+      {
+        return unimpeded_move;
+      }
+      for square in actor_squares.0 {
+        if square.0 % 16 == actor_square.0 % 16
+          && square.0 > actor_square.0
+          && square.0 < unimpeded_move.0
+        {
+          return square;
+        }
+      }
+    }
+    Direction::Left => {
+      if unimpeded_move == actor_square
+        || unimpeded_move.0 + 1 == actor_square.0
+      {
+        return unimpeded_move;
+      }
+      for square in actor_squares.0 {
+        if square.0 / 16 == actor_square.0 / 16
+          && square.0 < actor_square.0
+          && square.0 > unimpeded_move.0
+        {
+          return square;
+        }
+      }
+    }
+    Direction::Right => {
+      if unimpeded_move == actor_square
+        || unimpeded_move.0 - 1 == actor_square.0
+      {
+        return unimpeded_move;
+      }
+      for square in actor_squares.0 {
+        if square.0 / 16 == actor_square.0 / 16
+          && square.0 > actor_square.0
+          && square.0 < unimpeded_move.0
+        {
+          return square;
+        }
+      }
+    }
+  };
+
+  unimpeded_move
+}
+
 pub fn get_move_destination(
-  board: &Board,
+  board: &BlockBoard,
   actor_square: Square,
   occupied_squares: BitBoard,
   direction: Direction,
@@ -98,7 +181,7 @@ mod test {
   fn test_up_unblocked() {
     assert_eq!(
       get_move_destination(
-        &Board::EMPTY,
+        &BlockBoard::EMPTY,
         Square(250),
         BitBoard::ZERO,
         Direction::Up
@@ -111,7 +194,7 @@ mod test {
   fn test_up_blocked_by_occupied() {
     assert_eq!(
       get_move_destination(
-        &Board::EMPTY,
+        &BlockBoard::EMPTY,
         Square(250),
         BitBoard::from(Square(26)),
         Direction::Up
@@ -124,9 +207,9 @@ mod test {
   fn test_up_blocked_by_board() {
     assert_eq!(
       get_move_destination(
-        &Board {
+        &BlockBoard {
           up_blocks: BitBoard::from(Square(26)),
-          ..Board::EMPTY
+          ..BlockBoard::EMPTY
         },
         Square(250),
         BitBoard::ZERO,
@@ -140,7 +223,7 @@ mod test {
   fn test_up_blocked_by_multiple() {
     assert_eq!(
       get_move_destination(
-        &Board::EMPTY,
+        &BlockBoard::EMPTY,
         Square(250),
         BitBoard::from(Square(26)) | BitBoard::from(Square(58)),
         Direction::Up
@@ -153,7 +236,7 @@ mod test {
   fn test_up_zero() {
     assert_eq!(
       get_move_destination(
-        &Board::EMPTY,
+        &BlockBoard::EMPTY,
         Square(0),
         BitBoard::ZERO,
         Direction::Up
@@ -166,7 +249,7 @@ mod test {
   fn test_up_max() {
     assert_eq!(
       get_move_destination(
-        &Board::EMPTY,
+        &BlockBoard::EMPTY,
         Square(255),
         BitBoard::ZERO,
         Direction::Up
@@ -179,7 +262,7 @@ mod test {
   fn test_down_unblocked() {
     assert_eq!(
       get_move_destination(
-        &Board::EMPTY,
+        &BlockBoard::EMPTY,
         Square(10),
         BitBoard::ZERO,
         Direction::Down
@@ -192,7 +275,7 @@ mod test {
   fn test_down_blocked_by_occupied() {
     assert_eq!(
       get_move_destination(
-        &Board::EMPTY,
+        &BlockBoard::EMPTY,
         Square(10),
         BitBoard::from(Square(42)),
         Direction::Down
@@ -205,9 +288,9 @@ mod test {
   fn test_down_blocked_by_board() {
     assert_eq!(
       get_move_destination(
-        &Board {
+        &BlockBoard {
           down_blocks: BitBoard::from(Square(42)),
-          ..Board::EMPTY
+          ..BlockBoard::EMPTY
         },
         Square(10),
         BitBoard::ZERO,
@@ -221,7 +304,7 @@ mod test {
   fn test_down_blocked_by_multiple() {
     assert_eq!(
       get_move_destination(
-        &Board::EMPTY,
+        &BlockBoard::EMPTY,
         Square(10),
         BitBoard::from(Square(234)) | BitBoard::from(Square(202)),
         Direction::Down
@@ -234,7 +317,7 @@ mod test {
   fn test_down_zero() {
     assert_eq!(
       get_move_destination(
-        &Board::EMPTY,
+        &BlockBoard::EMPTY,
         Square(0),
         BitBoard::ZERO,
         Direction::Down
@@ -247,7 +330,7 @@ mod test {
   fn test_down_max() {
     assert_eq!(
       get_move_destination(
-        &Board::EMPTY,
+        &BlockBoard::EMPTY,
         Square(255),
         BitBoard::ZERO,
         Direction::Down
@@ -260,7 +343,7 @@ mod test {
   fn test_left_unblocked() {
     assert_eq!(
       get_move_destination(
-        &Board::EMPTY,
+        &BlockBoard::EMPTY,
         Square(79),
         BitBoard::ZERO,
         Direction::Left
@@ -273,7 +356,7 @@ mod test {
   fn test_left_blocked_by_occupied() {
     assert_eq!(
       get_move_destination(
-        &Board::EMPTY,
+        &BlockBoard::EMPTY,
         Square(79),
         BitBoard::from(Square(68)),
         Direction::Left
@@ -286,9 +369,9 @@ mod test {
   fn test_left_blocked_by_board() {
     assert_eq!(
       get_move_destination(
-        &Board {
+        &BlockBoard {
           left_blocks: BitBoard::from(Square(68)),
-          ..Board::EMPTY
+          ..BlockBoard::EMPTY
         },
         Square(79),
         BitBoard::ZERO,
@@ -302,7 +385,7 @@ mod test {
   fn test_left_blocked_by_multiple() {
     assert_eq!(
       get_move_destination(
-        &Board::EMPTY,
+        &BlockBoard::EMPTY,
         Square(79),
         BitBoard::from(Square(68)) | BitBoard::from(Square(73)),
         Direction::Left
@@ -315,7 +398,7 @@ mod test {
   fn test_left_zero() {
     assert_eq!(
       get_move_destination(
-        &Board::EMPTY,
+        &BlockBoard::EMPTY,
         Square(0),
         BitBoard::ZERO,
         Direction::Left
@@ -328,7 +411,7 @@ mod test {
   fn test_left_max() {
     assert_eq!(
       get_move_destination(
-        &Board::EMPTY,
+        &BlockBoard::EMPTY,
         Square(255),
         BitBoard::ZERO,
         Direction::Left
@@ -341,7 +424,7 @@ mod test {
   fn test_right_unblocked() {
     assert_eq!(
       get_move_destination(
-        &Board::EMPTY,
+        &BlockBoard::EMPTY,
         Square(64),
         BitBoard::ZERO,
         Direction::Right
@@ -354,7 +437,7 @@ mod test {
   fn test_right_blocked_by_occupied() {
     assert_eq!(
       get_move_destination(
-        &Board::EMPTY,
+        &BlockBoard::EMPTY,
         Square(64),
         BitBoard::from(Square(70)),
         Direction::Right
@@ -367,9 +450,9 @@ mod test {
   fn test_right_blocked_by_board() {
     assert_eq!(
       get_move_destination(
-        &Board {
+        &BlockBoard {
           right_blocks: BitBoard::from(Square(70)),
-          ..Board::EMPTY
+          ..BlockBoard::EMPTY
         },
         Square(64),
         BitBoard::ZERO,
@@ -383,7 +466,7 @@ mod test {
   fn test_right_blocked_by_multiple() {
     assert_eq!(
       get_move_destination(
-        &Board::EMPTY,
+        &BlockBoard::EMPTY,
         Square(64),
         BitBoard::from(Square(70)) | BitBoard::from(Square(66)),
         Direction::Right
@@ -396,7 +479,7 @@ mod test {
   fn test_right_zero() {
     assert_eq!(
       get_move_destination(
-        &Board::EMPTY,
+        &BlockBoard::EMPTY,
         Square(0),
         BitBoard::ZERO,
         Direction::Right
@@ -409,7 +492,7 @@ mod test {
   fn test_right_max() {
     assert_eq!(
       get_move_destination(
-        &Board::EMPTY,
+        &BlockBoard::EMPTY,
         Square(255),
         BitBoard::ZERO,
         Direction::Right
@@ -422,9 +505,9 @@ mod test {
   fn test_move_on_block() {
     assert_eq!(
       get_move_destination(
-        &Board {
+        &BlockBoard {
           down_blocks: BitBoard::from(Square(0)),
-          ..Board::EMPTY
+          ..BlockBoard::EMPTY
         },
         Square(00),
         BitBoard::ZERO,

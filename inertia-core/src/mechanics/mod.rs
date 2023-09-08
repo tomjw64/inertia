@@ -4,8 +4,11 @@ pub use actor_squares::*;
 mod bitboard;
 pub use bitboard::*;
 
-mod board;
-pub use board::*;
+mod block_board;
+pub use block_board::*;
+
+mod move_board;
+pub use move_board::*;
 
 mod direction;
 pub use direction::*;

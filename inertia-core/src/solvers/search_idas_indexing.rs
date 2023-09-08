@@ -7,7 +7,7 @@ use crate::mechanics::get_move_destination;
 use crate::mechanics::get_movement_ray;
 use crate::mechanics::ActorSquares;
 use crate::mechanics::BitBoard;
-use crate::mechanics::Board;
+use crate::mechanics::BlockBoard;
 use crate::mechanics::Direction;
 use crate::mechanics::Square;
 use crate::solvers::SolutionStep;
@@ -75,7 +75,7 @@ impl HeuristicBoard {
     false
   }
 
-  fn from_board(board: &Board) -> Self {
+  fn from_board(board: &BlockBoard) -> Self {
     let goal_index = board.goal.0;
 
     let mut unoccupied_augment_bitboards: Vec<(usize, BitBoard)> = vec![];
@@ -164,7 +164,7 @@ impl HeuristicBoard {
 }
 
 pub fn deepening_search_to_depth(
-  board: &Board,
+  board: &BlockBoard,
   actor_squares: ActorSquares,
   max_depth: usize,
 ) -> Option<Vec<SolutionStep>> {
@@ -191,7 +191,7 @@ pub fn deepening_search_to_depth(
 }
 
 fn search_at_depth(
-  board: &Board,
+  board: &BlockBoard,
   heuristic_board: &HeuristicBoard,
   actor_squares: ActorSquares,
   search_depth: usize,
@@ -210,7 +210,7 @@ fn search_at_depth(
 }
 
 fn _search_at_depth(
-  board: &Board,
+  board: &BlockBoard,
   heuristic_board: &HeuristicBoard,
   actor_squares: ActorSquares,
   search_depth: usize,
@@ -293,7 +293,7 @@ mod benchmarks {
   fn bench_init_already_solved(b: &mut Bencher) {
     b.iter(|| {
       deepening_search_to_depth(
-        &Board::EMPTY,
+        &BlockBoard::EMPTY,
         ActorSquares([Square(0), Square(1), Square(2), Square(3)]),
         1,
       )
@@ -439,7 +439,7 @@ mod benchmarks {
     };
     let actor_squares = ActorSquares([37, 108, 57, 50].map(Square));
 
-    let board = Board::from(walled_board);
+    let board = BlockBoard::from(walled_board);
 
     let start = Instant::now();
 
@@ -459,7 +459,7 @@ mod benchmarks {
       walled_board,
       actor_squares,
     } = position;
-    let board = Board::from(walled_board);
+    let board = BlockBoard::from(walled_board);
 
     let start = Instant::now();
 
@@ -480,7 +480,7 @@ mod test {
   #[test]
   fn test_already_solved() {
     let solution = deepening_search_to_depth(
-      &Board::EMPTY,
+      &BlockBoard::EMPTY,
       ActorSquares([Square(0), Square(1), Square(2), Square(3)]),
       1,
     );
@@ -490,7 +490,7 @@ mod test {
   #[test]
   fn test_empty_solve_in_one() {
     let solution = deepening_search_to_depth(
-      &Board::EMPTY,
+      &BlockBoard::EMPTY,
       ActorSquares([Square(1), Square(2), Square(3), Square(4)]),
       1,
     );
@@ -500,7 +500,7 @@ mod test {
   #[test]
   fn test_empty_solve_in_one_reverse() {
     let solution = deepening_search_to_depth(
-      &Board::EMPTY,
+      &BlockBoard::EMPTY,
       ActorSquares([Square(4), Square(3), Square(2), Square(1)]),
       1,
     );
@@ -510,7 +510,7 @@ mod test {
   #[test]
   fn test_empty_solve_in_one_below_max() {
     let solution = deepening_search_to_depth(
-      &Board::EMPTY,
+      &BlockBoard::EMPTY,
       ActorSquares([Square(4), Square(3), Square(2), Square(1)]),
       10,
     );
@@ -520,7 +520,7 @@ mod test {
   #[test]
   fn test_empty_no_solve_in_one() {
     let solution = deepening_search_to_depth(
-      &Board::EMPTY,
+      &BlockBoard::EMPTY,
       ActorSquares([Square(17), Square(18), Square(19), Square(20)]),
       1,
     );
@@ -530,7 +530,7 @@ mod test {
   #[test]
   fn test_empty_solve_in_two() {
     let solution = deepening_search_to_depth(
-      &Board::EMPTY,
+      &BlockBoard::EMPTY,
       ActorSquares([Square(17), Square(18), Square(19), Square(20)]),
       2,
     );
@@ -542,9 +542,9 @@ mod test {
 
   #[test]
   fn test_empty_solve_in_three() {
-    let board = Board {
+    let board = BlockBoard {
       goal: Square(17),
-      ..Board::EMPTY
+      ..BlockBoard::EMPTY
     };
     let solution = deepening_search_to_depth(
       &board,

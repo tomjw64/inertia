@@ -2,7 +2,7 @@ use crate::mechanics::BitBoard;
 use crate::mechanics::Square;
 
 #[derive(Copy, Clone, Debug)]
-pub struct Board {
+pub struct BlockBoard {
   pub(crate) goal: Square,
   pub(crate) up_blocks: BitBoard,
   pub(crate) down_blocks: BitBoard,
@@ -10,7 +10,7 @@ pub struct Board {
   pub(crate) left_blocks: BitBoard,
 }
 
-impl Board {
+impl BlockBoard {
   pub(crate) const EMPTY: Self = Self {
     goal: Square(0),
     up_blocks: BitBoard::ZERO,

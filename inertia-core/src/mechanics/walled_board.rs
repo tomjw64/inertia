@@ -4,7 +4,7 @@ use serde::Deserialize;
 use serde::Serialize;
 use typeshare::typeshare;
 
-use crate::mechanics::Board;
+use crate::mechanics::BlockBoard;
 use crate::mechanics::Square;
 
 #[typeshare]
@@ -92,7 +92,7 @@ impl fmt::Display for WalledBoard {
   }
 }
 
-impl From<WalledBoard> for Board {
+impl From<WalledBoard> for BlockBoard {
   fn from(walled_board: WalledBoard) -> Self {
     let mut board = Self::EMPTY;
     board.goal = walled_board.goal;
