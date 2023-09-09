@@ -4,7 +4,6 @@ use serde::Deserialize;
 use serde::Serialize;
 use typeshare::typeshare;
 
-use crate::mechanics::BlockBoard;
 use crate::mechanics::Square;
 
 #[typeshare]
@@ -89,37 +88,5 @@ impl fmt::Display for WalledBoard {
     f.write_str("\n")?;
     f.write_str("\u{2588}".repeat(66).as_str())?;
     Ok(())
-  }
-}
-
-impl From<WalledBoard> for BlockBoard {
-  fn from(walled_board: WalledBoard) -> Self {
-    let mut board = Self::EMPTY;
-    board.goal = walled_board.goal;
-    walled_board
-      .vertical
-      .iter()
-      .enumerate()
-      .for_each(|(row_index, walls)| {
-        walls.iter().enumerate().for_each(|(index, present)| {
-          if !present {
-            return;
-          }
-          board.left_blocks.set_bit(row_index * 16 + index);
-          board.right_blocks.set_bit(row_index * 16 + index + 1);
-        })
-      });
-    walled_board.horizontal.iter().enumerate().for_each(
-      |(col_index, walls)| {
-        walls.iter().enumerate().for_each(|(index, present)| {
-          if !present {
-            return;
-          }
-          board.up_blocks.set_bit(index * 16 + col_index);
-          board.down_blocks.set_bit(index * 16 + col_index + 16);
-        })
-      },
-    );
-    board
   }
 }

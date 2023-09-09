@@ -16,7 +16,7 @@ fn main() {
       (GET) (/board/random) => {
         let position = ClassicBoardGenerator::new().generate_position();
         let WalledBoardPosition { walled_board, actor_squares } = position;
-        let board = BlockBoard::from(walled_board);
+        let board = BlockBoard::from(&walled_board);
 
         let solution: Option<Vec<SolutionStep>> =
           deepening_search_to_depth(&board, actor_squares, 45);

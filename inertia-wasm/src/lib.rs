@@ -2,8 +2,7 @@ mod js_ffi;
 mod log;
 mod utils;
 
-use inertia_core::mechanics::get_move_destination;
-use inertia_core::mechanics::get_movement_ray;
+use inertia_core::mechanics::BlockBoard;
 use inertia_core::mechanics::Direction;
 use inertia_core::mechanics::ExpandedBitBoard;
 use inertia_core::mechanics::Square;
@@ -66,13 +65,13 @@ pub fn get_movement_ray_for_actor(
       } = board_position.0;
       let direction = direction.0;
 
-      let expanded_bitboard = get_movement_ray(
-        &walled_board.into(),
-        actor_squares.0[actor],
-        actor_squares.as_bitboard(),
-        direction,
-      )
-      .to_expanded();
+      let expanded_bitboard = BlockBoard::from(&walled_board)
+        .get_movement_ray(
+          actor_squares.0[actor],
+          actor_squares.as_bitboard(),
+          direction,
+        )
+        .to_expanded();
       ExpandedBitBoardWrapper(expanded_bitboard)
     }
     _ => ExpandedBitBoardWrapper([false; 256]),
@@ -93,8 +92,7 @@ pub fn get_movement_for_actor(
       } = board_position.0;
       let direction = direction.0;
 
-      let square = get_move_destination(
-        &walled_board.into(),
+      let square = BlockBoard::from(&walled_board).get_move_destination(
         actor_squares.0[actor],
         actor_squares.as_bitboard(),
         direction,
