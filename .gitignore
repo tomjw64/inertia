@@ -2,5 +2,8 @@ target/
 Cargo.lock
 pkg/
 
+flamegraph*.svg
+perf.data*
+
 node_modules/
 dist/

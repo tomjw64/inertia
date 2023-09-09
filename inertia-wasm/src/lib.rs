@@ -62,6 +62,7 @@ pub fn get_movement_ray_for_actor(
       let WalledBoardPosition {
         walled_board,
         actor_squares,
+        ..
       } = board_position.0;
       let direction = direction.0;
 
@@ -89,6 +90,7 @@ pub fn get_movement_for_actor(
       let WalledBoardPosition {
         walled_board,
         actor_squares,
+        ..
       } = board_position.0;
       let direction = direction.0;
 

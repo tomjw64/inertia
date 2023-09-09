@@ -9,7 +9,6 @@ use crate::mechanics::UP_MOVE_RAYS;
 
 #[derive(Copy, Clone, Debug)]
 pub struct BlockBoard {
-  pub(crate) goal: Square,
   pub up_blocks: BitBoard,
   pub down_blocks: BitBoard,
   pub right_blocks: BitBoard,
@@ -18,7 +17,6 @@ pub struct BlockBoard {
 
 impl BlockBoard {
   pub const EMPTY: Self = Self {
-    goal: Square(0),
     up_blocks: BitBoard::ZERO,
     down_blocks: BitBoard::ZERO,
     right_blocks: BitBoard::ZERO,
@@ -128,7 +126,6 @@ impl BlockBoard {
 impl From<&WalledBoard> for BlockBoard {
   fn from(walled_board: &WalledBoard) -> Self {
     let mut board = Self::EMPTY;
-    board.goal = walled_board.goal;
     walled_board
       .vertical
       .iter()

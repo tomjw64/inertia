@@ -14,16 +14,16 @@ type WallGrid = [WallGroup; 16];
 #[typeshare]
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub struct WalledBoard {
-  pub(crate) vertical: WallGrid,   // 16 ROWS of 15
+  pub(crate) vertical: WallGrid, // 16 ROWS of 15
   pub(crate) horizontal: WallGrid, // 16 COLUMNS of 15
-  pub(crate) goal: Square,
+                                 // pub goal: Square,
 }
 
 impl WalledBoard {
   pub(crate) const EMPTY: Self = Self {
     vertical: [[false; 15]; 16],
     horizontal: [[false; 15]; 16],
-    goal: Square(0),
+    // goal: Square(0),
   };
 
   pub(crate) fn col(&self, col: usize) -> &WallGroup {
@@ -51,22 +51,14 @@ impl fmt::Display for WalledBoard {
       f.write_str("\n")?;
       f.write_str("\u{2588}".repeat(2).as_str())?;
       for column in 0..15 {
-        if self.goal == Square::from_row_col(row, column) {
-          f.write_str("()")?;
-        } else {
-          f.write_str(" ".repeat(2).as_str())?;
-        }
+        f.write_str(" ".repeat(2).as_str())?;
         if self.row(row)[column] {
           f.write_str("\u{2588}".repeat(2).as_str())?;
         } else {
           f.write_str("\u{2591}".repeat(2).as_str())?;
         }
       }
-      if self.goal == Square::from_row_col(row, 15) {
-        f.write_str("()")?;
-      } else {
-        f.write_str(" ".repeat(2).as_str())?;
-      }
+      f.write_str(" ".repeat(2).as_str())?;
       f.write_str("\u{2588}".repeat(2).as_str())?;
       if row == 15 {
         continue;

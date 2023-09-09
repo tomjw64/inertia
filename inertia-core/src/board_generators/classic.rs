@@ -209,9 +209,8 @@ impl WalledBoardPositionGenerator for ClassicBoardGenerator {
       .choose_multiple_fill(&mut rng, &mut goal_and_actor_squares);
     goal_and_actor_squares.shuffle(&mut rng);
 
-    walled_board.goal = Square(goal_and_actor_squares[0]);
-
     WalledBoardPosition {
+      goal: Square(goal_and_actor_squares[0]),
       actor_squares: ActorSquares([
         Square(goal_and_actor_squares[1]),
         Square(goal_and_actor_squares[2]),

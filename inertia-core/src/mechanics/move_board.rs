@@ -5,6 +5,8 @@ use crate::mechanics::Direction;
 use crate::mechanics::Square;
 use crate::mechanics::WalledBoard;
 
+use crate::mechanics::BitBoard;
+
 #[derive(Copy, Clone)]
 pub struct MoveBoard {
   pub(crate) up_moves: [Square; 256],
@@ -14,12 +16,147 @@ pub struct MoveBoard {
 }
 
 impl MoveBoard {
-  pub const EMPTY: MoveBoard = MoveBoard {
-    up_moves: [Square(0); 256],
-    down_moves: [Square(0); 256],
-    right_moves: [Square(0); 256],
-    left_moves: [Square(0); 256],
+  const fn get_empty_up() -> [Square; 256] {
+    let mut result = [Square(0); 256];
+    let mut i = 0u8;
+    while i < 255 {
+      result[i as usize] = Square(i % 16);
+      i += 1;
+    }
+    result[i as usize] = Square(i % 16);
+    result
+  }
+
+  const fn get_empty_down() -> [Square; 256] {
+    let mut result = [Square(0); 256];
+    let mut i = 0u8;
+    while i < 255 {
+      result[i as usize] = Square(240 + i % 16);
+      i += 1;
+    }
+    result[i as usize] = Square(240 + i % 16);
+    result
+  }
+
+  const fn get_empty_left() -> [Square; 256] {
+    let mut result = [Square(0); 256];
+    let mut i = 0u8;
+    while i < 255 {
+      result[i as usize] = Square(i / 16 * 16);
+      i += 1;
+    }
+    result[i as usize] = Square(i / 16 * 16);
+    result
+  }
+
+  const fn get_empty_right() -> [Square; 256] {
+    let mut result = [Square(0); 256];
+    let mut i = 0u8;
+    while i < 255 {
+      result[i as usize] = Square(i / 16 * 16 + 15);
+      i += 1;
+    }
+    result[i as usize] = Square(i / 16 * 16 + 15);
+    result
+  }
+
+  pub const EMPTY: Self = Self {
+    up_moves: Self::get_empty_up(),
+    down_moves: Self::get_empty_down(),
+    left_moves: Self::get_empty_left(),
+    right_moves: Self::get_empty_right(),
   };
+
+  pub fn has_any_block_on(&self, square: Square) -> bool {
+    [
+      &self.up_moves,
+      &self.down_moves,
+      &self.left_moves,
+      &self.right_moves,
+    ]
+    .iter()
+    .any(|&squares| squares[square.0 as usize] == square)
+  }
+
+  pub fn get_unimpeded_movement_ray(
+    &self,
+    actor_square: Square,
+    direction: Direction,
+  ) -> BitBoard {
+    let move_destination =
+      self.get_unimpeded_move_destination(actor_square, direction);
+    let mut ray = BitBoard::ZERO;
+    match direction {
+      Direction::Up => {
+        for index in (move_destination.0..=actor_square.0).step_by(16) {
+          ray.set_bit(index as usize);
+        }
+      }
+      Direction::Down => {
+        for index in (actor_square.0..=move_destination.0).step_by(16) {
+          ray.set_bit(index as usize);
+        }
+      }
+      Direction::Left => {
+        for index in move_destination.0..=actor_square.0 {
+          ray.set_bit(index as usize);
+        }
+      }
+      Direction::Right => {
+        for index in actor_square.0..=move_destination.0 {
+          ray.set_bit(index as usize);
+        }
+      }
+    };
+    ray
+  }
+
+  pub fn get_movement_ray(
+    &self,
+    actor_square: Square,
+    actor_squares: ActorSquares,
+    direction: Direction,
+  ) -> BitBoard {
+    let move_destination =
+      self.get_move_destination(actor_square, actor_squares, direction);
+    let mut ray = BitBoard::ZERO;
+    match direction {
+      Direction::Up => {
+        for index in (actor_square.0..=move_destination.0).step_by(16) {
+          ray.set_bit(index as usize);
+        }
+      }
+      Direction::Down => {
+        for index in (move_destination.0..=actor_square.0).step_by(16) {
+          ray.set_bit(index as usize);
+        }
+      }
+      Direction::Left => {
+        for index in actor_square.0..=move_destination.0 {
+          ray.set_bit(index as usize);
+        }
+      }
+      Direction::Right => {
+        for index in move_destination.0..=actor_square.0 {
+          ray.set_bit(index as usize);
+        }
+      }
+    };
+    ray
+  }
+
+  pub fn get_unimpeded_move_destination(
+    &self,
+    actor_square: Square,
+    direction: Direction,
+  ) -> Square {
+    match direction {
+      Direction::Up => self.up_moves[actor_square.0 as usize],
+      Direction::Down => self.down_moves[actor_square.0 as usize],
+      Direction::Left => self.left_moves[actor_square.0 as usize],
+      Direction::Right => self.right_moves[actor_square.0 as usize],
+    }
+  }
 
   pub fn get_move_destination(
     &self,
@@ -27,78 +164,72 @@ impl MoveBoard {
     actor_squares: ActorSquares,
     direction: Direction,
   ) -> Square {
-    let direction_moves = match direction {
-      Direction::Up => &self.up_moves,
-      Direction::Down => &self.down_moves,
-      Direction::Left => &self.left_moves,
-      Direction::Right => &self.right_moves,
-    };
-    let unimpeded_move = direction_moves[actor_square.0 as usize];
-
     match direction {
       Direction::Up => {
-        if unimpeded_move == actor_square
-          || unimpeded_move.0 + 16 == actor_square.0
-        {
+        let unimpeded_move = self.up_moves[actor_square.0 as usize];
+        if unimpeded_move == actor_square {
           return unimpeded_move;
         }
+        let mut max = unimpeded_move;
         for square in actor_squares.0 {
           if square.0 % 16 == actor_square.0 % 16
             && square.0 < actor_square.0
-            && square.0 > unimpeded_move.0
+            && square.0 + 16 > max.0
           {
-            return square;
+            max = Square(square.0 + 16);
           }
         }
+        max
       }
       Direction::Down => {
-        if unimpeded_move == actor_square
-          || unimpeded_move.0 - 16 == actor_square.0
-        {
+        let unimpeded_move = self.down_moves[actor_square.0 as usize];
+        if unimpeded_move == actor_square {
           return unimpeded_move;
         }
+        let mut min = unimpeded_move;
         for square in actor_squares.0 {
           if square.0 % 16 == actor_square.0 % 16
             && square.0 > actor_square.0
-            && square.0 < unimpeded_move.0
+            && square.0 - 16 < min.0
           {
-            return square;
+            min = Square(square.0 - 16);
           }
         }
+        min
       }
       Direction::Left => {
-        if unimpeded_move == actor_square
-          || unimpeded_move.0 + 1 == actor_square.0
-        {
+        let unimpeded_move = self.left_moves[actor_square.0 as usize];
+        if unimpeded_move == actor_square {
           return unimpeded_move;
         }
+        let mut max = unimpeded_move;
         for square in actor_squares.0 {
           if square.0 / 16 == actor_square.0 / 16
             && square.0 < actor_square.0
-            && square.0 > unimpeded_move.0
+            && square.0 + 1 > max.0
           {
-            return square;
+            max = Square(square.0 + 1);
           }
         }
+        max
       }
       Direction::Right => {
-        if unimpeded_move == actor_square
-          || unimpeded_move.0 - 1 == actor_square.0
-        {
+        let unimpeded_move = self.right_moves[actor_square.0 as usize];
+        if unimpeded_move == actor_square {
           return unimpeded_move;
         }
+        let mut min = unimpeded_move;
         for square in actor_squares.0 {
           if square.0 / 16 == actor_square.0 / 16
             && square.0 > actor_square.0
-            && square.0 < unimpeded_move.0
+            && square.0 - 1 < min.0
           {
-            return square;
+            min = Square(square.0 - 1);
           }
         }
+        min
       }
-    };
-
-    unimpeded_move
+    }
   }
 }
 
@@ -149,36 +280,22 @@ impl From<&WalledBoard> for MoveBoard {
       left_moves: [Square(0); 256],
     };
 
-    for (row, walls) in walled_board.vertical.iter().enumerate() {
-      let mut column = 0;
-      for (wall, &present) in walls.iter().enumerate() {
-        if present {
-          while column <= wall {
-            move_board.right_moves
-              [Square::from_row_col(row, column).0 as usize] =
-              Square::from_row_col(row, wall);
-            column += 1
-          }
-        }
-      }
-      let last_square = Square::from_row_col(row, column);
-      move_board.right_moves[last_square.0 as usize] = last_square;
-    }
-
-    for (row, walls) in walled_board.vertical.iter().enumerate() {
-      let mut column = 15;
+    for (column, walls) in walled_board.horizontal.iter().enumerate() {
+      let mut row = 15;
       for (wall, &present) in walls.iter().enumerate().rev() {
         if present {
-          while column > wall {
-            move_board.left_moves
-              [Square::from_row_col(row, column).0 as usize] =
-              Square::from_row_col(row, wall);
-            column -= 1
+          while row > wall {
+            move_board.up_moves[Square::from_row_col(row, column).0 as usize] =
+              Square::from_row_col(wall + 1, column);
+            row -= 1
           }
         }
       }
-      let last_square = Square::from_row_col(row, column);
-      move_board.left_moves[last_square.0 as usize] = last_square;
+      for remaining_row in 0..=row {
+        move_board.up_moves
+          [Square::from_row_col(remaining_row, column).0 as usize] =
+          Square::from_row_col(0, column);
+      }
     }
 
     for (column, walls) in walled_board.horizontal.iter().enumerate() {
@@ -193,24 +310,49 @@ impl From<&WalledBoard> for MoveBoard {
           }
         }
       }
-      let last_square = Square::from_row_col(row, column);
-      move_board.down_moves[last_square.0 as usize] = last_square;
+      for remaining_row in row..=15 {
+        move_board.down_moves
+          [Square::from_row_col(remaining_row, column).0 as usize] =
+          Square::from_row_col(15, column);
+      }
     }
 
-    for (column, walls) in walled_board.horizontal.iter().enumerate() {
-      let mut row = 15;
+    for (row, walls) in walled_board.vertical.iter().enumerate() {
+      let mut column = 15;
       for (wall, &present) in walls.iter().enumerate().rev() {
         if present {
           while column > wall {
             move_board.left_moves
               [Square::from_row_col(row, column).0 as usize] =
-              Square::from_row_col(wall, column);
-            row -= 1
+              Square::from_row_col(row, wall + 1);
+            column -= 1
           }
         }
       }
-      let last_square = Square::from_row_col(row, column);
-      move_board.left_moves[last_square.0 as usize] = last_square;
+      for remaining_column in 0..=column {
+        move_board.left_moves
+          [Square::from_row_col(row, remaining_column).0 as usize] =
+          Square::from_row_col(row, 0);
+      }
+    }
+
+    for (row, walls) in walled_board.vertical.iter().enumerate() {
+      let mut column = 0;
+      for (wall, &present) in walls.iter().enumerate() {
+        if present {
+          while column <= wall {
+            move_board.right_moves
+              [Square::from_row_col(row, column).0 as usize] =
+              Square::from_row_col(row, wall);
+            column += 1
+          }
+        }
+      }
+      for remaining_column in column..=15 {
+        move_board.right_moves
+          [Square::from_row_col(row, remaining_column).0 as usize] =
+          Square::from_row_col(row, 15);
+      }
     }
 
     move_board
