@@ -14,11 +14,10 @@ impl EmptyMiddleGoalBoardGenerator {
 
 impl WalledBoardPositionGenerator for EmptyMiddleGoalBoardGenerator {
   fn generate_position(&self) -> WalledBoardPosition {
-    let mut walled_board = WalledBoard::EMPTY;
     WalledBoardPosition {
       goal: Square::from_row_col(8, 8),
       actor_squares: ActorSquares([Square(0), Square(1), Square(2), Square(3)]),
-      walled_board,
+      walled_board: WalledBoard::EMPTY,
     }
   }
 }

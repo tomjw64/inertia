@@ -1,5 +1,5 @@
-pub mod search_idas_indexing;
-pub mod search_idas_indexing_moveboard;
+pub mod idas;
+pub mod idas_nonrecursive;
 
 mod solution_step;
 pub use solution_step::SolutionStep;

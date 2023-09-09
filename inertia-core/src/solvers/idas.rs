@@ -19,12 +19,14 @@ pub fn deepening_search_to_depth(
   let mut visited = vec![0; u32::MAX as usize];
 
   loop {
+    let mut solution = Vec::with_capacity(current_depth);
     let depth_search_result = search_at_depth(
       board,
       goal,
       &heuristic_board,
       actor_squares,
       current_depth,
+      &mut solution,
       &mut visited,
     );
     if current_depth == max_depth || depth_search_result.is_some() {
@@ -36,27 +38,6 @@ pub fn deepening_search_to_depth(
 }
 
 fn search_at_depth(
-  board: &MoveBoard,
-  goal: Square,
-  heuristic_board: &HeuristicBoard,
-  actor_squares: ActorSquares,
-  search_depth: usize,
-  visited: &mut Vec<u8>,
-) -> Option<Vec<SolutionStep>> {
-  let mut solution = Vec::with_capacity(search_depth);
-
-  _search_at_depth(
-    board,
-    goal,
-    heuristic_board,
-    actor_squares,
-    search_depth,
-    &mut solution,
-    visited,
-  )
-}
-
-fn _search_at_depth(
   board: &MoveBoard,
   goal: Square,
   heuristic_board: &HeuristicBoard,
@@ -101,7 +82,7 @@ fn _search_at_depth(
         actor: actor_index,
         direction,
       });
-      let result = _search_at_depth(
+      let result = search_at_depth(
         board,
         goal,
         heuristic_board,
@@ -134,18 +115,6 @@ mod benchmarks {
   use crate::mechanics::WalledBoardPositionGenerator;
 
   use super::*;
-
-  // #[bench]
-  // fn bench_init_already_solved(b: &mut Bencher) {
-  //   b.iter(|| {
-  //     deepening_search_to_depth(
-  //       &MoveBoard::EMPTY,
-  //       Square(0),
-  //       ActorSquares([Square(0), Square(1), Square(2), Square(3)]),
-  //       1,
-  //     )
-  //   })
-  // }
 
   #[bench]
   fn bench_solve_generated_15(_b: &mut Bencher) {

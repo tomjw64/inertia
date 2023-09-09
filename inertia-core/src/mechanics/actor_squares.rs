@@ -19,11 +19,11 @@ impl ActorSquares {
   }
 
   pub fn as_bitboard(self) -> BitBoard {
-    self
-      .0
-      .map(BitBoard::from)
-      .iter()
-      .fold(BitBoard::ZERO, std::ops::BitOr::bitor)
+    let mut bitboard = BitBoard::ZERO;
+    for Square(index) in self.0 {
+      bitboard.set_bit(index as usize);
+    }
+    bitboard
   }
 
   // Optimal sorting network for 4 elements

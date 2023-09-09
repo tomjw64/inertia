@@ -61,7 +61,10 @@ impl BitBoard {
   }
 
   pub(crate) fn set_bit(&mut self, bit_index: usize) {
-    self.0 |= Self::ONE.0 << bit_index;
+    let relevant_u64_index = bit_index / 64;
+    let relevant_bit_index = bit_index % 64;
+    let relevant_u64 = 1 << relevant_bit_index;
+    self.0 .0[relevant_u64_index as usize] |= relevant_u64;
   }
 
   pub(crate) fn bit(&self, bit_index: usize) -> bool {
