@@ -4,6 +4,7 @@ import { Controls } from '../../components/controls';
 import {
   ActorSquares,
   SolutionStep,
+  Square,
   WallGrid,
   WalledBoard,
 } from 'inertia-core';
@@ -19,10 +20,11 @@ export const Sandbox = () => {
     Array(15).fill(false)
   ) as WallGrid;
 
+  const [goal, setGoal] = useState<Square>(255);
+
   const [walledBoard, setWalledBoard] = useState<WalledBoard>({
     vertical,
     horizontal,
-    goal: 255,
   });
 
   const [initialActorSquares, setInitialActorSquares] = useState<ActorSquares>([
@@ -76,11 +78,13 @@ export const Sandbox = () => {
       <div class={style.room}>
         <Board
           walledBoard={walledBoard}
+          goal={goal}
           actorSquares={actorSquares}
           moveActor={moveActor}
         />
         <Controls
           setWalledBoard={setWalledBoard}
+          setGoal={setGoal}
           setInitialActorSquares={setInitialActorSquares}
           initialActorSquares={initialActorSquares}
           setActorSquares={setActorSquares}

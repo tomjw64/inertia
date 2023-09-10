@@ -9,6 +9,7 @@ import { JSX } from 'preact/jsx-runtime';
 
 type ControlsProps = {
   setWalledBoard: StateUpdater<WalledBoard>;
+  setGoal: StateUpdater<number>;
   setInitialActorSquares: StateUpdater<ActorSquares>;
   initialActorSquares: ActorSquares;
   setActorSquares: StateUpdater<ActorSquares>;
@@ -21,6 +22,7 @@ type ControlsProps = {
 
 export const Controls = ({
   setWalledBoard,
+  setGoal,
   setInitialActorSquares,
   initialActorSquares,
   setActorSquares,
@@ -48,6 +50,7 @@ export const Controls = ({
     const result = (await response.json()) as WalledBoardPosition;
     setInitialActorSquares(result['actor_squares']);
     setWalledBoard(result['walled_board']);
+    setGoal(result['goal']);
   };
 
   const handleResetBoard = async () => {

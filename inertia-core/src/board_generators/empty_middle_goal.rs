@@ -12,6 +12,12 @@ impl EmptyMiddleGoalBoardGenerator {
   }
 }
 
+impl Default for EmptyMiddleGoalBoardGenerator {
+  fn default() -> Self {
+    EmptyMiddleGoalBoardGenerator::new()
+  }
+}
+
 impl WalledBoardPositionGenerator for EmptyMiddleGoalBoardGenerator {
   fn generate_position(&self) -> WalledBoardPosition {
     WalledBoardPosition {

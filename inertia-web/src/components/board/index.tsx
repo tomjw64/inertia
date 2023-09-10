@@ -42,11 +42,17 @@ type MoveActorFunction = (actorIndex: number, squareIndex: number) => void;
 
 type BoardProps = {
   walledBoard: WalledBoard;
+  goal: number;
   actorSquares: ActorSquares;
   moveActor: MoveActorFunction;
 };
 
-export const Board = ({ walledBoard, actorSquares, moveActor }: BoardProps) => {
+export const Board = ({
+  walledBoard,
+  goal,
+  actorSquares,
+  moveActor,
+}: BoardProps) => {
   const [selectedActor, setSelectedActor] = useState(-1);
 
   const actorFlipRects = useRef(new Map()).current;
@@ -196,6 +202,7 @@ export const Board = ({ walledBoard, actorSquares, moveActor }: BoardProps) => {
           {...{
             row,
             walledBoard,
+            goal,
             actorSquares,
             selectedActor,
             setSelectedActor,
@@ -212,6 +219,7 @@ export const Board = ({ walledBoard, actorSquares, moveActor }: BoardProps) => {
 type BoardRowProps = {
   row: number;
   walledBoard: WalledBoard;
+  goal: number;
   actorSquares: ActorSquares;
   selectedActor: number;
   setSelectedActor: StateUpdater<number>;
@@ -223,6 +231,7 @@ type BoardRowProps = {
 const BoardRow = ({
   row,
   walledBoard,
+  goal,
   actorSquares,
   selectedActor,
   setSelectedActor,
@@ -238,6 +247,7 @@ const BoardRow = ({
             row,
             column,
             walledBoard,
+            goal,
             actorSquares,
             selectedActor,
             setSelectedActor,
@@ -255,6 +265,7 @@ type BoardSquareProps = {
   row: number;
   column: number;
   walledBoard: WalledBoard;
+  goal: number;
   actorSquares: ActorSquares;
   selectedActor: number;
   setSelectedActor: StateUpdater<number>;
@@ -267,6 +278,7 @@ const BoardSquare = ({
   row,
   column,
   walledBoard,
+  goal,
   actorSquares,
   selectedActor,
   setSelectedActor,
@@ -274,7 +286,7 @@ const BoardSquare = ({
   movementSquares,
   moveActor,
 }: BoardSquareProps) => {
-  const { horizontal, vertical, goal } = walledBoard;
+  const { horizontal, vertical } = walledBoard;
   const features = [style.square];
 
   if (horizontal[column][row]) {

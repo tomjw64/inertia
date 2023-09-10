@@ -59,7 +59,7 @@ impl BitBoard {
     let relevant_u64_index = bit_index / 64;
     let relevant_bit_index = bit_index % 64;
     let relevant_u64 = 1 << relevant_bit_index;
-    self.0 .0[relevant_u64_index as usize] |= relevant_u64;
+    self.0 .0[relevant_u64_index] |= relevant_u64;
   }
 
   pub fn bit(&self, bit_index: usize) -> bool {
@@ -78,10 +78,10 @@ impl BitBoard {
 
   pub fn to_expanded(&self) -> ExpandedBitBoard {
     let mut bools = [false; 256];
-    for index in 0..256 {
-      bools[index] = self.bit(index)
+    for (index, b) in bools.iter_mut().enumerate() {
+      *b = self.bit(index)
     }
-    return bools;
+    bools
   }
 }
 

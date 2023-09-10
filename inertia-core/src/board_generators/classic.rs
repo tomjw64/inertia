@@ -20,6 +20,12 @@ impl ClassicBoardGenerator {
   }
 }
 
+impl Default for ClassicBoardGenerator {
+  fn default() -> Self {
+    ClassicBoardGenerator::new()
+  }
+}
+
 fn add_central_box(walled_board: &mut WalledBoard) {
   walled_board.col_mut(7)[6] = true;
   walled_board.col_mut(8)[6] = true;
