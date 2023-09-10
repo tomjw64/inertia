@@ -4,8 +4,6 @@ use serde::Deserialize;
 use serde::Serialize;
 use typeshare::typeshare;
 
-use crate::mechanics::Square;
-
 #[typeshare]
 type WallGroup = [bool; 15];
 #[typeshare]
@@ -14,16 +12,14 @@ type WallGrid = [WallGroup; 16];
 #[typeshare]
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub struct WalledBoard {
-  pub(crate) vertical: WallGrid, // 16 ROWS of 15
+  pub(crate) vertical: WallGrid,   // 16 ROWS of 15
   pub(crate) horizontal: WallGrid, // 16 COLUMNS of 15
-                                 // pub goal: Square,
 }
 
 impl WalledBoard {
   pub(crate) const EMPTY: Self = Self {
     vertical: [[false; 15]; 16],
     horizontal: [[false; 15]; 16],
-    // goal: Square(0),
   };
 
   pub(crate) fn col(&self, col: usize) -> &WallGroup {

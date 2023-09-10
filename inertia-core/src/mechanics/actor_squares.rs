@@ -10,14 +10,6 @@ use crate::mechanics::Square;
 pub struct ActorSquares(pub [Square; 4]);
 
 impl ActorSquares {
-  pub(crate) fn as_array(self) -> [Square; 4] {
-    self.0
-  }
-
-  pub(crate) fn as_u32(self) -> u32 {
-    u32::from_le_bytes(self.0.map(|square| square.0))
-  }
-
   pub fn as_bitboard(self) -> BitBoard {
     let mut bitboard = BitBoard::ZERO;
     for Square(index) in self.0 {
@@ -26,8 +18,12 @@ impl ActorSquares {
     bitboard
   }
 
+  pub fn as_u32(self) -> u32 {
+    u32::from_le_bytes(self.0.map(|square| square.0))
+  }
+
   // Optimal sorting network for 4 elements
-  pub(crate) fn as_sorted_u32(self) -> u32 {
+  pub fn as_sorted_u32(self) -> u32 {
     let mut bytes = self.0.map(|s| s.0);
     if bytes[0] > bytes[1] {
       bytes.swap(0, 1)

@@ -66,7 +66,7 @@ impl HeuristicBoard {
     if heuristic_difference < 16 && let Some(unoccupied_augment_bitboard) =
       self.heuristic_augment_unoccupied_bitboards[heuristic_difference]
     {
-      return (actor_squares.as_bitboard() & unoccupied_augment_bitboard)
+      return (actor_squares.as_bitboard() & unoccupied_augment_bitboard).0
         .is_zero();
     }
 
