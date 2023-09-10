@@ -32,7 +32,7 @@ pub struct PlayerReconnectKey(pub usize);
 pub struct PlayerBid(usize);
 
 #[typeshare]
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize)]
 pub struct RoomData {
   pub room_id: RoomId,
   pub players: HashMap<PlayerId, PlayerName>,
@@ -46,7 +46,7 @@ pub struct RoomData {
 }
 
 #[typeshare]
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize)]
 #[serde(tag = "type", content = "content")]
 pub enum RoomState {
   Lobby,
@@ -57,45 +57,23 @@ pub enum RoomState {
 }
 
 #[typeshare]
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize)]
 pub struct RoundStart {
   pub board: WalledBoardPosition,
 }
 
 #[typeshare]
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize)]
 pub struct RoundBidding {
   pub board: WalledBoardPosition,
   pub player_bids: HashMap<PlayerId, PlayerBid>,
 }
 
 #[typeshare]
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize)]
 pub struct RoundSolving {
   pub board: WalledBoardPosition,
   pub player_bids: HashMap<PlayerId, PlayerBid>,
   pub solver: PlayerId,
   pub solution: Vec<SolutionStep>,
 }
-
-// #[typeshare]
-// #[derive(Serialize, Deserialize)]
-// pub struct PlayerName {
-//   pub id: PlayerId,
-//   pub name: String,
-// }
-
-// #[typeshare]
-// #[derive(Serialize, Deserialize)]
-// pub struct PlayerScore {
-//   pub id: PlayerId,
-//   #[typeshare(typescript(type = "number"))]
-//   pub score: usize,
-// }
-
-// #[typeshare]
-// #[derive(Serialize, Deserialize)]
-// pub struct PlayerBid {
-//   pub player: PlayerId,
-//   pub bid: Option<Bid>,
-// }

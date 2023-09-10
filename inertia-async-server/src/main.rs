@@ -50,6 +50,8 @@ struct AppState {
   rooms: RwLock<HashMap<RoomId, Room>>,
 }
 
+impl AppState {}
+
 async fn ws_handler(
   ws: WebSocketUpgrade,
   State(state): State<Arc<AppState>>,
