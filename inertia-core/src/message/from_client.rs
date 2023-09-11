@@ -6,7 +6,8 @@ use serde::Deserialize;
 use typeshare::typeshare;
 
 #[typeshare]
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
+#[serde(tag = "type", content = "content")]
 pub enum FromClientMessage {
   Rename(RenameMessage),
   Join(JoinMessage),
@@ -14,13 +15,13 @@ pub enum FromClientMessage {
 }
 
 #[typeshare]
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct RenameMessage {
   pub player_name: PlayerName,
 }
 
 #[typeshare]
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct JoinMessage {
   pub player_name: PlayerName,
   pub player_id: PlayerId,

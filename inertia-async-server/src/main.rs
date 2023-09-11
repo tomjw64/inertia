@@ -14,6 +14,7 @@ use axum::Router;
 use axum::Server;
 use futures::SinkExt;
 use futures::StreamExt;
+use inertia_core::message::FromClientMessage;
 use inertia_core::message::JoinMessage;
 use inertia_core::state::RoomData;
 use inertia_core::state::RoomId;
@@ -80,6 +81,11 @@ async fn broadcast_room_data(state: &Arc<AppState>, room_id: &RoomId) {
     .ok();
 }
 
+enum ConnectError {
+  NoMessageReceived,
+  WebSocketError(axum::Error),
+}
+
 async fn handle_socket(
   socket: WebSocket,
   socket_address: SocketAddr,
@@ -129,15 +135,26 @@ async fn handle_socket(
           continue;
         }
       };
-
-      let join_message = match serde_json::from_str::<JoinMessage>(&msg) {
-        Ok(join_message) => join_message,
+      let msg = match serde_json::from_str::<FromClientMessage>(&msg) {
+        Ok(msg) => msg,
         Err(error) => {
           tracing::debug!(
             "WebSocket [{}] join rejected. Failed to parse message. Message: {:?}, Error: {}",
             socket_address,
             msg,
             error
+          );
+          continue;
+        }
+      };
+
+      let join_message = match msg {
+        FromClientMessage::Join(join_message) => join_message,
+        _ => {
+          tracing::debug!(
+            "WebSocket [{}] join rejected. Unexpected message: {:?}",
+            socket_address,
+            msg
           );
           continue;
         }

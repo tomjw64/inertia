@@ -8,11 +8,11 @@ use crate::mechanics::WalledBoardPosition;
 use crate::solvers::SolutionStep;
 
 #[typeshare(serialized_as = "number")]
-#[derive(Serialize, Deserialize, Eq, PartialEq, Hash, Copy, Clone)]
+#[derive(Serialize, Deserialize, Eq, PartialEq, Hash, Copy, Clone, Debug)]
 pub struct PlayerId(pub usize);
 
 #[typeshare(serialized_as = "number")]
-#[derive(Serialize, Deserialize, Eq, PartialEq, Hash, Copy, Clone)]
+#[derive(Serialize, Deserialize, Eq, PartialEq, Hash, Copy, Clone, Debug)]
 pub struct RoomId(pub usize);
 
 #[typeshare]
@@ -20,15 +20,15 @@ pub struct RoomId(pub usize);
 pub struct PlayerName(pub String);
 
 #[typeshare(serialized_as = "number")]
-#[derive(Serialize, Deserialize, Eq, PartialEq, Copy, Clone)]
+#[derive(Serialize, Deserialize, Eq, PartialEq, Copy, Clone, Debug)]
 pub struct PlayerScore(pub usize);
 
 #[typeshare(serialized_as = "number")]
-#[derive(Serialize, Deserialize, Eq, PartialEq, Copy, Clone)]
+#[derive(Serialize, Deserialize, Eq, PartialEq, Copy, Clone, Debug)]
 pub struct PlayerReconnectKey(pub usize);
 
 #[typeshare(serialized_as = "number")]
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Eq, PartialEq, Copy, Clone, Debug)]
 pub struct PlayerBid(usize);
 
 #[typeshare]

@@ -10,7 +10,7 @@ use typeshare::typeshare;
 
 #[typeshare]
 #[derive(Serialize)]
+#[serde(tag = "type", content = "content")]
 pub enum ToClientMessage {
-  ErrorMessage(String),
   RoomUpdate(RoomData),
 }
