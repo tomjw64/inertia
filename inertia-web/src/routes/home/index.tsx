@@ -56,7 +56,7 @@ export const Home = () => {
                 <div className={style.inputButtonForm}>
                   <button className={style.button}>Set Name</button>
                   <input
-                    className={style.input}
+                    className={[style.input, style.medium].join(' ')}
                     value={nameInput}
                     onChange={(e) => {
                       setNameInput(e.currentTarget.value);

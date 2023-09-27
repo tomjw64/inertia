@@ -164,11 +164,23 @@ export const Board = ({
   const movementRaySquares = useMemo(() => {
     return Object.values(Direction)
       .map((direction) => {
+        console.log(
+          get_movement_ray_for_actor(
+            {
+              walled_board: walledBoard,
+              actor_squares: actorSquares,
+              goal,
+            },
+            selectedActor,
+            direction
+          )
+        );
         return {
           [direction]: get_movement_ray_for_actor(
             {
               walled_board: walledBoard,
               actor_squares: actorSquares,
+              goal,
             },
             selectedActor,
             direction
@@ -186,6 +198,7 @@ export const Board = ({
             {
               walled_board: walledBoard,
               actor_squares: actorSquares,
+              goal,
             },
             selectedActor,
             direction

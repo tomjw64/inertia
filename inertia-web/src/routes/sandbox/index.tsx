@@ -59,6 +59,7 @@ export const Sandbox = () => {
       {
         walled_board: walledBoard,
         actor_squares: actorSquares,
+        goal,
       },
       step.actor,
       step.direction

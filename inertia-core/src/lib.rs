@@ -1,5 +1,4 @@
 #![feature(test)]
-#![feature(let_chains)]
 
 pub mod board_generators;
 pub mod mechanics;

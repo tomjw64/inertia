@@ -122,22 +122,22 @@ impl MoveBoard {
     let mut ray = BitBoard::ZERO;
     match direction {
       Direction::Up => {
-        for index in (actor_square.0..=move_destination.0).step_by(16) {
-          ray.set_bit(index as usize);
-        }
-      }
-      Direction::Down => {
         for index in (move_destination.0..=actor_square.0).step_by(16) {
           ray.set_bit(index as usize);
         }
       }
+      Direction::Down => {
+        for index in (actor_square.0..=move_destination.0).step_by(16) {
+          ray.set_bit(index as usize);
+        }
+      }
       Direction::Left => {
-        for index in actor_square.0..=move_destination.0 {
+        for index in move_destination.0..=actor_square.0 {
           ray.set_bit(index as usize);
         }
       }
       Direction::Right => {
-        for index in move_destination.0..=actor_square.0 {
+        for index in actor_square.0..=move_destination.0 {
           ray.set_bit(index as usize);
         }
       }

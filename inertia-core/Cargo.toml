@@ -7,6 +7,8 @@ edition = "2021"
 primitive-types = "0.12.1"
 rand = "0.8.5"
 serde = { version = "1.0.178", features = ["derive"] }
+strum = { version = "0.25.0", features = ["derive"] }
+thiserror = "1.0.48"
 typeshare = "1.0.1"
 
 [features]

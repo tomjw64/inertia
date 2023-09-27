@@ -1,7 +1,7 @@
-use crate::state::PlayerId;
-use crate::state::PlayerName;
-use crate::state::PlayerReconnectKey;
-use crate::state::RoomId;
+use crate::state::data::PlayerId;
+use crate::state::data::PlayerName;
+use crate::state::data::PlayerReconnectKey;
+use crate::state::data::RoomId;
 use serde::Deserialize;
 use typeshare::typeshare;
 

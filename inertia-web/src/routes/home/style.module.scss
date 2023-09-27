@@ -1,6 +1,7 @@
 @use "../../styles/variables.scss" as *;
 
-$foreground-width: min(600px, 90svw);
+$foreground-border-width: 6px;
+$foreground-width: calc(min(600px, 90svw) - $foreground-border-width * 2);
 $button-height: 2.5em;
 
 .home {
@@ -44,9 +45,8 @@ $button-height: 2.5em;
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 6px;
+  padding: $foreground-border-width;
   border-radius: 10px;
-  margin: 10px;
   background:
     linear-gradient(45deg, $canonical-red, $transparent 50%),
     linear-gradient(135deg, $canonical-green, $transparent 50%),
@@ -65,6 +65,16 @@ $button-height: 2.5em;
   width: $foreground-width;
   border-radius: 10px;
   padding: 20px;
+  font-size: 14px;
+  @media (min-width: 400px) {
+    font-size: 16px;
+  }
+  @media (min-width: 500px) {
+    font-size: 18px;
+  }
+  @media (min-width: 600px) {
+    font-size: 20px;
+  }
 }
 
 .joinGameSection {
@@ -75,7 +85,7 @@ $button-height: 2.5em;
 
 .subtitle {
   font-family: 'Chakra Petch';
-  font-size: 40px;
+  font-size: 2em;
   font-weight: bold;
 }
 
@@ -92,6 +102,7 @@ $button-height: 2.5em;
     border-bottom-left-radius: 2em 4em;
     border-top-right-radius: 0;
     border-bottom-right-radius: 0;
+    padding: 0.5em 0.8em 0.5em 1em;
   }
 
   > .input {
@@ -114,6 +125,7 @@ $button-height: 2.5em;
     border-bottom-right-radius: 2em 4em;
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;
+    padding: 0.5em 1em 0.5em 0.8em;
   }
 }
 
@@ -122,7 +134,6 @@ $button-height: 2.5em;
   text-align: center;
   color: #333;
   font-weight: bold;
-  font-size: 20px;
   height: 2em;
   font-family: 'Chakra Petch';
   border: 0;
@@ -130,13 +141,18 @@ $button-height: 2.5em;
   margin: 0.5em;
   padding: 0 0.5em;
   height: $button-height;
+  min-width: 3em;
 
   &:focus {
     outline: none;
   }
 
   &.short {
-    max-width: 120px;
+    max-width: 6em;
+  }
+
+  &.medium {
+    max-width: 12em;
   }
 }
 
@@ -144,7 +160,6 @@ $button-height: 2.5em;
   display: flex;
   align-items: center;
   white-space: nowrap;
-  font-size: 20px;
   height: $button-height;
   font-family: 'Chakra Petch';
   font-weight: bold;
@@ -155,6 +170,10 @@ $button-height: 2.5em;
   padding: 0.5em 1em;
   margin: 0.25em;
   cursor: pointer;
+
+  > img {
+    height: 1.2em;
+  }
 
   &:hover {
     background-color: #f0f000;

@@ -1,7 +1,8 @@
-import { RoomData } from 'inertia-core';
+import { RoomData, ToClientMessage } from 'inertia-core';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { Lobby } from '../../components/lobby';
 import { getOrCreatePlayerName } from '../../utils/storage';
+import { RoomWebSocket } from '../../utils/ws';
 
 const RoomStateType = {
   LOBBY: 'Lobby',
@@ -11,8 +12,6 @@ const RoomStateType = {
   ROUND_SOLVING: 'RoundSolving',
 } as const;
 
-const WS_CONNECTION_URL = 'ws://127.0.0.1:8001/ws';
-
 const buildDefaultRoomData = (roomId: number): RoomData => ({
   room_id: roomId,
   players: {},
@@ -20,12 +19,12 @@ const buildDefaultRoomData = (roomId: number): RoomData => ({
   players_connected: {},
   round_number: 0,
   state: {
-    type: RoomStateType.LOBBY,
+    type: RoomStateType.ROUND_SUMMARY,
   },
 });
 
 export const Room = ({ roomId: roomIdString }: { roomId: string }) => {
-  const websocket = useRef<WebSocket | null>(null);
+  const websocket = useRef<RoomWebSocket | null>(null);
   const roomId = parseInt(roomIdString);
 
   const [roomData, setRoomData] = useState<RoomData>(
@@ -33,21 +32,23 @@ export const Room = ({ roomId: roomIdString }: { roomId: string }) => {
   );
 
   useEffect(() => {
-    websocket.current = new WebSocket(WS_CONNECTION_URL);
+    websocket.current = new RoomWebSocket();
     const ws = websocket.current;
-    ws.onopen = () => {
-      ws.send(
-        JSON.stringify({
+    ws.onOpen(() => {
+      ws.send({
+        type: 'Join',
+        content: {
           player_name: getOrCreatePlayerName(),
           player_id: Math.floor(Math.random() * 1000),
           player_reconnect_key: 1,
           room_id: roomId,
-        })
-      );
-    };
-    ws.onmessage = (msg: MessageEvent<string>) => {
-      setRoomData(JSON.parse(msg.data));
-    };
+        },
+      });
+    });
+    ws.onMessage((msg: ToClientMessage) => {
+      console.log(msg);
+      setRoomData(msg.content);
+    });
     return () => {
       ws.close();
     };
