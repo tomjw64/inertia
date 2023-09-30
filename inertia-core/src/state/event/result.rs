@@ -9,7 +9,7 @@ use super::yield_solve::YieldSolveError;
 
 #[derive(Error, Debug)]
 pub enum EventError {
-  #[error("State {:?} is incompatible with event {:?}", .0, .1)]
+  #[error("State {:?} is incompatible with event {}", .0, .1)]
   IncompatibleState(String, RoomEvent),
   #[error(transparent)]
   ConnectError(#[from] ConnectError),

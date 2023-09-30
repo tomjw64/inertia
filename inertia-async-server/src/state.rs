@@ -1,13 +1,10 @@
-use inertia_core::board_generators::ClassicBoardGenerator;
+use inertia_core::mechanics::WalledBoardPositionGenerator;
 use inertia_core::message::ToClientMessage;
-use inertia_core::state::EventError;
-use inertia_core::state::EventResult;
-use inertia_core::state::PlayerId;
-use inertia_core::state::RoomData;
-use inertia_core::state::RoomEvent;
-use inertia_core::state::RoomId;
-use inertia_core::state::RoomMeta;
-use inertia_core::state::RoomState;
+use inertia_core::state::data::RoomId;
+use inertia_core::state::data::RoomState;
+use inertia_core::state::event::apply_event::RoomEvent;
+use inertia_core::state::event::result::EventError;
+use inertia_core::state::event::result::EventResult;
 use std::collections::HashMap;
 use std::mem;
 use thiserror::Error;
@@ -25,23 +22,15 @@ pub struct Room {
 }
 
 impl Room {
-  pub fn new(room_id: RoomId) -> Self {
+  pub fn new<T: WalledBoardPositionGenerator + 'static>(
+    room_id: RoomId,
+    generator: T,
+  ) -> Self {
     Room {
       utils: RoomUtils {
         channel: broadcast::channel(16).0,
       },
-      state: Mutex::new(RoomState::RoundSummary {
-        meta: RoomMeta {
-          room_id,
-          generator: Box::new(ClassicBoardGenerator::new()),
-          players: HashMap::new(),
-          player_reconnect_keys: HashMap::new(),
-          player_last_seen: HashMap::new(),
-          players_connected: HashMap::new(),
-          player_scores: HashMap::new(),
-          round_number: 0,
-        },
-      }),
+      state: Mutex::new(RoomState::initial(room_id, generator)),
     }
   }
 }
@@ -66,133 +55,9 @@ pub enum ApplyEventError {
   ApplyRoomEventError(#[from] EventError),
 }
 
-// #[derive(Error, Debug)]
-// pub enum RemovePlayerError {
-//   #[error(transparent)]
-//   NoRoomExists(#[from] NoRoomExistsError),
-// }
-
-// #[derive(Error, Debug)]
-// pub enum RenamePlayerError {
-//   #[error(transparent)]
-//   NoRoomExists(#[from] NoRoomExistsError),
-// }
-
-// #[derive(Error, Debug)]
-// pub enum StartNextRoundError {
-//   #[error(transparent)]
-//   NoRoomExists(#[from] NoRoomExistsError),
-//   #[error(transparent)]
-//   InvalidEvent(#[from] InvalidEventError),
-// }
-
 #[derive(Error, Debug)]
 #[error("Room {} does not exist", self.0.0)]
 pub struct NoRoomExistsError(RoomId);
-
-// #[derive(Error, Debug)]
-// #[error("Room {} is not in a valid state for event {}", self.0.0, self.1)]
-// pub struct InvalidEventError(RoomId, String);
-
-// impl InvalidEventError {
-//   pub fn new<T: Into<String>>(room_id: RoomId, event: T) -> Self {
-//     Self(room_id, event.into())
-//   }
-// }
-
-fn broadcast_room(
-) -> impl FnOnce(&RoomUtils, &mut RoomState) -> Result<(), BroadcastError> {
-  |utils, state| {
-    let msg = ToClientMessage::RoomUpdate(&*state);
-
-    utils
-      .channel
-      .send(serde_json::to_string(&msg).unwrap())
-      .map_err(BroadcastError::SendFailed)?;
-
-    Ok(())
-  }
-}
-
-// fn soft_remove_player(
-//   player_id: PlayerId,
-// ) -> impl FnOnce(&RoomMeta, &mut RoomData) -> Result<bool, RemovePlayerError> {
-//   move |_, data| {
-//     data.players_connected.remove(&player_id);
-//     if matches!(data.state, RoomState::RoundSummary) && data.round_number == 0 {
-//       data.players.remove(&player_id);
-//       data.player_reconnect_keys.remove(&player_id);
-//       data.player_scores.remove(&player_id);
-//     }
-//     Ok(data.players_connected.is_empty())
-//   }
-// }
-
-// fn hard_remove_player(
-//   player_id: PlayerId,
-// ) -> impl FnOnce(&RoomMeta, &mut RoomData) -> Result<bool, RemovePlayerError> {
-//   move |_, data| {
-//     data.players_connected.remove(&player_id);
-//     data.players.remove(&player_id);
-//     data.player_reconnect_keys.remove(&player_id);
-//     data.player_scores.remove(&player_id);
-
-//     Ok(data.players_connected.is_empty())
-//   }
-// }
-
-// fn start_next_round(
-// ) -> impl FnOnce(&RoomMeta, &mut RoomData) -> Result<(), StartNextRoundError> {
-//   move |meta, data| {
-//     data.state = match data.state {
-//       RoomState::RoundSummary => RoomState::RoundStart({
-//         board: data.generator.generate_position(),
-//       }),
-//       _ => {
-//         return Err(
-//           InvalidEventError::new(data.room_id, "start_next_round").into(),
-//         )
-//       }
-//     };
-//     Ok(())
-//   }
-// }
-
-// fn make_bid(
-//   player_id: PlayerId,
-//   player_bid: PlayerBid,
-// ) -> impl FnOnce(&RoomMeta, &mut RoomData) -> Result<(), StartNextRoundError> {
-//   move |meta, data| {
-//     data.state = match &data.state {
-//       RoomState::RoundStart(RoundStart { board }) => {
-//         RoomState::RoundBidding(RoundBidding {
-//           board,
-//           player_bids: HashMap::new(),
-//         })
-//       }
-//       RoomState::RoundBidding(RoundBidding { board, player_bids }) => {
-//         RoomState::RoundBidding(RoundBidding { board, player_bids })
-//       }
-//       _ => return Err(InvalidEventError::new(data.room_id, "make_bid").into()),
-//     };
-//     Ok(())
-//   }
-// }
-
-fn apply_event(
-  event: RoomEvent,
-) -> impl FnOnce(&RoomUtils, &mut RoomState) -> Result<(), ApplyEventError> {
-  |_, state| {
-    let working_state = mem::replace(state, RoomState::None);
-    let EventResult {
-      result: next_state,
-      error,
-    } = working_state.apply(event);
-    *state = next_state;
-    error.map(Err).unwrap_or(Ok(()))?;
-    Ok(())
-  }
-}
 
 impl AppState {
   async fn with_room<F, T, E>(&self, room_id: RoomId, f: F) -> Result<T, E>
@@ -207,11 +72,48 @@ impl AppState {
     f(&room.utils, &mut state)
   }
 
+  pub async fn cleanup_room(&self, room_id: RoomId) {
+    let should_remove = self
+      .with_room(room_id, |_, state| {
+        Ok::<_, NoRoomExistsError>(matches!(*state, RoomState::Closed))
+      })
+      .await
+      .unwrap_or(false);
+    if should_remove {
+      self.rooms.write().await.remove(&room_id);
+    }
+  }
+
+  pub async fn get_channel_pair(
+    &self,
+    room_id: RoomId,
+  ) -> Result<
+    (broadcast::Sender<String>, broadcast::Receiver<String>),
+    NoRoomExistsError,
+  > {
+    self
+      .with_room(room_id, |utils, _| {
+        Ok((utils.channel.clone(), utils.channel.subscribe()))
+      })
+      .await
+  }
+
   pub async fn broadcast_room(
     &self,
     room_id: RoomId,
   ) -> Result<(), BroadcastError> {
-    self.with_room(room_id, broadcast_room()).await
+    self
+      .with_room(room_id, |utils, state| {
+        let msg = ToClientMessage::RoomUpdate(&*state);
+
+        utils
+          .channel
+          .send(serde_json::to_string(&msg).unwrap())
+          .map_err(BroadcastError::SendFailed)?;
+
+        Ok(())
+      })
+      .await
   }
 
   pub async fn apply_event(
@@ -219,29 +121,17 @@ impl AppState {
     room_id: RoomId,
     event: RoomEvent,
   ) -> Result<(), ApplyEventError> {
-    self.with_room(room_id, apply_event(event)).await
+    self
+      .with_room(room_id, |_, state| {
+        let working_state = mem::replace(state, RoomState::None);
+        let EventResult {
+          result: next_state,
+          error,
+        } = working_state.apply(event);
+        *state = next_state;
+        error.map(Err).unwrap_or(Ok(()))?;
+        Ok(())
+      })
+      .await
   }
-
-  // pub async fn start_next_round(
-  //   &self,
-  //   room_id: RoomId,
-  // ) -> Result<(), StartNextRoundError> {
-  //   self.with_room(room_id, start_next_round()).await
-  // }
-
-  // pub async fn soft_remove_player(
-  //   &self,
-  //   room_id: RoomId,
-  //   player_id: PlayerId,
-  // ) -> Result<bool, RemovePlayerError> {
-  //   self.with_room(room_id, soft_remove_player(player_id)).await
-  // }
-
-  // pub async fn hard_remove_player(
-  //   &self,
-  //   room_id: RoomId,
-  //   player_id: PlayerId,
-  // ) -> Result<bool, RemovePlayerError> {
-  //   self.with_room(room_id, hard_remove_player(player_id)).await
-  // }
 }

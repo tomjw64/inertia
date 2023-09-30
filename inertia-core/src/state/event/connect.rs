@@ -6,8 +6,9 @@ use crate::state::data::PlayerName;
 use crate::state::data::PlayerReconnectKey;
 use crate::state::data::RoomMeta;
 use crate::state::data::RoomState;
-use crate::state::data::RoundSummary;
 
+use super::apply_event::RoomEvent;
+use super::result::EventError;
 use super::result::EventResult;
 
 #[derive(Error, Debug)]
@@ -74,9 +75,9 @@ fn room_meta_connect(
       info.player_last_seen = meta.round_number;
     })
     .or_insert_with(|| PlayerInfo {
-      player_id: player_id,
+      player_id,
       player_name: player_name.clone(),
-      player_reconnect_key: player_reconnect_key,
+      player_reconnect_key,
       player_last_seen: meta.round_number,
       player_connected: true,
       player_score: 0,
@@ -85,15 +86,20 @@ fn room_meta_connect(
   Ok(())
 }
 
-pub fn round_summary_connect(
-  mut state: RoundSummary,
-  event: Connect,
-) -> EventResult {
-  if let Err(error) = room_meta_connect(&mut state.meta, event) {
-    EventResult::err(RoomState::RoundSummary(state), error)
+pub fn connect(mut state: RoomState, event: Connect) -> EventResult {
+  if let Some(meta) = state.get_meta_mut() {
+    if let Err(error) = room_meta_connect(meta, event) {
+      EventResult::err(state, error)
+    } else {
+      EventResult::ok(state)
+    }
   } else {
-    EventResult::ok(RoomState::RoundSummary(state))
+    EventResult {
+      error: Some(EventError::IncompatibleState(
+        state.to_string(),
+        RoomEvent::Connect(event),
+      )),
+      result: state,
+    }
   }
 }
-
-pub fn connect(state: RoomState, event: Connect) -> EventResult {}

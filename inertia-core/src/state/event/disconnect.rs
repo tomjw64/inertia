@@ -1,22 +1,23 @@
 use crate::state::data::PlayerId;
 use crate::state::data::RoomMeta;
 use crate::state::data::RoomState;
-use crate::state::data::RoundSummary;
 
+use super::apply_event::RoomEvent;
+use super::result::EventError;
 use super::result::EventResult;
 
 #[derive(Debug)]
-pub struct SoftDisconnect {
+pub struct Disconnect {
   pub player_id: PlayerId,
 }
 
-fn room_meta_hard_disconnect(meta: &mut RoomMeta, event: SoftDisconnect) {
-  let SoftDisconnect { player_id } = event;
+fn room_meta_hard_disconnect(meta: &mut RoomMeta, event: Disconnect) {
+  let Disconnect { player_id } = event;
   meta.player_info.remove(&player_id);
 }
 
-fn room_meta_soft_disconnect(meta: &mut RoomMeta, event: SoftDisconnect) {
-  let SoftDisconnect { player_id } = event;
+fn room_meta_soft_disconnect(meta: &mut RoomMeta, event: Disconnect) {
+  let Disconnect { player_id } = event;
   meta
     .player_info
     .entry(player_id)
@@ -30,14 +31,40 @@ fn players_still_present(meta: &RoomMeta) -> bool {
     .any(|(_, info)| info.player_connected)
 }
 
-pub fn round_summary_soft_disconnect(
-  mut state: RoundSummary,
-  event: SoftDisconnect,
-) -> EventResult {
-  room_meta_soft_disconnect(&mut state.meta, event);
-  if players_still_present(&state.meta) {
-    EventResult::ok(RoomState::RoundSummary(state))
+pub fn hard_disconnect(mut state: RoomState, event: Disconnect) -> EventResult {
+  if let Some(meta) = state.get_meta_mut() {
+    room_meta_hard_disconnect(meta, event);
+    if players_still_present(meta) {
+      EventResult::ok(state)
+    } else {
+      EventResult::ok(RoomState::Closed)
+    }
   } else {
-    EventResult::ok(RoomState::Closed)
+    EventResult {
+      error: Some(EventError::IncompatibleState(
+        state.to_string(),
+        RoomEvent::SoftDisconnect(event),
+      )),
+      result: state,
+    }
+  }
+}
+
+pub fn soft_disconnect(mut state: RoomState, event: Disconnect) -> EventResult {
+  if let Some(meta) = state.get_meta_mut() {
+    room_meta_soft_disconnect(meta, event);
+    if players_still_present(meta) {
+      EventResult::ok(state)
+    } else {
+      EventResult::ok(RoomState::Closed)
+    }
+  } else {
+    EventResult {
+      error: Some(EventError::IncompatibleState(
+        state.to_string(),
+        RoomEvent::SoftDisconnect(event),
+      )),
+      result: state,
+    }
   }
 }

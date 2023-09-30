@@ -17,8 +17,8 @@ use axum::Server;
 use futures::SinkExt;
 use futures::StreamExt;
 use inertia_core::message::FromClientMessage;
-use inertia_core::state::PlayerId;
-use inertia_core::state::RoomId;
+use inertia_core::state::event::apply_event::RoomEvent;
+use inertia_core::state::event::disconnect::Disconnect;
 use tokio::sync::RwLock;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
@@ -121,35 +121,29 @@ async fn handle_socket(
   };
   ws_debug!("Disconnecting.");
 
-  let should_delete_room = state
-    .soft_remove_player(room_id, player_id)
-    .await
-    .unwrap_or(false);
-
-  if should_delete_room {
-    state.rooms.write().await.remove(&room_id);
-  } else {
-    state.broadcast_room(room_id).await.ok();
-  }
+  let disconect_event = RoomEvent::SoftDisconnect(Disconnect { player_id });
+  state.apply_event(room_id, disconect_event).await.ok();
+  state.broadcast_room(room_id).await.ok();
+  state.cleanup_room(room_id).await;
 }
 
-async fn handle_message_from_client(
-  socket_address: SocketAddr,
-  msg: FromClientMessage,
-  state: &Arc<AppState>,
-  room_id: RoomId,
-  player_id: PlayerId,
-) {
-  macro_rules! ws_debug {
-    ($($t:tt)*) => (tracing::debug!("WebSocket [{}]: {}", socket_address, format_args!($($t)*)))
-  }
+// async fn handle_message_from_client(
+//   socket_address: SocketAddr,
+//   msg: FromClientMessage,
+//   state: &Arc<AppState>,
+//   room_id: RoomId,
+//   player_id: PlayerId,
+// ) {
+//   macro_rules! ws_debug {
+//     ($($t:tt)*) => (tracing::debug!("WebSocket [{}]: {}", socket_address, format_args!($($t)*)))
+//   }
 
-  match msg {
-    FromClientMessage::Rename(_) => todo!(),
-    FromClientMessage::Join(_) => ws_debug!("Unexpected join message."),
-    FromClientMessage::StartGame => todo!(),
-  }
-}
+//   match msg {
+//     FromClientMessage::Rename(_) => todo!(),
+//     FromClientMessage::Join(_) => ws_debug!("Unexpected join message."),
+//     FromClientMessage::StartGame => todo!(),
+//   }
+// }
 
 #[tokio::main]
 async fn main() {

@@ -1,8 +1,9 @@
-mod apply_event;
-mod connect;
-mod disconnect;
-mod make_bid;
-mod result;
-mod start_round;
-mod update_solution;
-mod yield_solve;
+pub mod apply_event;
+pub mod connect;
+pub mod disconnect;
+pub mod finalize_bids;
+pub mod make_bid;
+pub mod result;
+pub mod start_round;
+pub mod update_solution;
+pub mod yield_solve;

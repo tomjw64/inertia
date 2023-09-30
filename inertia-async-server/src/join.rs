@@ -5,11 +5,14 @@ use axum::extract::ws::Message;
 use axum::extract::ws::WebSocket;
 use futures::stream::SplitStream;
 use futures::StreamExt;
+use inertia_core::board_generators::ClassicBoardGenerator;
 use inertia_core::message::FromClientMessage;
-use inertia_core::state::PlayerId;
-use inertia_core::state::PlayerName;
-use inertia_core::state::PlayerReconnectKey;
-use inertia_core::state::RoomId;
+use inertia_core::message::JoinMessage;
+use inertia_core::state::data::PlayerId;
+use inertia_core::state::data::PlayerName;
+use inertia_core::state::data::RoomId;
+use inertia_core::state::event::apply_event::RoomEvent;
+use inertia_core::state::event::connect::Connect;
 use tokio::sync::broadcast;
 
 use crate::state::AppState;
@@ -75,15 +78,12 @@ pub async fn join(
       }
     };
 
-    if join_message.player_name.0.is_empty() {
-      reject!("Empty username.");
-      continue;
-    }
-
-    if join_message.room_id.0 == 0 {
-      reject!("Room ID 0.");
-      continue;
-    }
+    let JoinMessage {
+      player_id,
+      player_name,
+      player_reconnect_key,
+      room_id,
+    } = join_message;
 
     let should_create_room = state
       .rooms
@@ -98,65 +98,36 @@ pub async fn join(
         .write()
         .await
         .entry(join_message.room_id)
-        .or_insert_with(|| Room::new(join_message.room_id));
+        .or_insert_with(|| {
+          Room::new(join_message.room_id, ClassicBoardGenerator::new())
+        });
     }
 
-    let rooms = state.rooms.read().await;
-    let room = match rooms.get(&join_message.room_id) {
-      Some(room) => room,
-      None => {
-        reject!("Room with ID {} disappeared.", join_message.room_id.0);
-        continue;
-      }
+    let connect_event = RoomEvent::Connect(Connect {
+      player_name: player_name.clone(),
+      player_id,
+      player_reconnect_key,
+    });
+    if let Err(err) = state.apply_event(room_id, connect_event).await {
+      reject!("Error during connection: {:?}", err);
+      continue;
     };
 
-    let mut room_data = room.state.lock().await;
-
-    let reconnect_key_for_id =
-      room_data.player_reconnect_keys.get(&join_message.player_id);
-    let id_for_username = room_data
-      .players
-      .iter()
-      .find(|&(_, player_name)| player_name == &join_message.player_name)
-      .map(|(id, _)| id);
-
-    if id_for_username.is_some()
-      && id_for_username != Some(&join_message.player_id)
-    {
-      reject!("Username taken: {}.", join_message.player_name.0);
-      continue;
-    }
-
-    if reconnect_key_for_id.is_some()
-      && reconnect_key_for_id != Some(&join_message.player_reconnect_key)
-    {
-      reject!(
-        "Bad reconnect key: {}.",
-        join_message.player_reconnect_key.0
-      );
-      continue;
-    }
-
-    let current_round = room_data.round_number;
-    room_data
-      .players
-      .insert(join_message.player_id, join_message.player_name.clone());
-    room_data
-      .players_connected
-      .insert(join_message.player_id, true);
-    room_data
-      .player_reconnect_keys
-      .insert(join_message.player_id, join_message.player_reconnect_key);
-    room_data
-      .player_last_seen
-      .insert(join_message.player_id, current_round);
+    let (channel_sender, channel_receiver) =
+      match state.get_channel_pair(room_id).await {
+        Ok(result) => result,
+        Err(err) => {
+          reject!("Error during connection: {:?}", err);
+          continue;
+        }
+      };
 
     return Ok(JoinInfo {
-      room_id: join_message.room_id,
-      player_id: join_message.player_id,
-      player_name: join_message.player_name,
-      channel_sender: room.meta.channel.clone(),
-      channel_receiver: room.meta.channel.subscribe(),
+      room_id,
+      player_id,
+      player_name,
+      channel_sender,
+      channel_receiver,
     });
   }
 }

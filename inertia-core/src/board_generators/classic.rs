@@ -12,6 +12,7 @@ use crate::mechanics::WalledBoard;
 use crate::mechanics::WalledBoardPosition;
 use crate::mechanics::WalledBoardPositionGenerator;
 
+#[derive(Debug)]
 pub struct ClassicBoardGenerator;
 
 impl ClassicBoardGenerator {

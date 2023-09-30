@@ -62,17 +62,11 @@ impl PlayerBid {
   }
 
   pub fn is_prospective(self) -> bool {
-    match self {
-      PlayerBid::Prospective { value } => true,
-      PlayerBid::ProspectiveLocked { value } => true,
-      _ => false,
-    }
+    matches!(
+      self,
+      PlayerBid::Prospective { .. } | PlayerBid::ProspectiveLocked { .. }
+    )
   }
-}
-
-pub trait DebuggableGenerator:
-  WalledBoardPositionGenerator + std::fmt::Debug
-{
 }
 
 #[typeshare]
@@ -94,7 +88,7 @@ pub struct PlayerInfo {
 pub struct RoomMeta {
   pub room_id: RoomId,
   #[serde(skip)]
-  pub generator: Box<dyn DebuggableGenerator>,
+  pub generator: Box<dyn WalledBoardPositionGenerator>,
   pub player_info: HashMap<PlayerId, PlayerInfo>,
   #[typeshare(typescript(type = "number"))]
   pub round_number: usize,
@@ -143,4 +137,42 @@ pub enum RoomState {
   RoundStart(RoundStart),
   RoundBidding(RoundBidding),
   RoundSolving(RoundSolving),
+}
+
+impl RoomState {
+  pub fn initial<T: WalledBoardPositionGenerator + 'static>(
+    room_id: RoomId,
+    generator: T,
+  ) -> Self {
+    RoomState::RoundSummary(RoundSummary {
+      meta: RoomMeta {
+        room_id,
+        generator: Box::new(generator),
+        player_info: HashMap::new(),
+        round_number: 0,
+      },
+      last_round_board: None,
+      last_round_solution: None,
+    })
+  }
+  pub fn get_meta(&self) -> Option<&RoomMeta> {
+    match self {
+      RoomState::None => None,
+      RoomState::Closed => None,
+      RoomState::RoundSummary(RoundSummary { meta, .. }) => Some(meta),
+      RoomState::RoundStart(RoundStart { meta, .. }) => Some(meta),
+      RoomState::RoundBidding(RoundBidding { meta, .. }) => Some(meta),
+      RoomState::RoundSolving(RoundSolving { meta, .. }) => Some(meta),
+    }
+  }
+  pub fn get_meta_mut(&mut self) -> Option<&mut RoomMeta> {
+    match self {
+      RoomState::None => None,
+      RoomState::Closed => None,
+      RoomState::RoundSummary(RoundSummary { meta, .. }) => Some(meta),
+      RoomState::RoundStart(RoundStart { meta, .. }) => Some(meta),
+      RoomState::RoundBidding(RoundBidding { meta, .. }) => Some(meta),
+      RoomState::RoundSolving(RoundSolving { meta, .. }) => Some(meta),
+    }
+  }
 }

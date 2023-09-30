@@ -32,10 +32,10 @@ impl WalledBoardPosition {
       actor_squares.0[actor_index] = move_destination;
     }
 
-    return actor_squares.0.contains(&self.goal);
+    actor_squares.0.contains(&self.goal)
   }
 }
 
-pub trait WalledBoardPositionGenerator {
+pub trait WalledBoardPositionGenerator: std::fmt::Debug + Send {
   fn generate_position(&self) -> WalledBoardPosition;
 }
