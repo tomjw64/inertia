@@ -12,7 +12,56 @@ use crate::mechanics::WalledBoard;
 use crate::mechanics::WalledBoardPosition;
 use crate::mechanics::WalledBoardPositionGenerator;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
+pub struct ClassicFreeGoalBoardGenerator;
+
+impl ClassicFreeGoalBoardGenerator {
+  pub fn new() -> Self {
+    Self
+  }
+}
+
+impl Default for ClassicFreeGoalBoardGenerator {
+  fn default() -> Self {
+    ClassicFreeGoalBoardGenerator::new()
+  }
+}
+
+impl WalledBoardPositionGenerator for ClassicFreeGoalBoardGenerator {
+  fn generate_position(&self) -> WalledBoardPosition {
+    let mut walled_board = WalledBoard::EMPTY;
+    let mut rng = thread_rng();
+
+    add_central_box(&mut walled_board);
+    add_edge_walls(&mut rng, &mut walled_board);
+    add_midboard_corners(&mut rng, &mut walled_board);
+
+    // Exclude central box for goal and actors. Squares: 119, 120, 135, 136
+    let mut goal_and_actor_squares: [u8; 5] = [0, 0, 0, 0, 0];
+    let mut goal_and_actor_candidates: Vec<u8> = Vec::new();
+    goal_and_actor_candidates.extend(0..=118);
+    goal_and_actor_candidates.extend(121..=134);
+    goal_and_actor_candidates.extend(137..=255);
+    goal_and_actor_candidates
+      .iter()
+      .cloned()
+      .choose_multiple_fill(&mut rng, &mut goal_and_actor_squares);
+    goal_and_actor_squares.shuffle(&mut rng);
+
+    WalledBoardPosition {
+      goal: Square(goal_and_actor_squares[0]),
+      actor_squares: ActorSquares([
+        Square(goal_and_actor_squares[1]),
+        Square(goal_and_actor_squares[2]),
+        Square(goal_and_actor_squares[3]),
+        Square(goal_and_actor_squares[4]),
+      ]),
+      walled_board,
+    }
+  }
+}
+
+#[derive(Debug, Clone, Copy)]
 pub struct ClassicBoardGenerator;
 
 impl ClassicBoardGenerator {
@@ -27,56 +76,75 @@ impl Default for ClassicBoardGenerator {
   }
 }
 
+impl WalledBoardPositionGenerator for ClassicBoardGenerator {
+  fn generate_position(&self) -> WalledBoardPosition {
+    let mut walled_board = WalledBoard::EMPTY;
+    let mut rng = thread_rng();
+
+    add_central_box(&mut walled_board);
+    add_edge_walls(&mut rng, &mut walled_board);
+    add_midboard_corners(&mut rng, &mut walled_board);
+
+    // Exclude central box for goal and actors. Squares: 119, 120, 135, 136
+    let forbidden_squares: [u8; 4] = [119, 120, 135, 136];
+    let mut actor_squares: [u8; 4] = [0, 0, 0, 0];
+    let mut actor_square_candidates: Vec<u8> = (0..=255)
+      .filter(|square| !forbidden_squares.contains(square))
+      .collect();
+    actor_square_candidates
+      .iter()
+      .cloned()
+      .choose_multiple_fill(&mut rng, &mut actor_squares);
+    actor_square_candidates.shuffle(&mut rng);
+
+    let allow_edges = rng.gen_bool(0.25);
+
+    let goal_square = (0..=255)
+      .filter(|square| {
+        !forbidden_squares.contains(square) && !actor_squares.contains(square)
+      })
+      .filter(|square| {
+        walled_board
+          .walls_for_square(*square, allow_edges)
+          .is_corner()
+      })
+      .choose(&mut rng)
+      .expect("There will be always square that satisfies these conditions");
+
+    WalledBoardPosition {
+      goal: Square(goal_square),
+      actor_squares: ActorSquares(actor_squares.map(Square)),
+      walled_board,
+    }
+  }
+}
+
 fn add_central_box(walled_board: &mut WalledBoard) {
-  walled_board.col_mut(7)[6] = true;
-  walled_board.col_mut(8)[6] = true;
+  walled_board.set_wall_up((7, 7), true);
+  walled_board.set_wall_left((7, 7), true);
 
-  walled_board.col_mut(7)[8] = true;
-  walled_board.col_mut(8)[8] = true;
+  walled_board.set_wall_up((7, 8), true);
+  walled_board.set_wall_right((7, 8), true);
 
-  walled_board.row_mut(7)[6] = true;
-  walled_board.row_mut(8)[6] = true;
+  walled_board.set_wall_down((8, 7), true);
+  walled_board.set_wall_left((8, 7), true);
 
-  walled_board.row_mut(7)[8] = true;
-  walled_board.row_mut(8)[8] = true;
+  walled_board.set_wall_down((8, 8), true);
+  walled_board.set_wall_right((8, 8), true);
 }
 
 fn add_edge_walls<R: Rng>(rng: &mut R, walled_board: &mut WalledBoard) {
-  (1..7)
-    .choose(rng)
-    .iter()
-    .for_each(|&index| walled_board.row_mut(0)[index] = true);
-  (8..14)
-    .choose(rng)
-    .iter()
-    .for_each(|&index| walled_board.row_mut(0)[index] = true);
+  walled_board.set_wall_down(((1..7).choose(rng).unwrap(), 0), true);
+  walled_board.set_wall_down(((8..14).choose(rng).unwrap(), 0), true);
 
-  (1..7)
-    .choose(rng)
-    .iter()
-    .for_each(|&index| walled_board.row_mut(15)[index] = true);
-  (8..14)
-    .choose(rng)
-    .iter()
-    .for_each(|&index| walled_board.row_mut(15)[index] = true);
+  walled_board.set_wall_down(((1..7).choose(rng).unwrap(), 15), true);
+  walled_board.set_wall_down(((8..14).choose(rng).unwrap(), 15), true);
 
-  (1..7)
-    .choose(rng)
-    .iter()
-    .for_each(|&index| walled_board.col_mut(0)[index] = true);
-  (8..14)
-    .choose(rng)
-    .iter()
-    .for_each(|&index| walled_board.col_mut(0)[index] = true);
+  walled_board.set_wall_left((0, (1..7).choose(rng).unwrap()), true);
+  walled_board.set_wall_left((0, (8..14).choose(rng).unwrap()), true);
 
-  (1..7)
-    .choose(rng)
-    .iter()
-    .for_each(|&index| walled_board.col_mut(15)[index] = true);
-  (8..14)
-    .choose(rng)
-    .iter()
-    .for_each(|&index| walled_board.col_mut(15)[index] = true);
+  walled_board.set_wall_left((15, (1..7).choose(rng).unwrap()), true);
+  walled_board.set_wall_left((15, (8..14).choose(rng).unwrap()), true);
 }
 
 fn add_midboard_corners<R: Rng>(rng: &mut R, walled_board: &mut WalledBoard) {
@@ -191,40 +259,6 @@ fn add_corners_in_range<R: Rng>(
 
         num_corners_remaining -= 1;
       }
-    }
-  }
-}
-
-impl WalledBoardPositionGenerator for ClassicBoardGenerator {
-  fn generate_position(&self) -> WalledBoardPosition {
-    let mut walled_board = WalledBoard::EMPTY;
-    let mut rng = thread_rng();
-
-    add_central_box(&mut walled_board);
-    add_edge_walls(&mut rng, &mut walled_board);
-    add_midboard_corners(&mut rng, &mut walled_board);
-
-    // Exclude central box for goal and actors. Squares: 119, 120, 135, 136
-    let mut goal_and_actor_squares: [u8; 5] = [0, 0, 0, 0, 0];
-    let mut goal_and_actor_candidates: Vec<u8> = Vec::new();
-    goal_and_actor_candidates.extend(0..=118);
-    goal_and_actor_candidates.extend(121..=134);
-    goal_and_actor_candidates.extend(137..=255);
-    goal_and_actor_candidates
-      .iter()
-      .cloned()
-      .choose_multiple_fill(&mut rng, &mut goal_and_actor_squares);
-    goal_and_actor_squares.shuffle(&mut rng);
-
-    WalledBoardPosition {
-      goal: Square(goal_and_actor_squares[0]),
-      actor_squares: ActorSquares([
-        Square(goal_and_actor_squares[1]),
-        Square(goal_and_actor_squares[2]),
-        Square(goal_and_actor_squares[3]),
-        Square(goal_and_actor_squares[4]),
-      ]),
-      walled_board,
     }
   }
 }

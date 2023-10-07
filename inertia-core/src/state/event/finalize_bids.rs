@@ -12,19 +12,15 @@ pub fn round_bidding_finalize_bids(state: RoundBidding) -> EventResult {
     player_bids,
   } = state;
 
-  let next_bidder = player_bids
-    .iter()
-    .filter(|(_, bid)| bid.is_prospective())
-    .min_by_key(|(_, bid)| bid.to_effective_value())
-    .map(|(id, _)| id);
+  let next_solver = player_bids.get_next_solver();
 
-  match next_bidder {
-    Some(&next_bidder_id) => {
+  match next_solver {
+    Some(next_solver_id) => {
       EventResult::ok(RoomState::RoundSolving(RoundSolving {
         meta,
         board,
         player_bids,
-        solver: next_bidder_id,
+        solver: next_solver_id,
         solution: Vec::new(),
       }))
     }
@@ -32,6 +28,7 @@ pub fn round_bidding_finalize_bids(state: RoundBidding) -> EventResult {
       meta,
       last_round_board: Some(board),
       last_round_solution: None,
+      last_solver: None,
     })),
   }
 }

@@ -1,33 +1,27 @@
-import { RoomData, ToClientMessage } from 'inertia-core';
+import { RoomState, ToClientMessage } from 'inertia-core';
 import { useEffect, useRef, useState } from 'preact/hooks';
-import { Lobby } from '../../components/lobby';
+import { RoundSummary } from '../../components/round-summary';
 import { getOrCreatePlayerName } from '../../utils/storage';
 import { RoomWebSocket } from '../../utils/ws';
 
 const RoomStateType = {
-  LOBBY: 'Lobby',
+  NONE: 'None',
+  CLOSED: 'Closed',
   ROUND_SUMMARY: 'RoundSummary',
   ROUND_START: 'RoundStart',
   ROUND_BIDDING: 'RoundBidding',
   ROUND_SOLVING: 'RoundSolving',
 } as const;
 
-const buildDefaultRoomData = (roomId: number): RoomData => ({
-  room_id: roomId,
-  players: {},
-  player_scores: {},
-  players_connected: {},
-  round_number: 0,
-  state: {
-    type: RoomStateType.ROUND_SUMMARY,
-  },
+const buildDefaultRoomData = (_roomId: number): RoomState => ({
+  type: RoomStateType.NONE,
 });
 
 export const Room = ({ roomId: roomIdString }: { roomId: string }) => {
   const websocket = useRef<RoomWebSocket | null>(null);
   const roomId = parseInt(roomIdString);
 
-  const [roomData, setRoomData] = useState<RoomData>(
+  const [roomState, setRoomState] = useState<RoomState>(
     buildDefaultRoomData(roomId)
   );
 
@@ -47,40 +41,37 @@ export const Room = ({ roomId: roomIdString }: { roomId: string }) => {
     });
     ws.onMessage((msg: ToClientMessage) => {
       console.log(msg);
-      setRoomData(msg.content);
+      setRoomState(msg.content);
     });
     return () => {
       ws.close();
     };
   }, [roomId]);
 
-  const {
-    players,
-    state,
-    // player_scores: playerScores,
-    // round_number: roundNumber,
-    // data_version: dataVersion,
-  } = roomData;
-
-  if (state.type === RoomStateType.LOBBY) {
-    return <Lobby {...{ roomId, players }} />;
+  if (roomState.type === RoomStateType.ROUND_SUMMARY) {
+    return <RoundSummary data={roomState.content} />;
   }
 
-  if (state.type === RoomStateType.ROUND_SUMMARY) {
-    return <Lobby {...{ roomId, players }} />;
+  // if (roomState.type === RoomStateType.ROUND_START) {
+  //   return <RoundSummary {...{ roomId, players }} />;
+  // }
+
+  // if (roomState.type === RoomStateType.ROUND_BIDDING) {
+  //   return <RoundSummary {...{ roomId, players }} />;
+  // }
+
+  // if (roomState.type === RoomStateType.ROUND_SOLVING) {
+  //   return <RoundSummary {...{ roomId, players }} />;
+  // }
+
+  if (roomState.type === RoomStateType.NONE) {
+    return <>Nothing here.</>;
   }
 
-  if (state.type === RoomStateType.ROUND_START) {
-    return <Lobby {...{ roomId, players }} />;
+  if (roomState.type === RoomStateType.CLOSED) {
+    roomState.content;
+    return <>Room closed.</>;
   }
 
-  if (state.type === RoomStateType.ROUND_BIDDING) {
-    return <Lobby {...{ roomId, players }} />;
-  }
-
-  if (state.type === RoomStateType.ROUND_SOLVING) {
-    return <Lobby {...{ roomId, players }} />;
-  }
-
-  return <span>{'Error: Unknown Room State'}</span>;
+  return <span>Unknown Room State</span>;
 };

@@ -17,7 +17,6 @@ use super::start_round::round_summary_start_round;
 use super::update_solution::round_solving_update_solution;
 use super::update_solution::UpdateSolution;
 use super::yield_solve::round_solving_yield_solve;
-use super::yield_solve::YieldSolve;
 
 #[derive(Display, Debug)]
 pub enum RoomEvent {
@@ -28,7 +27,7 @@ pub enum RoomEvent {
   MakeBid(MakeBid),
   FinalizeBids,
   UpdateSolution(UpdateSolution),
-  YieldSolve(YieldSolve),
+  YieldSolve,
 }
 
 impl RoomState {
@@ -49,8 +48,8 @@ impl RoomState {
       (RoomState::RoundSolving(state), RoomEvent::UpdateSolution(event)) => {
         round_solving_update_solution(state, event)
       }
-      (RoomState::RoundSolving(state), RoomEvent::YieldSolve(event)) => {
-        round_solving_yield_solve(state, event)
+      (RoomState::RoundSolving(state), RoomEvent::YieldSolve) => {
+        round_solving_yield_solve(state)
       }
       (state, RoomEvent::HardDisconnect(event)) => {
         hard_disconnect(state, event)

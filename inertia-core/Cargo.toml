@@ -13,3 +13,6 @@ typeshare = "1.0.1"
 
 [features]
 benchmarks = []
+
+[dev-dependencies]
+pretty_assertions = "1.4.0"

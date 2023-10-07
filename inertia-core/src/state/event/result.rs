@@ -5,7 +5,6 @@ use crate::state::data::RoomState;
 use super::apply_event::RoomEvent;
 use super::connect::ConnectError;
 use super::update_solution::UpdateSolutionError;
-use super::yield_solve::YieldSolveError;
 
 #[derive(Error, Debug)]
 pub enum EventError {
@@ -15,8 +14,6 @@ pub enum EventError {
   ConnectError(#[from] ConnectError),
   #[error(transparent)]
   UpdateSolutionError(#[from] UpdateSolutionError),
-  #[error(transparent)]
-  YieldSolveError(#[from] YieldSolveError),
 }
 
 pub struct EventResult {

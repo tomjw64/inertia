@@ -11,7 +11,7 @@ use typeshare::typeshare;
 pub enum FromClientMessage {
   Rename(RenameMessage),
   Join(JoinMessage),
-  StartGame,
+  StartRound,
 }
 
 #[typeshare]

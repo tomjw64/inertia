@@ -10,7 +10,7 @@ use crate::solvers::SolutionStep;
 use super::MoveBoard;
 
 #[typeshare]
-#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct WalledBoardPosition {
   pub walled_board: WalledBoard,
   pub actor_squares: ActorSquares,
@@ -36,6 +36,27 @@ impl WalledBoardPosition {
   }
 }
 
-pub trait WalledBoardPositionGenerator: std::fmt::Debug + Send {
+pub trait DynCloneWalledBoardPositionGenerator {
+  fn clone_dyn(&self) -> Box<dyn WalledBoardPositionGenerator>;
+}
+
+impl<T> DynCloneWalledBoardPositionGenerator for T
+where
+  T: 'static + WalledBoardPositionGenerator + Clone,
+{
+  fn clone_dyn(&self) -> Box<dyn WalledBoardPositionGenerator> {
+    Box::new(self.clone())
+  }
+}
+
+pub trait WalledBoardPositionGenerator:
+  DynCloneWalledBoardPositionGenerator + std::fmt::Debug + Send
+{
   fn generate_position(&self) -> WalledBoardPosition;
+}
+
+impl Clone for Box<dyn WalledBoardPositionGenerator> {
+  fn clone(&self) -> Self {
+    self.clone_dyn()
+  }
 }

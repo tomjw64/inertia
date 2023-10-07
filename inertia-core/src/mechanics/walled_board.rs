@@ -4,13 +4,30 @@ use serde::Deserialize;
 use serde::Serialize;
 use typeshare::typeshare;
 
+use super::Square;
+
 #[typeshare]
 type WallGroup = [bool; 15];
 #[typeshare]
 type WallGrid = [WallGroup; 16];
 
+#[derive(Debug, Default, Copy, Clone)]
+pub(crate) struct Walls {
+  pub(crate) up: bool,
+  pub(crate) down: bool,
+  pub(crate) left: bool,
+  pub(crate) right: bool,
+}
+
+impl Walls {
+  pub(crate) fn is_corner(&self) -> bool {
+    self.up as u8 + self.down as u8 == 1
+      && self.left as u8 + self.right as u8 == 1
+  }
+}
+
 #[typeshare]
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct WalledBoard {
   pub(crate) vertical: WallGrid,   // 16 ROWS of 15
   pub(crate) horizontal: WallGrid, // 16 COLUMNS of 15
@@ -36,6 +53,122 @@ impl WalledBoard {
 
   pub(crate) fn row_mut(&mut self, row: usize) -> &mut WallGroup {
     &mut self.vertical[row]
+  }
+
+  pub(crate) fn set_wall_up<T: Into<Square>>(
+    &mut self,
+    square: T,
+    value: bool,
+  ) {
+    let (row, col) = square.into().as_row_col();
+    if row == 0 {
+      return;
+    }
+    self.col_mut(col)[row - 1] = value;
+  }
+
+  pub(crate) fn set_wall_down<T: Into<Square>>(
+    &mut self,
+    square: T,
+    value: bool,
+  ) {
+    let (row, col) = square.into().as_row_col();
+    if row == 15 {
+      return;
+    }
+    self.col_mut(col)[row] = value;
+  }
+
+  pub(crate) fn set_wall_left<T: Into<Square>>(
+    &mut self,
+    square: T,
+    value: bool,
+  ) {
+    let (row, col) = square.into().as_row_col();
+    if col == 0 {
+      return;
+    }
+    self.row_mut(row)[col - 1] = value;
+  }
+
+  pub(crate) fn set_wall_right<T: Into<Square>>(
+    &mut self,
+    square: T,
+    value: bool,
+  ) {
+    let (row, col) = square.into().as_row_col();
+    if col == 15 {
+      return;
+    }
+    self.row_mut(row)[col] = value;
+  }
+
+  pub(crate) fn walls_for_square<T: Into<Square>>(
+    &self,
+    square: T,
+    allow_edges: bool,
+  ) -> Walls {
+    let square = square.into();
+
+    let up = self.get_wall_up(square, allow_edges);
+    let down = self.get_wall_down(square, allow_edges);
+    let left = self.get_wall_left(square, allow_edges);
+    let right = self.get_wall_right(square, allow_edges);
+
+    Walls {
+      up,
+      down,
+      left,
+      right,
+    }
+  }
+
+  pub(crate) fn get_wall_up<T: Into<Square>>(
+    &self,
+    square: T,
+    allow_edges: bool,
+  ) -> bool {
+    let (row, col) = square.into().as_row_col();
+    if row == 0 {
+      return allow_edges;
+    }
+    self.col(col)[row - 1]
+  }
+
+  pub(crate) fn get_wall_down<T: Into<Square>>(
+    &self,
+    square: T,
+    allow_edges: bool,
+  ) -> bool {
+    let (row, col) = square.into().as_row_col();
+    if row == 15 {
+      return allow_edges;
+    }
+    self.col(col)[row]
+  }
+
+  pub(crate) fn get_wall_left<T: Into<Square>>(
+    &self,
+    square: T,
+    allow_edges: bool,
+  ) -> bool {
+    let (row, col) = square.into().as_row_col();
+    if col == 0 {
+      return allow_edges;
+    }
+    self.row(row)[col - 1]
+  }
+
+  pub(crate) fn get_wall_right<T: Into<Square>>(
+    &self,
+    square: T,
+    allow_edges: bool,
+  ) -> bool {
+    let (row, col) = square.into().as_row_col();
+    if col == 15 {
+      return allow_edges;
+    }
+    self.row(row)[col]
   }
 }
 

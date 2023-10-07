@@ -10,6 +10,24 @@ use typeshare::typeshare;
 )]
 pub struct Square(pub(crate) u8);
 
+impl From<u8> for Square {
+  fn from(value: u8) -> Self {
+    Square(value)
+  }
+}
+
+impl From<Square> for u8 {
+  fn from(value: Square) -> Self {
+    value.0
+  }
+}
+
+impl From<(usize, usize)> for Square {
+  fn from(value: (usize, usize)) -> Self {
+    Self::from_row_col(value.0, value.1)
+  }
+}
+
 impl Square {
   pub const fn new(index: u8) -> Square {
     Square(index)
@@ -21,8 +39,8 @@ impl Square {
     Square((row * 16 + col) as u8)
   }
 
-  pub const fn as_row_col(self) -> (u8, u8) {
-    (self.0 / 16, self.0 % 16)
+  pub const fn as_row_col(self) -> (usize, usize) {
+    ((self.0 / 16) as usize, (self.0 % 16) as usize)
   }
 
   pub fn get_adjacent_and_self(self) -> Vec<Square> {

@@ -4,7 +4,7 @@ use crate::mechanics::WalledBoard;
 use crate::mechanics::WalledBoardPosition;
 use crate::mechanics::WalledBoardPositionGenerator;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct EmptyMiddleGoalBoardGenerator;
 
 impl EmptyMiddleGoalBoardGenerator {

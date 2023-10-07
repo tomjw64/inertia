@@ -1,5 +1,6 @@
 mod join;
 mod state;
+mod ws_receiver;
 
 use std::collections::HashMap;
 use std::net::SocketAddr;
@@ -126,24 +127,6 @@ async fn handle_socket(
   state.broadcast_room(room_id).await.ok();
   state.cleanup_room(room_id).await;
 }
-
-// async fn handle_message_from_client(
-//   socket_address: SocketAddr,
-//   msg: FromClientMessage,
-//   state: &Arc<AppState>,
-//   room_id: RoomId,
-//   player_id: PlayerId,
-// ) {
-//   macro_rules! ws_debug {
-//     ($($t:tt)*) => (tracing::debug!("WebSocket [{}]: {}", socket_address, format_args!($($t)*)))
-//   }
-
-//   match msg {
-//     FromClientMessage::Rename(_) => todo!(),
-//     FromClientMessage::Join(_) => ws_debug!("Unexpected join message."),
-//     FromClientMessage::StartGame => todo!(),
-//   }
-// }
 
 #[tokio::main]
 async fn main() {
