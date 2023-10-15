@@ -50,7 +50,7 @@ where
 }
 
 pub trait WalledBoardPositionGenerator:
-  DynCloneWalledBoardPositionGenerator + std::fmt::Debug + Send
+  DynCloneWalledBoardPositionGenerator + std::fmt::Debug + Send + Sync
 {
   fn generate_position(&self) -> WalledBoardPosition;
 }

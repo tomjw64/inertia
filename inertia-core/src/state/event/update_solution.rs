@@ -13,7 +13,7 @@ pub enum UpdateSolutionError {
   SolutionExceedsBid,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct UpdateSolution {
   pub solution: Vec<SolutionStep>,
 }

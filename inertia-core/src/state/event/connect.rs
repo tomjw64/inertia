@@ -21,7 +21,7 @@ pub enum ConnectError {
   BadReconnectKey(PlayerReconnectKey, PlayerReconnectKey, PlayerName),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Connect {
   pub player_name: PlayerName,
   pub player_id: PlayerId,

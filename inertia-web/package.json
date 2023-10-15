@@ -8,6 +8,7 @@
     "lint": "eslint ."
   },
   "dependencies": {
+    "@preact/signals": "^1.2.1",
     "@types/lodash": "^4.14.197",
     "inertia-core": "file:../inertia-core/pkg",
     "inertia-wasm": "file:../inertia-wasm/pkg",

@@ -1,5 +1,3 @@
-use thiserror::Error;
-
 use crate::state::data::PlayerBids;
 use crate::state::data::PlayerId;
 use crate::state::data::RoomState;
@@ -8,7 +6,7 @@ use crate::state::data::RoundStart;
 
 use super::result::EventResult;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct MakeBid {
   pub player_id: PlayerId,
   pub bid_value: usize,
@@ -21,12 +19,22 @@ pub fn round_start_make_bid(state: RoundStart, event: MakeBid) -> EventResult {
     bid_value,
   } = event;
   let mut player_bids = PlayerBids::default();
-  player_bids.make_bid(player_id, bid_value);
-  EventResult::ok(RoomState::RoundBidding(RoundBidding {
-    player_bids,
-    meta,
-    board,
-  }))
+  if let Err(error) = player_bids.make_bid(player_id, bid_value) {
+    EventResult::err(
+      RoomState::RoundBidding(RoundBidding {
+        player_bids,
+        meta,
+        board,
+      }),
+      error,
+    )
+  } else {
+    EventResult::ok(RoomState::RoundBidding(RoundBidding {
+      player_bids,
+      meta,
+      board,
+    }))
+  }
 }
 
 pub fn round_bidding_make_bid(
@@ -42,10 +50,20 @@ pub fn round_bidding_make_bid(
     player_id,
     bid_value,
   } = event;
-  player_bids.make_bid(player_id, bid_value);
-  EventResult::ok(RoomState::RoundBidding(RoundBidding {
-    meta,
-    board,
-    player_bids,
-  }))
+  if let Err(error) = player_bids.make_bid(player_id, bid_value) {
+    EventResult::err(
+      RoomState::RoundBidding(RoundBidding {
+        player_bids,
+        meta,
+        board,
+      }),
+      error,
+    )
+  } else {
+    EventResult::ok(RoomState::RoundBidding(RoundBidding {
+      player_bids,
+      meta,
+      board,
+    }))
+  }
 }

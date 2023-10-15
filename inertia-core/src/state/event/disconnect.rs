@@ -6,7 +6,7 @@ use super::apply_event::RoomEvent;
 use super::result::EventError;
 use super::result::EventResult;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Disconnect {
   pub player_id: PlayerId,
 }

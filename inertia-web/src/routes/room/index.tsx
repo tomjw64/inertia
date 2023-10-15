@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import { RoundSummary } from '../../components/round-summary';
 import { getOrCreatePlayerName } from '../../utils/storage';
 import { RoomWebSocket } from '../../utils/ws';
+import { RoundStart } from '../../components/round-start';
 
 const RoomStateType = {
   NONE: 'None',
@@ -25,6 +26,10 @@ export const Room = ({ roomId: roomIdString }: { roomId: string }) => {
     buildDefaultRoomData(roomId)
   );
 
+  const [initialCountdownTimeLeft, setInitialCountdownTimeLeft] = useState<
+    number | null
+  >(null);
+
   useEffect(() => {
     websocket.current = new RoomWebSocket();
     const ws = websocket.current;
@@ -40,21 +45,39 @@ export const Room = ({ roomId: roomIdString }: { roomId: string }) => {
       });
     });
     ws.onMessage((msg: ToClientMessage) => {
-      console.log(msg);
-      setRoomState(msg.content);
+      if (msg.type === 'RoomUpdate') {
+        setRoomState(msg.content);
+      } else if (msg.type === 'CountdownUpdate') {
+        setInitialCountdownTimeLeft(msg.content.server_time_left_millis);
+      }
     });
     return () => {
       ws.close();
     };
   }, [roomId]);
 
+  const onStartGame = () => {
+    const ws = websocket.current;
+    if (ws == null) {
+      return;
+    }
+    ws.send({
+      type: 'StartRound',
+    });
+  };
+
   if (roomState.type === RoomStateType.ROUND_SUMMARY) {
-    return <RoundSummary data={roomState.content} />;
+    return <RoundSummary state={roomState.content} onStartGame={onStartGame} />;
   }
 
-  // if (roomState.type === RoomStateType.ROUND_START) {
-  //   return <RoundSummary {...{ roomId, players }} />;
-  // }
+  if (roomState.type === RoomStateType.ROUND_START) {
+    return (
+      <RoundStart
+        state={roomState.content}
+        initialCountdownTimeLeft={initialCountdownTimeLeft ?? 0}
+      />
+    );
+  }
 
   // if (roomState.type === RoomStateType.ROUND_BIDDING) {
   //   return <RoundSummary {...{ roomId, players }} />;

@@ -1,4 +1,5 @@
 use inertia_core::mechanics::WalledBoardPositionGenerator;
+use inertia_core::message::CountdownUpdateMessage;
 use inertia_core::message::ToClientMessage;
 use inertia_core::state::data::RoomId;
 use inertia_core::state::data::RoomState;
@@ -7,44 +8,59 @@ use inertia_core::state::event::result::EventError;
 use inertia_core::state::event::result::EventResult;
 use std::collections::HashMap;
 use std::mem;
+use std::sync::Arc;
+use std::time::Duration;
 use thiserror::Error;
 use tokio::sync::broadcast;
-use tokio::sync::Mutex;
 use tokio::sync::RwLock;
+use tokio::task::JoinHandle;
+use tokio::time::Instant;
+
+pub struct Countdown {
+  pub task: JoinHandle<()>,
+  pub stop: Instant,
+}
 
 pub struct RoomUtils {
-  pub channel: broadcast::Sender<String>,
+  pub room_id: RoomId,
+  pub broadcast_channel: broadcast::Sender<ToClientMessage>,
+  pub countdown: Option<Countdown>,
 }
 
 pub struct Room {
   pub utils: RoomUtils,
-  pub state: Mutex<RoomState>,
+  pub state: RoomState,
 }
 
 impl Room {
-  pub fn new<T: WalledBoardPositionGenerator + 'static>(
+  pub fn new<G: WalledBoardPositionGenerator + 'static>(
     room_id: RoomId,
-    generator: T,
+    generator: G,
   ) -> Self {
     Room {
       utils: RoomUtils {
-        channel: broadcast::channel(16).0,
+        room_id,
+        broadcast_channel: broadcast::channel(16).0,
+        countdown: None,
       },
-      state: Mutex::new(RoomState::initial(room_id, generator)),
+      state: RoomState::initial(room_id, generator),
     }
   }
 }
 
+#[derive(Clone)]
 pub struct AppState {
-  pub rooms: RwLock<HashMap<RoomId, Room>>,
+  pub rooms: Arc<RwLock<HashMap<RoomId, RwLock<Room>>>>,
 }
 
 #[derive(Error, Debug)]
 pub enum BroadcastError {
   #[error(transparent)]
   NoRoomExists(#[from] NoRoomExistsError),
+  #[error("No countdown exists")]
+  NoCountdownExists,
   #[error(transparent)]
-  SendFailed(broadcast::error::SendError<String>),
+  SendFailed(broadcast::error::SendError<ToClientMessage>),
 }
 
 #[derive(Error, Debug)]
@@ -53,6 +69,8 @@ pub enum ApplyEventError {
   NoRoomExists(#[from] NoRoomExistsError),
   #[error(transparent)]
   ApplyRoomEventError(#[from] EventError),
+  #[error("Validation for event failed.")]
+  ValidationFailedError,
 }
 
 #[derive(Error, Debug)]
@@ -60,22 +78,59 @@ pub enum ApplyEventError {
 pub struct NoRoomExistsError(RoomId);
 
 impl AppState {
-  async fn with_room<F, T, E>(&self, room_id: RoomId, f: F) -> Result<T, E>
+  async fn with_room_read<F, T, E>(&self, room_id: RoomId, f: F) -> Result<T, E>
   where
-    F: FnOnce(&RoomUtils, &mut RoomState) -> Result<T, E>,
+    F: FnOnce(&Room) -> Result<T, E>,
     E: From<NoRoomExistsError>,
   {
     let rooms = self.rooms.read().await;
-    let room = rooms.get(&room_id).ok_or(NoRoomExistsError(room_id))?;
-    let mut state = room.state.lock().await;
+    let room = rooms
+      .get(&room_id)
+      .ok_or(NoRoomExistsError(room_id))?
+      .read()
+      .await;
+    f(&room)
+  }
 
-    f(&room.utils, &mut state)
+  async fn with_room_write<F, T, E>(
+    &self,
+    room_id: RoomId,
+    f: F,
+  ) -> Result<T, E>
+  where
+    F: FnOnce(&mut Room) -> Result<T, E>,
+    E: From<NoRoomExistsError>,
+  {
+    let rooms = self.rooms.read().await;
+    let mut room = rooms
+      .get(&room_id)
+      .ok_or(NoRoomExistsError(room_id))?
+      .write()
+      .await;
+
+    f(&mut room)
+  }
+
+  pub async fn ensure_room_exists<G: WalledBoardPositionGenerator + 'static>(
+    &self,
+    room_id: RoomId,
+    generator: G,
+  ) {
+    let should_create_room = self.rooms.read().await.get(&room_id).is_none();
+    if should_create_room {
+      self
+        .rooms
+        .write()
+        .await
+        .entry(room_id)
+        .or_insert_with(|| RwLock::new(Room::new(room_id, generator)));
+    }
   }
 
   pub async fn cleanup_room(&self, room_id: RoomId) {
     let should_remove = self
-      .with_room(room_id, |_, state| {
-        Ok::<_, NoRoomExistsError>(matches!(*state, RoomState::Closed))
+      .with_room_read(room_id, |room| {
+        Ok::<_, NoRoomExistsError>(matches!(room.state, RoomState::Closed))
       })
       .await
       .unwrap_or(false);
@@ -84,16 +139,22 @@ impl AppState {
     }
   }
 
-  pub async fn get_channel_pair(
+  pub async fn get_broadcast_channel_pair(
     &self,
     room_id: RoomId,
   ) -> Result<
-    (broadcast::Sender<String>, broadcast::Receiver<String>),
+    (
+      broadcast::Sender<ToClientMessage>,
+      broadcast::Receiver<ToClientMessage>,
+    ),
     NoRoomExistsError,
   > {
     self
-      .with_room(room_id, |utils, _| {
-        Ok((utils.channel.clone(), utils.channel.subscribe()))
+      .with_room_read(room_id, |room| {
+        Ok((
+          room.utils.broadcast_channel.clone(),
+          room.utils.broadcast_channel.subscribe(),
+        ))
       })
       .await
   }
@@ -103,15 +164,145 @@ impl AppState {
     room_id: RoomId,
   ) -> Result<(), BroadcastError> {
     self
-      .with_room(room_id, |utils, state| {
-        let msg = ToClientMessage::RoomUpdate(&*state);
+      .with_room_read(room_id, |room| {
+        let msg = ToClientMessage::RoomUpdate(Box::new(room.state.clone()));
 
-        utils
-          .channel
-          .send(serde_json::to_string(&msg).unwrap())
+        room
+          .utils
+          .broadcast_channel
+          .send(msg)
           .map_err(BroadcastError::SendFailed)?;
 
         Ok(())
+      })
+      .await
+  }
+
+  pub async fn broadcast_countdown(
+    &self,
+    room_id: RoomId,
+  ) -> Result<(), BroadcastError> {
+    self
+      .with_room_read(room_id, |room| {
+        let countdown_stop = room
+          .utils
+          .countdown
+          .as_ref()
+          .map(|c| c.stop)
+          .ok_or(BroadcastError::NoCountdownExists)?;
+
+        let now = Instant::now();
+        let time_left = countdown_stop - now;
+
+        let msg = ToClientMessage::CountdownUpdate(CountdownUpdateMessage {
+          server_time_left_millis: time_left.as_millis(),
+        });
+
+        room
+          .utils
+          .broadcast_channel
+          .send(msg)
+          .map_err(BroadcastError::SendFailed)?;
+
+        Ok(())
+      })
+      .await
+  }
+
+  pub fn apply_countdown(&self, room: &mut Room) {
+    if let Some(countdown) = &room.utils.countdown {
+      countdown.task.abort()
+    }
+    let app_state = self.clone();
+    let room_id = room.utils.room_id;
+    let now = Instant::now();
+    match room.state {
+      RoomState::RoundStart(_) => {
+        // let stop = now + Duration::from_secs(180);
+        let stop = now + Duration::from_secs(30);
+        room.utils.countdown = Some(Countdown {
+          task: tokio::spawn(async move {
+            tokio::time::sleep_until(stop).await;
+            app_state
+              .apply_event(room_id, RoomEvent::FinalizeBids)
+              .await
+              .ok();
+          }),
+          stop,
+        })
+      }
+      RoomState::RoundBidding(_) => {
+        let stop = now + Duration::from_secs(60);
+        room.utils.countdown = Some(Countdown {
+          task: tokio::spawn(async move {
+            tokio::time::sleep_until(stop).await;
+            app_state
+              .apply_event(room_id, RoomEvent::FinalizeBids)
+              .await
+              .ok();
+          }),
+          stop,
+        })
+      }
+      RoomState::RoundSolving(_) => {
+        let stop = now + Duration::from_secs(60);
+        room.utils.countdown = Some(Countdown {
+          task: tokio::spawn(async move {
+            tokio::time::sleep_until(stop).await;
+            app_state
+              .apply_event(room_id, RoomEvent::YieldSolve)
+              .await
+              .ok();
+          }),
+          stop,
+        })
+      }
+      _ => {}
+    }
+  }
+
+  fn _apply_event(
+    &self,
+    room: &mut Room,
+    event: RoomEvent,
+  ) -> Result<(), ApplyEventError> {
+    let original_discriminant = mem::discriminant(&room.state);
+    let working_state = mem::replace(&mut room.state, RoomState::None);
+    let event_is_yield_solve = matches!(event, RoomEvent::YieldSolve);
+
+    let EventResult {
+      result: next_state,
+      error,
+    } = working_state.apply(event);
+    room.state = next_state;
+    error.map(Err).unwrap_or(Ok(()))?;
+
+    let current_discriminant = mem::discriminant(&room.state);
+    let state_transition_occurred =
+      original_discriminant != current_discriminant;
+    let solver_changed =
+      event_is_yield_solve && matches!(room.state, RoomState::RoundSolving(_));
+    if state_transition_occurred || solver_changed {
+      self.apply_countdown(room);
+    }
+    Ok(())
+  }
+
+  pub async fn apply_event_with_validation<F>(
+    &self,
+    room_id: RoomId,
+    event: RoomEvent,
+    predicate: F,
+  ) -> Result<(), ApplyEventError>
+  where
+    F: FnOnce(&mut RoomState) -> bool,
+  {
+    self
+      .with_room_write(room_id, |room| {
+        if !predicate(&mut room.state) {
+          return Err(ApplyEventError::ValidationFailedError);
+        }
+        self._apply_event(room, event)
       })
       .await
   }
@@ -122,16 +313,7 @@ impl AppState {
     event: RoomEvent,
   ) -> Result<(), ApplyEventError> {
     self
-      .with_room(room_id, |_, state| {
-        let working_state = mem::replace(state, RoomState::None);
-        let EventResult {
-          result: next_state,
-          error,
-        } = working_state.apply(event);
-        *state = next_state;
-        error.map(Err).unwrap_or(Ok(()))?;
-        Ok(())
-      })
+      .with_room_write(room_id, |room| self._apply_event(room, event))
       .await
   }
 }

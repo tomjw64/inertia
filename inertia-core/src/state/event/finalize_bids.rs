@@ -1,9 +1,23 @@
 use crate::state::data::RoomState;
 use crate::state::data::RoundBidding;
 use crate::state::data::RoundSolving;
+use crate::state::data::RoundStart;
 use crate::state::data::RoundSummary;
 
 use super::result::EventResult;
+
+pub fn round_start_finalize_bids(state: RoundStart) -> EventResult {
+  let RoundStart { meta, board, .. } = state;
+
+  dbg!("finalized");
+
+  EventResult::ok(RoomState::RoundSummary(RoundSummary {
+    meta,
+    last_round_board: Some(board),
+    last_round_solution: None,
+    last_solver: None,
+  }))
+}
 
 pub fn round_bidding_finalize_bids(state: RoundBidding) -> EventResult {
   let RoundBidding {

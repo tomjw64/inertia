@@ -1,5 +1,4 @@
 use std::net::SocketAddr;
-use std::sync::Arc;
 
 use axum::extract::ws::Message;
 use axum::extract::ws::WebSocket;
@@ -8,6 +7,7 @@ use futures::StreamExt;
 use inertia_core::board_generators::ClassicBoardGenerator;
 use inertia_core::message::FromClientMessage;
 use inertia_core::message::JoinMessage;
+use inertia_core::message::ToClientMessage;
 use inertia_core::state::data::PlayerId;
 use inertia_core::state::data::PlayerName;
 use inertia_core::state::data::RoomId;
@@ -16,7 +16,6 @@ use inertia_core::state::event::connect::Connect;
 use tokio::sync::broadcast;
 
 use crate::state::AppState;
-use crate::state::Room;
 
 #[derive(Debug)]
 pub enum JoinError {
@@ -29,14 +28,14 @@ pub struct JoinInfo {
   pub room_id: RoomId,
   pub player_id: PlayerId,
   pub player_name: PlayerName,
-  pub channel_sender: broadcast::Sender<String>,
-  pub channel_receiver: broadcast::Receiver<String>,
+  pub broadcast_channel_sender: broadcast::Sender<ToClientMessage>,
+  pub broadcast_channel_receiver: broadcast::Receiver<ToClientMessage>,
 }
 
 pub async fn join(
   ws_receiver: &mut SplitStream<WebSocket>,
   socket_address: &SocketAddr,
-  state: &Arc<AppState>,
+  state: &AppState,
 ) -> Result<JoinInfo, JoinError> {
   macro_rules! reject {
     ($($t:tt)*) => (tracing::debug!("WebSocket [{}]: Join rejected. {}", socket_address, format_args!($($t)*)))
@@ -85,23 +84,9 @@ pub async fn join(
       room_id,
     } = join_message;
 
-    let should_create_room = state
-      .rooms
-      .read()
-      .await
-      .get(&join_message.room_id)
-      .is_none();
-
-    if should_create_room {
-      state
-        .rooms
-        .write()
-        .await
-        .entry(join_message.room_id)
-        .or_insert_with(|| {
-          Room::new(join_message.room_id, ClassicBoardGenerator::new())
-        });
-    }
+    state
+      .ensure_room_exists(room_id, ClassicBoardGenerator::new())
+      .await;
 
     let connect_event = RoomEvent::Connect(Connect {
       player_name: player_name.clone(),
@@ -113,8 +98,8 @@ pub async fn join(
       continue;
     };
 
-    let (channel_sender, channel_receiver) =
-      match state.get_channel_pair(room_id).await {
+    let (broadcast_channel_sender, broadcast_channel_receiver) =
+      match state.get_broadcast_channel_pair(room_id).await {
         Ok(result) => result,
         Err(err) => {
           reject!("Error during connection: {:?}", err);
@@ -126,8 +111,8 @@ pub async fn join(
       room_id,
       player_id,
       player_name,
-      channel_sender,
-      channel_receiver,
+      broadcast_channel_sender,
+      broadcast_channel_receiver,
     });
   }
 }

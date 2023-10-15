@@ -78,6 +78,15 @@ impl PlayerBid {
     }
   }
 
+  pub fn to_locked(self) -> Self {
+    let effective_value = self.to_effective_value();
+    let order = self.to_order();
+    Self::ProspectiveLocked {
+      value: effective_value,
+      order,
+    }
+  }
+
   pub fn to_failed(self) -> Self {
     let effective_value = self.to_effective_value();
     Self::Failed {
@@ -174,6 +183,10 @@ pub struct PlayerBids {
 #[error("Unable to make a bid from the current state")]
 pub struct MakeBidError;
 
+#[derive(Error, Debug)]
+#[error("Unable to lock in bid from the current state")]
+pub struct LockInBidError;
+
 impl PlayerBids {
   pub fn get(&self, player_id: PlayerId) -> PlayerBid {
     *self.bids.get(&player_id).unwrap_or(&PlayerBid::None)
@@ -182,6 +195,26 @@ impl PlayerBids {
   pub fn fail(&mut self, player_id: PlayerId) {
     let current_bid = self.get(player_id);
     self.bids.insert(player_id, current_bid.to_failed());
+  }
+
+  pub fn lock_in_bid(
+    &mut self,
+    player_id: PlayerId,
+  ) -> Result<(), LockInBidError> {
+    let current_bid = self.bids.get(&player_id).unwrap_or(&PlayerBid::None);
+
+    let can_update = match current_bid {
+      PlayerBid::None => false,
+      PlayerBid::Prospective { .. } => true,
+      PlayerBid::ProspectiveLocked { .. } => false,
+      PlayerBid::Failed { .. } => false,
+    };
+
+    if !can_update {
+      return Err(LockInBidError);
+    }
+
+    Ok(())
   }
 
   pub fn make_bid(
@@ -270,6 +303,16 @@ impl RoomState {
       RoomState::RoundStart(RoundStart { meta, .. }) => Some(meta),
       RoomState::RoundBidding(RoundBidding { meta, .. }) => Some(meta),
       RoomState::RoundSolving(RoundSolving { meta, .. }) => Some(meta),
+    }
+  }
+  pub fn get_solver(&self) -> Option<PlayerId> {
+    match self {
+      RoomState::None => None,
+      RoomState::Closed => None,
+      RoomState::RoundSummary(_) => None,
+      RoomState::RoundStart(_) => None,
+      RoomState::RoundBidding(_) => None,
+      RoomState::RoundSolving(RoundSolving { solver, .. }) => Some(*solver),
     }
   }
 }

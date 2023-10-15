@@ -1,10 +1,16 @@
 import { RoundSummary as RoundSummaryState } from 'inertia-core';
 
-export const RoundSummary = ({ data }: { data: RoundSummaryState }) => {
+export const RoundSummary = ({
+  state,
+  onStartGame,
+}: {
+  state: RoundSummaryState;
+  onStartGame: () => void;
+}) => {
   return (
     <div>
-      <span>{JSON.stringify({ data })}</span>
-      <button>Start Game</button>
+      <span>{JSON.stringify({ state })}</span>
+      <button onClick={onStartGame}>Start Game</button>
     </div>
   );
 };

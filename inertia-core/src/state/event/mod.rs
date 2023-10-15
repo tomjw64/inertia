@@ -2,6 +2,7 @@ pub mod apply_event;
 pub mod connect;
 pub mod disconnect;
 pub mod finalize_bids;
+pub mod lock_in_bid;
 pub mod make_bid;
 pub mod result;
 pub mod start_round;
