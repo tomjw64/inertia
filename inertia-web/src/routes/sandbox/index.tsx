@@ -1,31 +1,16 @@
 import style from './style.module.scss';
 import { Board } from '../../components/board';
 import { Controls } from '../../components/controls';
-import {
-  ActorSquares,
-  SolutionStep,
-  Square,
-  WallGrid,
-  WalledBoard,
-} from 'inertia-core';
+import { ActorSquares, SolutionStep, Square, WalledBoard } from 'inertia-core';
 import { useEffect, useState } from 'preact/hooks';
 import { get_movement_for_actor } from 'inertia-wasm';
 import { Starfield } from '../../components/starfield';
+import { emptyBoard } from '../../utils/board';
 
 export const Sandbox = () => {
-  const vertical = [...Array(16)].map((_row) =>
-    Array(15).fill(false)
-  ) as WallGrid;
-  const horizontal = [...Array(16)].map((_column) =>
-    Array(15).fill(false)
-  ) as WallGrid;
-
   const [goal, setGoal] = useState<Square>(255);
 
-  const [walledBoard, setWalledBoard] = useState<WalledBoard>({
-    vertical,
-    horizontal,
-  });
+  const [walledBoard, setWalledBoard] = useState<WalledBoard>(emptyBoard());
 
   const [initialActorSquares, setInitialActorSquares] = useState<ActorSquares>([
     0, 1, 2, 3,

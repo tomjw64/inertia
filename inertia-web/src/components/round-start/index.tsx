@@ -1,5 +1,8 @@
+import style from './style.module.scss';
 import { RoundStart as RoundStartState } from 'inertia-core';
-import { Countdown } from '../countdown';
+import { CountdownPanel } from '../countdown-panel';
+import { Starfield } from '../starfield';
+import { Board } from '../board';
 
 export const RoundStart = ({
   state,
@@ -10,11 +13,16 @@ export const RoundStart = ({
 }) => {
   return (
     <div>
-      <span>{JSON.stringify({ state })}</span>
-      <Countdown
-        initialCountdownTimeLeft={initialCountdownTimeLeft}
-        granularity={10}
-      />
+      <Starfield numStars={500} speed={2} />
+      <div class={style.room}>
+        <Board
+          walledBoard={state.board.walled_board}
+          goal={state.board.goal}
+          actorSquares={state.board.actor_squares}
+          moveActor={() => {}}
+        />
+        <CountdownPanel initialCountdownTimeLeft={initialCountdownTimeLeft} />
+      </div>
     </div>
   );
 };

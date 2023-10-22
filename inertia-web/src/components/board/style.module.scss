@@ -1,8 +1,8 @@
 @use "sass:color";
-@use "../../styles/variables.scss" as *;
+@use "../../styles/common.scss";
 
 .board {
-  border: 2px solid $border-color;
+  border: 2px solid common.$board-border-color;
   width: 90svmin;
   height: 90svmin;
   display: grid;
@@ -13,8 +13,8 @@
 }
 
 .square {
-  background: $square-color;
-  border: 1px solid $border-color;
+  background: common.$square-color;
+  border: 1px solid common.$board-border-color;
   box-sizing: border-box;
   display: flex;
   align-items: center;
@@ -40,7 +40,7 @@
     cursor: pointer;
   }
 
-  @each $color-name, $value in $canonical-colors {
+  @each $color-name, $value in common.$canonical-colors {
     .move-ray-#{$color-name} {
       width: 100%;
       height: 100%;
@@ -58,11 +58,11 @@
   
   &.goal {
     background:
-      linear-gradient(45deg, $canonical-red, $transparent 50%),
-      linear-gradient(135deg, $canonical-green, $transparent 50%),
-      linear-gradient(225deg, $canonical-yellow, $transparent 50%),
-      linear-gradient(315deg, $canonical-blue, $transparent 50%),
-      $square-color;
+      linear-gradient(45deg, common.$canonical-red, common.$transparent 50%),
+      linear-gradient(135deg, common.$canonical-green, common.$transparent 50%),
+      linear-gradient(225deg, common.$canonical-yellow, common.$transparent 50%),
+      linear-gradient(315deg, common.$canonical-blue, common.$transparent 50%),
+      common.$square-color;
   }
 }
 
@@ -78,7 +78,7 @@
     border: 3px solid #eee;
   }
 
-  @each $color-name, $value in $canonical-colors {
+  @each $color-name, $value in common.$canonical-colors {
     &.actor-#{$color-name} {
       background: $value
     }

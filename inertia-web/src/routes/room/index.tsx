@@ -4,6 +4,8 @@ import { RoundSummary } from '../../components/round-summary';
 import { getOrCreatePlayerName } from '../../utils/storage';
 import { RoomWebSocket } from '../../utils/ws';
 import { RoundStart } from '../../components/round-start';
+import { RoundBidding } from '../../components/round-bidding';
+import { RoundSolving } from '../../components/round-solving';
 
 const RoomStateType = {
   NONE: 'None',
@@ -79,13 +81,23 @@ export const Room = ({ roomId: roomIdString }: { roomId: string }) => {
     );
   }
 
-  // if (roomState.type === RoomStateType.ROUND_BIDDING) {
-  //   return <RoundSummary {...{ roomId, players }} />;
-  // }
+  if (roomState.type === RoomStateType.ROUND_BIDDING) {
+    return (
+      <RoundBidding
+        state={roomState.content}
+        initialCountdownTimeLeft={initialCountdownTimeLeft ?? 0}
+      />
+    );
+  }
 
-  // if (roomState.type === RoomStateType.ROUND_SOLVING) {
-  //   return <RoundSummary {...{ roomId, players }} />;
-  // }
+  if (roomState.type === RoomStateType.ROUND_SOLVING) {
+    return (
+      <RoundSolving
+        state={roomState.content}
+        initialCountdownTimeLeft={initialCountdownTimeLeft ?? 0}
+      />
+    );
+  }
 
   if (roomState.type === RoomStateType.NONE) {
     return <>Nothing here.</>;

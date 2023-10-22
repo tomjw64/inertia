@@ -135,6 +135,7 @@ impl AppState {
       .await
       .unwrap_or(false);
     if should_remove {
+      tracing::debug!("Cleaning up room {:?}", room_id);
       self.rooms.write().await.remove(&room_id);
     }
   }
@@ -218,8 +219,7 @@ impl AppState {
     let now = Instant::now();
     match room.state {
       RoomState::RoundStart(_) => {
-        // let stop = now + Duration::from_secs(180);
-        let stop = now + Duration::from_secs(30);
+        let stop = now + Duration::from_secs(180);
         room.utils.countdown = Some(Countdown {
           task: tokio::spawn(async move {
             tokio::time::sleep_until(stop).await;
@@ -266,6 +266,12 @@ impl AppState {
     room: &mut Room,
     event: RoomEvent,
   ) -> Result<(), ApplyEventError> {
+    let event_type = event.to_string();
+    tracing::debug!(
+      "Applying event {} to room id {:?}",
+      event_type,
+      room.utils.room_id
+    );
     let original_discriminant = mem::discriminant(&room.state);
     let working_state = mem::replace(&mut room.state, RoomState::None);
     let event_is_yield_solve = matches!(event, RoomEvent::YieldSolve);
@@ -304,7 +310,10 @@ impl AppState {
         }
         self._apply_event(room, event)
       })
-      .await
+      .await?;
+    self.broadcast_room(room_id).await.ok();
+    self.broadcast_countdown(room_id).await.ok();
+    Ok(())
   }
 
   pub async fn apply_event(
@@ -314,6 +323,9 @@ impl AppState {
   ) -> Result<(), ApplyEventError> {
     self
       .with_room_write(room_id, |room| self._apply_event(room, event))
-      .await
+      .await?;
+    self.broadcast_room(room_id).await.ok();
+    self.broadcast_countdown(room_id).await.ok();
+    Ok(())
   }
 }

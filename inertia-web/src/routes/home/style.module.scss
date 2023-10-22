@@ -1,7 +1,7 @@
-@use "../../styles/variables.scss" as *;
+@use "../../styles/common.scss";
 
 $foreground-border-width: 6px;
-$foreground-width: calc(min(600px, 90svw) - $foreground-border-width * 2);
+$foreground-width: min(600px, 90svw);
 $button-height: 2.5em;
 
 .home {
@@ -42,29 +42,11 @@ $button-height: 2.5em;
 }
 
 .foregroundContentOuter {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: $foreground-border-width;
-  border-radius: 10px;
-  background:
-    linear-gradient(45deg, $canonical-red, $transparent 50%),
-    linear-gradient(135deg, $canonical-green, $transparent 50%),
-    linear-gradient(225deg, $canonical-yellow, $transparent 50%),
-    linear-gradient(315deg, $canonical-blue, $transparent 50%),
-    #333;
-  filter: drop-shadow(0px 0px 10px #666);
+  @include common.borderedForeground();
 }
 
 .foregroundContent {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  background: #ddd;
-  width: $foreground-width;
-  border-radius: 10px;
-  padding: 20px;
+  @include common.borderedForegroundContent($foreground-width);
   font-size: 14px;
   @media (min-width: 400px) {
     font-size: 16px;
@@ -84,7 +66,6 @@ $button-height: 2.5em;
 }
 
 .subtitle {
-  font-family: 'Chakra Petch';
   font-size: 2em;
   font-weight: bold;
 }
@@ -135,7 +116,6 @@ $button-height: 2.5em;
   color: #333;
   font-weight: bold;
   height: 2em;
-  font-family: 'Chakra Petch';
   border: 0;
   border-radius: 10px;
   margin: 0.5em;
@@ -161,14 +141,12 @@ $button-height: 2.5em;
   align-items: center;
   white-space: nowrap;
   height: $button-height;
-  font-family: 'Chakra Petch';
   font-weight: bold;
   background-color: #d9d900;
   filter: drop-shadow(0px 4px 0px #c2c200);
   border: 0;
   border-radius: 2em / 4em;
   padding: 0.5em 1em;
-  margin: 0.25em;
   cursor: pointer;
 
   > img {
@@ -184,30 +162,6 @@ $button-height: 2.5em;
     background-color: #f0f000;
     filter: drop-shadow(0px 2px 0px #c2c200);
   }
-}
-
-.divider {
-  display: block;
-  width: calc(100% - 40px);
-  height: 3px;
-  background-color: #bbb;
-  margin: 20px;
-  color: rgba(50, 50, 50, 0.5);
-}
-
-.dividerText {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  color: rgba(50, 50, 50, 0.5);
-}
-
-.dividerText::before, .dividerText::after {
-  flex: 1;
-  content: '';
-  height: 2px;
-  background-color: #bbb;
-  margin: 20px 40px;
 }
 
 .title {
@@ -227,20 +181,20 @@ $button-height: 2.5em;
 
 @keyframes animationColor {
   0% {
-    color: $canonical-green;
-    filter: drop-shadow(0 0 1em $canonical-green);
+    color: common.$canonical-green;
+    filter: drop-shadow(0 0 1em common.$canonical-green);
   }
   25% {
-    color: $canonical-blue;
-    filter: drop-shadow(0 0 1em $canonical-blue);
+    color: common.$canonical-blue;
+    filter: drop-shadow(0 0 1em common.$canonical-blue);
   }
   50% {
-    color: $canonical-red;
-    filter: drop-shadow(0 0 1em $canonical-red);
+    color: common.$canonical-red;
+    filter: drop-shadow(0 0 1em common.$canonical-red);
   }
   100% {
-    color: $canonical-yellow;
-    filter: drop-shadow(0 0 1em $canonical-yellow);
+    color: common.$canonical-yellow;
+    filter: drop-shadow(0 0 1em common.$canonical-yellow);
   }
 }
 

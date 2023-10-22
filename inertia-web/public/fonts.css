@@ -12,3 +12,11 @@
   font-family: "Chakra Petch";
   src: url("/chakra-petch.woff2") format("woff2");
 }
+
+* {
+  font: inherit;
+}
+
+body {
+  font-family: 'Chakra Petch';
+}

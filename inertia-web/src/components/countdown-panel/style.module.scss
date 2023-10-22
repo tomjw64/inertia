@@ -1,0 +1,21 @@
+@use "../../styles/common.scss";
+
+$foreground-width: 5em;
+
+.countdownWrapper {
+  @include common.borderedForeground();
+}
+
+.countdownContent {
+  @include common.borderedForegroundContent($foreground-width);
+  font-size: 30px;
+  @media (min-width: 400px) {
+    font-size: 34px;
+  }
+  @media (min-width: 500px) {
+    font-size: 38px;
+  }
+  @media (min-width: 600px) {
+    font-size: 42px;
+  }
+}

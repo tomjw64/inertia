@@ -1,14 +1,13 @@
 import { useComputed } from '@preact/signals';
 import { useCountdown } from '../../utils/use-countdown';
+import style from './style.module.scss';
 
-export const Countdown = ({
+export const CountdownPanel = ({
   initialCountdownTimeLeft,
-  granularity,
 }: {
   initialCountdownTimeLeft: number;
-  granularity: number;
 }) => {
-  const timeLeftMillis = useCountdown(initialCountdownTimeLeft, granularity);
+  const timeLeftMillis = useCountdown(initialCountdownTimeLeft, 10);
   const timeLeftFormatted = useComputed(() =>
     (timeLeftMillis.value / 1000).toFixed(2)
   );
@@ -17,5 +16,9 @@ export const Countdown = ({
     return <></>;
   }
 
-  return <div>{timeLeftFormatted}</div>;
+  return (
+    <div className={style.countdownWrapper}>
+      <div className={style.countdownContent}>{timeLeftFormatted}</div>
+    </div>
+  );
 };

@@ -83,7 +83,5 @@ pub async fn handle_message_from_client(
         .await?
     }
   };
-  state.broadcast_room(room_id).await?;
-  state.broadcast_countdown(room_id).await?;
   Ok(())
 }

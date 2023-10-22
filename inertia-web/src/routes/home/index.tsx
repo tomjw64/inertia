@@ -4,6 +4,7 @@ import style from './style.module.scss';
 import debounce from 'lodash/debounce';
 import { getOrCreatePlayerName } from '../../utils/storage';
 import { generatePlayerName } from '../../utils/player-name';
+import { Divider } from '../../components/divider';
 
 export const Home = () => {
   const homeRef = useRef<HTMLDivElement | null>(null);
@@ -51,7 +52,20 @@ export const Home = () => {
           <div className={style.foregroundContentOuter}>
             <div className={style.foregroundContent}>
               <div className={style.subtitle}>Inertia</div>
-              <div className={style.divider}></div>
+              <Divider />
+              <div>
+                <button className={style.button}>Start Game</button>
+              </div>
+              <Divider text={'or'} />
+              <div className={style.joinGameSection}>
+                <div className={style.inputButtonForm}>
+                  <button className={style.button}>Join Game</button>
+                  <input
+                    className={[style.input, style.short].join(' ')}
+                  ></input>
+                </div>
+              </div>
+              <Divider />
               <div>
                 <div className={style.inputButtonForm}>
                   <button className={style.button}>Set Name</button>
@@ -70,19 +84,6 @@ export const Home = () => {
                   >
                     <img src="/refresh.svg" />
                   </button>
-                </div>
-              </div>
-              <div className={style.divider}></div>
-              <div>
-                <button className={style.button}>Start Game</button>
-              </div>
-              <div className={style.dividerText}>or</div>
-              <div className={style.joinGameSection}>
-                <div className={style.inputButtonForm}>
-                  <button className={style.button}>Join Game</button>
-                  <input
-                    className={[style.input, style.short].join(' ')}
-                  ></input>
                 </div>
               </div>
             </div>

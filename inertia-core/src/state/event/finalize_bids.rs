@@ -9,8 +9,6 @@ use super::result::EventResult;
 pub fn round_start_finalize_bids(state: RoundStart) -> EventResult {
   let RoundStart { meta, board, .. } = state;
 
-  dbg!("finalized");
-
   EventResult::ok(RoomState::RoundSummary(RoundSummary {
     meta,
     last_round_board: Some(board),

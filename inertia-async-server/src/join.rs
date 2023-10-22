@@ -88,6 +88,15 @@ pub async fn join(
       .ensure_room_exists(room_id, ClassicBoardGenerator::new())
       .await;
 
+    let (broadcast_channel_sender, broadcast_channel_receiver) =
+      match state.get_broadcast_channel_pair(room_id).await {
+        Ok(result) => result,
+        Err(err) => {
+          reject!("Error during connection: {:?}", err);
+          continue;
+        }
+      };
+
     let connect_event = RoomEvent::Connect(Connect {
       player_name: player_name.clone(),
       player_id,
@@ -97,15 +106,6 @@ pub async fn join(
       reject!("Error during connection: {:?}", err);
       continue;
     };
-
-    let (broadcast_channel_sender, broadcast_channel_receiver) =
-      match state.get_broadcast_channel_pair(room_id).await {
-        Ok(result) => result,
-        Err(err) => {
-          reject!("Error during connection: {:?}", err);
-          continue;
-        }
-      };
 
     return Ok(JoinInfo {
       room_id,
