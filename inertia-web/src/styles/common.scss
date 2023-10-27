@@ -13,31 +13,3 @@ $canonical-colors: (
 $transparent: rgb(255, 255, 255, 0);
 $board-border-color: #888;
 $square-color: #aaa;
-
-$-foreground-border-width: 6px;
-
-@mixin borderedForeground() {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: $-foreground-border-width;
-  border-radius: 10px;
-  background:
-    linear-gradient(45deg, $canonical-red, $transparent 50%),
-    linear-gradient(135deg, $canonical-green, $transparent 50%),
-    linear-gradient(225deg, $canonical-yellow, $transparent 50%),
-    linear-gradient(315deg, $canonical-blue, $transparent 50%),
-    #333;
-  filter: drop-shadow(0px 0px 10px #666);
-}
-
-@mixin borderedForegroundContent($foreground-width) {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  background: #ddd;
-  width: calc($foreground-width - $-foreground-border-width * 2);
-  border-radius: 10px;
-  padding: 20px;
-}

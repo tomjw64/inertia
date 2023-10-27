@@ -1,0 +1,25 @@
+@use "../../styles/common.scss";
+
+
+$themed-padding-width: 0.25em;
+$themed-margin-width: 0.5em;
+
+.wrapper {
+  margin: $themed-margin-width;
+  padding: $themed-padding-width;
+  border-radius: 10px;
+  background:
+    linear-gradient(45deg, common.$canonical-red, common.$transparent 50%),
+    linear-gradient(135deg, common.$canonical-green, common.$transparent 50%),
+    linear-gradient(225deg, common.$canonical-yellow, common.$transparent 50%),
+    linear-gradient(315deg, common.$canonical-blue, common.$transparent 50%),
+    #333;
+  filter: drop-shadow(0px 0px 10px #666);
+}
+
+
+.content {
+  background: #ddd;
+  border-radius: 10px;
+  padding: 1em;
+}

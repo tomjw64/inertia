@@ -2,21 +2,25 @@ import { Signal, useSignal } from '@preact/signals';
 import { useEffect } from 'preact/hooks';
 
 export const useCountdown = (
-  initialTimeLeftMillis: number,
-  granularity: number
+  timeLeftMillis: number,
+  paused?: boolean
 ): Signal<number> => {
-  const stopTime = Date.now() + initialTimeLeftMillis;
-  const timeLeft = useSignal(0);
+  const stopTime = Date.now() + timeLeftMillis;
+  const timeLeft = useSignal(timeLeftMillis);
 
   useEffect(() => {
+    if (paused) {
+      return;
+    }
+
     const interval = setInterval(() => {
       timeLeft.value = Math.max(0, stopTime - Date.now());
-    }, granularity);
+    }, 10);
 
     return () => {
       clearInterval(interval);
     };
-  }, [initialTimeLeftMillis]);
+  }, [timeLeftMillis, paused, timeLeft, stopTime]);
 
   return timeLeft;
 };

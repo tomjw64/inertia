@@ -47,7 +47,7 @@ pub enum PlayerBid {
     #[typeshare(serialized_as = "number")]
     order: usize,
   },
-  ProspectiveLocked {
+  ProspectiveReady {
     #[typeshare(serialized_as = "number")]
     value: usize,
     #[typeshare(serialized_as = "number")]
@@ -64,7 +64,7 @@ impl PlayerBid {
     match self {
       PlayerBid::None => 0,
       PlayerBid::Prospective { value, .. } => value,
-      PlayerBid::ProspectiveLocked { value, .. } => value,
+      PlayerBid::ProspectiveReady { value, .. } => value,
       PlayerBid::Failed { value } => value,
     }
   }
@@ -73,7 +73,7 @@ impl PlayerBid {
     match self {
       PlayerBid::None => 0,
       PlayerBid::Prospective { order, .. } => order,
-      PlayerBid::ProspectiveLocked { order, .. } => order,
+      PlayerBid::ProspectiveReady { order, .. } => order,
       PlayerBid::Failed { .. } => 0,
     }
   }
@@ -81,7 +81,7 @@ impl PlayerBid {
   pub fn to_locked(self) -> Self {
     let effective_value = self.to_effective_value();
     let order = self.to_order();
-    Self::ProspectiveLocked {
+    Self::ProspectiveReady {
       value: effective_value,
       order,
     }
@@ -97,7 +97,7 @@ impl PlayerBid {
   pub fn is_prospective(self) -> bool {
     matches!(
       self,
-      PlayerBid::Prospective { .. } | PlayerBid::ProspectiveLocked { .. }
+      PlayerBid::Prospective { .. } | PlayerBid::ProspectiveReady { .. }
     )
   }
 }
@@ -172,10 +172,10 @@ pub struct RoundSolving {
 }
 
 #[typeshare]
-#[derive(Serialize, Default, Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Default, Debug, Clone, PartialEq, Eq)]
 pub struct PlayerBids {
   pub bids: HashMap<PlayerId, PlayerBid>,
-  #[typeshare(typescript(type = "number"))]
+  #[serde(skip)]
   pub timestamp: usize,
 }
 
@@ -185,7 +185,7 @@ pub struct MakeBidError;
 
 #[derive(Error, Debug)]
 #[error("Unable to lock in bid from the current state")]
-pub struct LockInBidError;
+pub struct ReadyBidError;
 
 impl PlayerBids {
   pub fn get(&self, player_id: PlayerId) -> PlayerBid {
@@ -197,23 +197,53 @@ impl PlayerBids {
     self.bids.insert(player_id, current_bid.to_failed());
   }
 
-  pub fn lock_in_bid(
+  pub fn ready_bid(
     &mut self,
     player_id: PlayerId,
-  ) -> Result<(), LockInBidError> {
+  ) -> Result<(), ReadyBidError> {
     let current_bid = self.bids.get(&player_id).unwrap_or(&PlayerBid::None);
 
     let can_update = match current_bid {
-      PlayerBid::None => false,
       PlayerBid::Prospective { .. } => true,
-      PlayerBid::ProspectiveLocked { .. } => false,
-      PlayerBid::Failed { .. } => false,
+      _ => false,
     };
 
     if !can_update {
-      return Err(LockInBidError);
+      return Err(ReadyBidError);
     }
 
+    self.bids.insert(
+      player_id,
+      PlayerBid::ProspectiveReady {
+        value: current_bid.to_effective_value(),
+        order: current_bid.to_order(),
+      },
+    );
+    Ok(())
+  }
+
+  pub fn unready_bid(
+    &mut self,
+    player_id: PlayerId,
+  ) -> Result<(), ReadyBidError> {
+    let current_bid = self.bids.get(&player_id).unwrap_or(&PlayerBid::None);
+
+    let can_update = match current_bid {
+      PlayerBid::ProspectiveReady { .. } => true,
+      _ => false,
+    };
+
+    if !can_update {
+      return Err(ReadyBidError);
+    }
+
+    self.bids.insert(
+      player_id,
+      PlayerBid::Prospective {
+        value: current_bid.to_effective_value(),
+        order: current_bid.to_order(),
+      },
+    );
     Ok(())
   }
 
@@ -226,9 +256,8 @@ impl PlayerBids {
 
     let can_update = match current_bid {
       PlayerBid::None => true,
-      PlayerBid::Prospective { .. } => false,
-      PlayerBid::ProspectiveLocked { .. } => false,
-      PlayerBid::Failed { .. } => false,
+      PlayerBid::Prospective { value, .. } if bid_value < *value => true,
+      _ => false,
     };
 
     if !can_update {

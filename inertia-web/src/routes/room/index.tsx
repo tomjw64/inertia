@@ -1,9 +1,11 @@
 import { RoomState, ToClientMessage } from 'inertia-core';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { RoundSummary } from '../../components/round-summary';
-import { getOrCreatePlayerName } from '../../utils/storage';
+import {
+  getOrCreatePlayerId,
+  getOrCreatePlayerName,
+} from '../../utils/storage';
 import { RoomWebSocket } from '../../utils/ws';
-import { RoundStart } from '../../components/round-start';
 import { RoundBidding } from '../../components/round-bidding';
 import { RoundSolving } from '../../components/round-solving';
 
@@ -28,9 +30,9 @@ export const Room = ({ roomId: roomIdString }: { roomId: string }) => {
     buildDefaultRoomData(roomId)
   );
 
-  const [initialCountdownTimeLeft, setInitialCountdownTimeLeft] = useState<
-    number | null
-  >(null);
+  const [countdownTimeLeft, setCountdownTimeLeft] = useState<number | null>(
+    null
+  );
 
   useEffect(() => {
     websocket.current = new RoomWebSocket();
@@ -40,7 +42,7 @@ export const Room = ({ roomId: roomIdString }: { roomId: string }) => {
         type: 'Join',
         content: {
           player_name: getOrCreatePlayerName(),
-          player_id: Math.floor(Math.random() * 1000),
+          player_id: getOrCreatePlayerId(),
           player_reconnect_key: 1,
           room_id: roomId,
         },
@@ -50,7 +52,7 @@ export const Room = ({ roomId: roomIdString }: { roomId: string }) => {
       if (msg.type === 'RoomUpdate') {
         setRoomState(msg.content);
       } else if (msg.type === 'CountdownUpdate') {
-        setInitialCountdownTimeLeft(msg.content.server_time_left_millis);
+        setCountdownTimeLeft(msg.content.server_time_left_millis);
       }
     });
     return () => {
@@ -58,25 +60,43 @@ export const Room = ({ roomId: roomIdString }: { roomId: string }) => {
     };
   }, [roomId]);
 
-  const onStartGame = () => {
+  const withWs = (f: (ws: RoomWebSocket) => void) => {
     const ws = websocket.current;
     if (ws == null) {
       return;
     }
-    ws.send({
-      type: 'StartRound',
-    });
+    f(ws);
   };
 
+  const onStartRound = () =>
+    withWs((ws) => {
+      ws.send({
+        type: 'StartRound',
+      });
+    });
+
+  const onBid = (bid: number) =>
+    withWs((ws) => {
+      ws.send({
+        type: 'Bid',
+        content: {
+          bid_value: bid,
+        },
+      });
+    });
+
   if (roomState.type === RoomStateType.ROUND_SUMMARY) {
-    return <RoundSummary state={roomState.content} onStartGame={onStartGame} />;
+    return (
+      <RoundSummary state={roomState.content} onStartRound={onStartRound} />
+    );
   }
 
   if (roomState.type === RoomStateType.ROUND_START) {
     return (
-      <RoundStart
+      <RoundBidding
         state={roomState.content}
-        initialCountdownTimeLeft={initialCountdownTimeLeft ?? 0}
+        onBid={onBid}
+        countdownTimeLeft={countdownTimeLeft ?? 0}
       />
     );
   }
@@ -85,7 +105,8 @@ export const Room = ({ roomId: roomIdString }: { roomId: string }) => {
     return (
       <RoundBidding
         state={roomState.content}
-        initialCountdownTimeLeft={initialCountdownTimeLeft ?? 0}
+        onBid={onBid}
+        countdownTimeLeft={countdownTimeLeft ?? 0}
       />
     );
   }
@@ -94,7 +115,7 @@ export const Room = ({ roomId: roomIdString }: { roomId: string }) => {
     return (
       <RoundSolving
         state={roomState.content}
-        initialCountdownTimeLeft={initialCountdownTimeLeft ?? 0}
+        countdownTimeLeft={countdownTimeLeft ?? 0}
       />
     );
   }

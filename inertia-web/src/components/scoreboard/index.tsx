@@ -1,24 +1,27 @@
 import { PlayerId, PlayerInfo } from 'inertia-core';
 import style from './style.module.scss';
 import { Divider } from '../divider';
+import { ThemedPanel } from '../themed-panel';
+import { FlexCenter } from '../flex-center';
+import { PanelTitle } from '../panel-title';
 
-export const PlayerPanel = ({
+export const Scoreboard = ({
   players,
 }: {
   players: Record<PlayerId, PlayerInfo>;
 }) => {
   return (
-    <div className={style.playerPanelWrapper}>
-      <div className={style.playerPanelContent}>
-        <div className={style.title}>Players</div>
+    <ThemedPanel>
+      <FlexCenter column>
+        <PanelTitle>Scoreboard</PanelTitle>
         <Divider />
-        <div className={style.playerPanelList}>
+        <div className={style.playerList}>
           {Object.values(players).map((playerInfo) => {
             return <PlayerItem data={playerInfo} />;
           })}
         </div>
-      </div>
-    </div>
+      </FlexCenter>
+    </ThemedPanel>
   );
 };
 

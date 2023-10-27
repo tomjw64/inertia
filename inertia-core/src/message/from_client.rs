@@ -16,7 +16,7 @@ pub enum FromClientMessage {
   Join(JoinMessage),
   StartRound,
   Bid(BidMessage),
-  LockInBid,
+  ReadyBid,
   UpdateSolution(UpdateSolutionMessage),
   GiveUpSolve,
 }

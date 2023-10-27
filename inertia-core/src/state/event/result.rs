@@ -1,7 +1,7 @@
 use thiserror::Error;
 
-use crate::state::data::LockInBidError;
 use crate::state::data::MakeBidError;
+use crate::state::data::ReadyBidError;
 use crate::state::data::RoomState;
 
 use super::apply_event::RoomEvent;
@@ -19,7 +19,7 @@ pub enum EventError {
   #[error(transparent)]
   MakeBidError(#[from] MakeBidError),
   #[error(transparent)]
-  LockInBidError(#[from] LockInBidError),
+  ReadyBidError(#[from] ReadyBidError),
 }
 
 pub struct EventResult {

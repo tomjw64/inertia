@@ -1,0 +1,25 @@
+.playerList {
+  width: 100%
+}
+
+.playerItem {
+  display: flex;
+  justify-content: space-between;
+}
+
+.playerNameAndStatus {
+  display: flex;
+}
+
+.playerName {
+  white-space: nowrap;
+}
+
+.playerStatus {
+  display: flex;
+  margin-left: 0.25em;
+}
+
+.playerBid {
+  margin-left: 1em;
+}

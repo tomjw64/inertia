@@ -33,7 +33,7 @@ export const Sandbox = () => {
     setActorSquares(initialActorSquares);
   }, [initialActorSquares]);
 
-  const moveActor = (actorIndex: number, squareIndex: number) => {
+  const onMoveActor = (actorIndex: number, squareIndex: number) => {
     const newActorSquares = [...actorSquares] as ActorSquares;
     newActorSquares[actorIndex] = squareIndex;
     setActorSquares(newActorSquares);
@@ -66,7 +66,8 @@ export const Sandbox = () => {
           walledBoard={walledBoard}
           goal={goal}
           actorSquares={actorSquares}
-          moveActor={moveActor}
+          onMoveActor={onMoveActor}
+          interactive
         />
         <Controls
           setWalledBoard={setWalledBoard}

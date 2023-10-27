@@ -1,0 +1,105 @@
+$button-height: 2.5em;
+
+.formLine {
+  display: flex;
+  flex-wrap: nowrap;
+
+  > .button {
+    margin: 0;
+  }
+
+  > .button:nth-child(1) {
+    border-top-left-radius: 2em 4em;
+    border-bottom-left-radius: 2em 4em;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    padding: 0.5em 0.8em 0.5em 1em;
+  }
+
+  > .input {
+    margin: 0;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    background-color: white;
+    filter: drop-shadow(0px 4px 0px #ccc);
+  }
+  
+  > .input:last-child {
+    border-top-right-radius: 2em 4em;
+    border-bottom-right-radius: 2em 4em;
+  }
+
+  > .button:last-child {
+    border-top-right-radius: 2em 4em;
+    border-bottom-right-radius: 2em 4em;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    padding: 0.5em 1em 0.5em 0.8em;
+  }
+}
+
+.input {
+  background: none;
+  text-align: center;
+  color: #333;
+  font-weight: bold;
+  height: 2em;
+  border: 0;
+  border-radius: 10px;
+  margin: 0.5em;
+  padding: 0 0.5em;
+  height: $button-height;
+  min-width: 3em;
+
+  &:focus {
+    outline: none;
+  }
+
+  &.short {
+    max-width: 6em;
+  }
+
+  &.medium {
+    max-width: 12em;
+  }
+
+  // Hide the numeric up and down arrows
+  &[type="number"]::-webkit-outer-spin-button,
+  &[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  &[type="number"] {
+    appearance: textfield;
+  }
+}
+
+.button {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  height: $button-height;
+  font-weight: bold;
+  background-color: #d9d900;
+  filter: drop-shadow(0px 4px 0px #c2c200);
+  border: 0;
+  border-radius: 2em / 4em;
+  padding: 0.5em 1em;
+  cursor: pointer;
+
+  > img {
+    height: 1.2em;
+  }
+
+  &:hover {
+    background-color: #f0f000;
+  }
+
+  &:active {
+    transform: translateY(2px);
+    background-color: #f0f000;
+    filter: drop-shadow(0px 2px 0px #c2c200);
+  }
+}

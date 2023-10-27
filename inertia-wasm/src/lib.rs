@@ -9,6 +9,8 @@ use inertia_core::mechanics::Square;
 use inertia_core::mechanics::WalledBoard;
 
 use inertia_core::mechanics::WalledBoardPosition;
+use inertia_core::state::data::PlayerBids;
+use inertia_core::state::data::PlayerId;
 use serde::Deserialize;
 use serde::Serialize;
 use serde_with::serde_as;
@@ -41,6 +43,10 @@ pub struct DirectionWrapper(Direction);
 #[tsify(into_wasm_abi, from_wasm_abi)]
 pub struct SquareWrapper(Square);
 
+#[derive(Debug, Serialize, Deserialize, Tsify)]
+#[tsify(into_wasm_abi, from_wasm_abi)]
+pub struct PlayerBidsWrapper(PlayerBids);
+
 #[wasm_bindgen]
 pub fn math() {
   console_debug!(1 + 2);
@@ -57,7 +63,7 @@ pub fn get_movement_ray_for_actor(
   actor: usize,
   direction: DirectionWrapper,
 ) -> ExpandedBitBoardWrapper {
-  return match actor {
+  match actor {
     0..=3 => {
       let WalledBoardPosition {
         walled_board,
@@ -72,7 +78,7 @@ pub fn get_movement_ray_for_actor(
       ExpandedBitBoardWrapper(expanded_bitboard)
     }
     _ => ExpandedBitBoardWrapper([false; 256]),
-  };
+  }
 }
 
 #[wasm_bindgen]
@@ -81,7 +87,7 @@ pub fn get_movement_for_actor(
   actor: usize,
   direction: DirectionWrapper,
 ) -> SquareWrapper {
-  return match actor {
+  match actor {
     0..=3 => {
       let WalledBoardPosition {
         walled_board,
@@ -98,5 +104,10 @@ pub fn get_movement_for_actor(
       SquareWrapper(square)
     }
     _ => SquareWrapper(Square::new(0)),
-  };
+  }
+}
+
+#[wasm_bindgen]
+pub fn get_next_solver(player_bids: PlayerBidsWrapper) -> Option<usize> {
+  player_bids.0.get_next_solver().map(|id| id.0)
 }

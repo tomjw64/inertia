@@ -9,11 +9,11 @@ use super::disconnect::soft_disconnect;
 use super::disconnect::Disconnect;
 use super::finalize_bids::round_bidding_finalize_bids;
 use super::finalize_bids::round_start_finalize_bids;
-use super::lock_in_bid::round_bidding_lock_in_bid;
-use super::lock_in_bid::LockInBid;
 use super::make_bid::round_bidding_make_bid;
 use super::make_bid::round_start_make_bid;
 use super::make_bid::MakeBid;
+use super::ready_bid::round_bidding_ready_bid;
+use super::ready_bid::ReadyBid;
 use super::result::EventError;
 use super::result::EventResult;
 use super::start_round::round_summary_start_round;
@@ -28,7 +28,7 @@ pub enum RoomEvent {
   HardDisconnect(Disconnect),
   StartRound,
   MakeBid(MakeBid),
-  LockInBid(LockInBid),
+  ReadyBid(ReadyBid),
   FinalizeBids,
   UpdateSolution(UpdateSolution),
   YieldSolve,
@@ -52,8 +52,8 @@ impl RoomState {
       (RoomState::RoundBidding(state), RoomEvent::FinalizeBids) => {
         round_bidding_finalize_bids(state)
       }
-      (RoomState::RoundBidding(state), RoomEvent::LockInBid(event)) => {
-        round_bidding_lock_in_bid(state, event)
+      (RoomState::RoundBidding(state), RoomEvent::ReadyBid(event)) => {
+        round_bidding_ready_bid(state, event)
       }
       (RoomState::RoundSolving(state), RoomEvent::UpdateSolution(event)) => {
         round_solving_update_solution(state, event)

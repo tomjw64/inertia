@@ -136,7 +136,15 @@ impl AppState {
       .unwrap_or(false);
     if should_remove {
       tracing::debug!("Cleaning up room {:?}", room_id);
-      self.rooms.write().await.remove(&room_id);
+      // Remove room
+      let removed = { self.rooms.write().await.remove(&room_id) };
+      // Cancel countdown if present
+      if let Some(removed) = removed {
+        let countdown = &removed.write().await.utils.countdown;
+        if let Some(countdown) = countdown {
+          countdown.task.abort();
+        }
+      }
     }
   }
 
@@ -253,6 +261,7 @@ impl AppState {
               .apply_event(room_id, RoomEvent::YieldSolve)
               .await
               .ok();
+            app_state.broadcast_room(room_id).await.ok();
           }),
           stop,
         })

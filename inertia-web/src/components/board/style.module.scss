@@ -41,18 +41,26 @@
   }
 
   @each $color-name, $value in common.$canonical-colors {
+    &:not(.goal) {
+      .move-ray-#{$color-name} {
+        background: color.scale($value, $lightness: 75%);
+      }
+    
+      .move-#{$color-name} {
+        background: color.scale($value, $lightness: 50%);
+      }
+    }
+
     .move-ray-#{$color-name} {
       width: 100%;
       height: 100%;
       cursor: pointer;
-      background: color.scale($value, $lightness: 75%);
     }
-
+  
     .move-#{$color-name} {
       width: 100%;
       height: 100%;
       cursor: pointer;
-      background: color.scale($value, $lightness: 50%);
     }
   }
   
@@ -73,6 +81,7 @@
   height: 80%;
   border: 2px solid #222;
   cursor: pointer;
+  z-index: 2;
 
   &.selected {
     border: 3px solid #eee;

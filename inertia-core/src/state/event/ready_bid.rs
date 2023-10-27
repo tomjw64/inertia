@@ -5,22 +5,22 @@ use crate::state::data::RoundBidding;
 use super::result::EventResult;
 
 #[derive(Debug, Clone)]
-pub struct LockInBid {
+pub struct ReadyBid {
   pub player_id: PlayerId,
 }
 
-pub fn round_bidding_lock_in_bid(
+pub fn round_bidding_ready_bid(
   state: RoundBidding,
-  event: LockInBid,
+  event: ReadyBid,
 ) -> EventResult {
   let RoundBidding {
     meta,
     board,
     mut player_bids,
   } = state;
-  let LockInBid { player_id } = event;
+  let ReadyBid { player_id } = event;
 
-  if let Err(error) = player_bids.lock_in_bid(player_id) {
+  if let Err(error) = player_bids.ready_bid(player_id) {
     EventResult::err(
       RoomState::RoundBidding(RoundBidding {
         player_bids,

@@ -7,7 +7,6 @@ import {
   useRef,
 } from 'preact/hooks';
 import {} from 'preact/hooks';
-import debounce from 'lodash/debounce';
 import { animate } from 'motion';
 import style from './style.module.scss';
 import {
@@ -29,13 +28,9 @@ const getActorColor = (actorIndex: number) => {
 
 const keySelectionMap = {
   r: 0,
-  '1': 0,
   b: 1,
-  '2': 1,
   g: 2,
-  '3': 2,
   y: 3,
-  '4': 3,
 };
 
 type MoveActorFunction = (actorIndex: number, squareIndex: number) => void;
@@ -44,16 +39,20 @@ type BoardProps = {
   walledBoard: WalledBoard;
   goal: number;
   actorSquares: ActorSquares;
-  moveActor: MoveActorFunction;
+  interactive?: boolean;
+  onMoveActor?: MoveActorFunction;
 };
 
 export const Board = ({
   walledBoard,
   goal,
   actorSquares,
-  moveActor,
+  interactive = false,
+  onMoveActor = () => {},
 }: BoardProps) => {
   const [selectedActor, setSelectedActor] = useState(-1);
+
+  const boardElement = useRef<HTMLDivElement>(null);
 
   const actorFlipRects = useRef(new Map()).current;
   const actorFlipAttr = 'data-animate-actor-flip-key';
@@ -63,56 +62,56 @@ export const Board = ({
   const moveIndicatorAnimateDelay = 0.2;
   const moveIndicatorAnimateDuration = 0.2;
 
-  useEffect(() => {
-    const resetActorFlipRects = () => {
-      document
-        .querySelectorAll(`[${actorFlipAttr}]`)
-        .forEach((flippedActor) => {
-          const flipKey = flippedActor.getAttribute(actorFlipAttr);
-          actorFlipRects.set(flipKey, flippedActor.getBoundingClientRect());
-        });
-    };
-    resetActorFlipRects();
-
-    const debouncedResetActorFlipRects = debounce(resetActorFlipRects, 200);
-    window.addEventListener('resize', debouncedResetActorFlipRects);
-    window.addEventListener('scroll', debouncedResetActorFlipRects);
-    return () => {
-      window.removeEventListener('resize', debouncedResetActorFlipRects);
-      window.removeEventListener('scroll', debouncedResetActorFlipRects);
-    };
-  }, []);
-
-  useLayoutEffect(() => {
+  const animateMoveIndicators = (delay: number = 0) => {
     document
       .querySelectorAll(`[${moveIndicatorAttr}]`)
       .forEach((moveIndicator) => {
-        animate(
+        const animation = animate(
           moveIndicator,
           { opacity: [0, 1], scale: [0.1, 1] },
           {
-            delay: 0,
+            // delay,
             duration: moveIndicatorAnimateDuration,
             easing: 'ease-out',
           }
         );
+        animation.pause();
+        setTimeout(animation.play, delay * 1000);
       });
+  };
+
+  const resetActorFlipRects = () => {
+    document.querySelectorAll(`[${actorFlipAttr}]`).forEach((flippedActor) => {
+      const flipKey = flippedActor.getAttribute(actorFlipAttr);
+      actorFlipRects.set(flipKey, flippedActor.getBoundingClientRect());
+    });
+  };
+
+  resetActorFlipRects();
+
+  useEffect(() => {
+    const deselectActor = (e) => {
+      const target = e.target;
+      if (
+        target instanceof HTMLElement &&
+        target.closest('[data-no-deselect]')
+      ) {
+        return;
+      }
+      setSelectedActor(-1);
+    };
+    window.addEventListener('click', deselectActor);
+    return () => {
+      window.removeEventListener('click', deselectActor);
+    };
+  });
+
+  useLayoutEffect(() => {
+    animateMoveIndicators();
   }, [selectedActor]);
 
   useLayoutEffect(() => {
-    document
-      .querySelectorAll(`[${moveIndicatorAttr}]`)
-      .forEach((moveIndicator) => {
-        animate(
-          moveIndicator,
-          { opacity: [0, 1], scale: [0.1, 1] },
-          {
-            delay: moveIndicatorAnimateDelay,
-            duration: moveIndicatorAnimateDuration,
-            easing: 'ease-out',
-          }
-        );
-      });
+    animateMoveIndicators(moveIndicatorAnimateDelay);
   }, [actorSquares]);
 
   useLayoutEffect(() => {
@@ -144,37 +143,35 @@ export const Board = ({
     });
   });
 
-  const handleKeyPress = (e: KeyboardEvent) => {
-    const selection = keySelectionMap[e.key];
-
-    if (selection == null) {
+  useLayoutEffect(() => {
+    const boardElementCurrent = boardElement.current;
+    if (boardElementCurrent == null) {
       return;
     }
 
-    setSelectedActor(selection);
-  };
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (!interactive) {
+        return;
+      }
 
-  useEffect(() => {
-    window.addEventListener('keydown', handleKeyPress);
-    return () => {
-      window.removeEventListener('keydown', handleKeyPress);
+      const selection = keySelectionMap[e.key];
+
+      if (selection == null) {
+        return;
+      }
+
+      setSelectedActor(selection);
     };
-  }, [handleKeyPress]);
+
+    boardElementCurrent.addEventListener('keydown', handleKeyPress);
+    return () => {
+      boardElementCurrent.removeEventListener('keydown', handleKeyPress);
+    };
+  }, [interactive]);
 
   const movementRaySquares = useMemo(() => {
     return Object.values(Direction)
       .map((direction) => {
-        console.log(
-          get_movement_ray_for_actor(
-            {
-              walled_board: walledBoard,
-              actor_squares: actorSquares,
-              goal,
-            },
-            selectedActor,
-            direction
-          )
-        );
         return {
           [direction]: get_movement_ray_for_actor(
             {
@@ -188,7 +185,7 @@ export const Board = ({
         } as Record<Direction, ExpandedBitBoard>;
       })
       .reduce((prev, acc) => ({ ...acc, ...prev }));
-  }, [walledBoard, actorSquares, selectedActor]);
+  }, [walledBoard, actorSquares, goal, selectedActor]);
 
   const movementSquares = useMemo(() => {
     return Object.values(Direction)
@@ -206,10 +203,10 @@ export const Board = ({
         } as Record<Direction, Square>;
       })
       .reduce((prev, acc) => ({ ...acc, ...prev }));
-  }, [walledBoard, actorSquares, selectedActor]);
+  }, [walledBoard, actorSquares, goal, selectedActor]);
 
   return (
-    <div className={style.board}>
+    <div className={style.board} ref={boardElement} tabIndex={0}>
       {[...Array(16).keys()].map((row) => (
         <BoardRow
           {...{
@@ -221,7 +218,8 @@ export const Board = ({
             setSelectedActor,
             movementRaySquares,
             movementSquares,
-            moveActor,
+            interactive,
+            onMoveActor,
           }}
         />
       ))}
@@ -238,7 +236,8 @@ type BoardRowProps = {
   setSelectedActor: StateUpdater<number>;
   movementRaySquares: Record<Direction, ExpandedBitBoard>;
   movementSquares: Record<Direction, Square>;
-  moveActor: MoveActorFunction;
+  interactive: boolean;
+  onMoveActor: MoveActorFunction;
 };
 
 const BoardRow = ({
@@ -250,7 +249,8 @@ const BoardRow = ({
   setSelectedActor,
   movementRaySquares,
   movementSquares,
-  moveActor,
+  interactive,
+  onMoveActor,
 }: BoardRowProps) => {
   return (
     <>
@@ -266,7 +266,8 @@ const BoardRow = ({
             setSelectedActor,
             movementRaySquares,
             movementSquares,
-            moveActor,
+            interactive,
+            onMoveActor,
           }}
         />
       ))}
@@ -284,7 +285,8 @@ type BoardSquareProps = {
   setSelectedActor: StateUpdater<number>;
   movementRaySquares: Record<Direction, ExpandedBitBoard>;
   movementSquares: Record<Direction, Square>;
-  moveActor: MoveActorFunction;
+  interactive?: boolean;
+  onMoveActor: MoveActorFunction;
 };
 
 const BoardSquare = ({
@@ -297,7 +299,8 @@ const BoardSquare = ({
   setSelectedActor,
   movementRaySquares,
   movementSquares,
-  moveActor,
+  interactive,
+  onMoveActor,
 }: BoardSquareProps) => {
   const { horizontal, vertical } = walledBoard;
   const features = [style.square];
@@ -338,6 +341,9 @@ const BoardSquare = ({
     }
 
     const onSelect = () => {
+      if (!interactive) {
+        return;
+      }
       setSelectedActor(actorIndex);
     };
 
@@ -346,15 +352,17 @@ const BoardSquare = ({
         src="/actor.svg"
         className={actorFeatures.join(' ')}
         data-animate-actor-flip-key={getActorColor(actorIndex)}
+        tabIndex={0}
         onClick={onSelect}
+        onFocus={onSelect}
       />
     );
 
-    return <div className={features.join(' ')}>{actor}</div>;
-  }
-
-  if (isGoalHere) {
-    return <div className={features.join(' ')} />;
+    return (
+      <div className={features.join(' ')} data-no-deselect>
+        {actor}
+      </div>
+    );
   }
 
   for (const direction of Object.values(Direction)) {
@@ -363,13 +371,15 @@ const BoardSquare = ({
         <div
           className={style[`move-${getActorColor(selectedActor)}`]}
           data-animate-move-indicator
+          data-no-deselect
         />
       );
       features.push(style['move-target']);
       return (
         <div
           className={features.join(' ')}
-          onClick={() => moveActor(selectedActor, movementSquares[direction])}
+          data-no-deselect
+          onClick={() => onMoveActor(selectedActor, movementSquares[direction])}
         >
           {moveIndicator}
         </div>
@@ -383,13 +393,15 @@ const BoardSquare = ({
         <div
           className={style[`move-ray-${getActorColor(selectedActor)}`]}
           data-animate-move-indicator
+          data-no-deselect
         />
       );
       features.push(style['move-target']);
       return (
         <div
           className={features.join(' ')}
-          onClick={() => moveActor(selectedActor, movementSquares[direction])}
+          data-no-deselect
+          onClick={() => onMoveActor(selectedActor, movementSquares[direction])}
         >
           {moveRayIndicator}
         </div>

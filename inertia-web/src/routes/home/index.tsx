@@ -1,16 +1,26 @@
-import { useEffect, useRef, useState } from 'preact/hooks';
-import { Starfield } from '../../components/starfield';
-import style from './style.module.scss';
 import debounce from 'lodash/debounce';
+import { useEffect, useRef, useState } from 'preact/hooks';
+import style from './style.module.scss';
+import { Starfield } from '../../components/starfield';
 import { getOrCreatePlayerName } from '../../utils/storage';
-import { generatePlayerName } from '../../utils/player-name';
+import { generatePlayerName } from '../../utils/player-gen';
 import { Divider } from '../../components/divider';
+import { ThemedPanel } from '../../components/themed-panel';
+import { Foreground } from '../../components/foreground';
+import { FlexCenter } from '../../components/flex-center';
+import {
+  ThemedButton,
+  ThemedFormLine,
+  ThemedInput,
+} from '../../components/themed-form';
 
 export const Home = () => {
   const homeRef = useRef<HTMLDivElement | null>(null);
   const titleRef = useRef<HTMLDivElement | null>(null);
 
   const [nameInput, setNameInput] = useState(getOrCreatePlayerName());
+
+  const [joinGameInput, setJoinGameInput] = useState('');
 
   useEffect(() => {
     const setAnimationVars = () => {
@@ -48,47 +58,47 @@ export const Home = () => {
         <div className={[style.title, style.titleX].join(' ')} ref={titleRef}>
           <div className={style.titleY}>INERTIA</div>
         </div>
-        <div className={style.foreground}>
-          <div className={style.foregroundContentOuter}>
-            <div className={style.foregroundContent}>
-              <div className={style.subtitle}>Inertia</div>
-              <Divider />
-              <div>
-                <button className={style.button}>Start Game</button>
-              </div>
-              <Divider text={'or'} />
-              <div className={style.joinGameSection}>
-                <div className={style.inputButtonForm}>
-                  <button className={style.button}>Join Game</button>
-                  <input
-                    className={[style.input, style.short].join(' ')}
-                  ></input>
-                </div>
-              </div>
-              <Divider />
-              <div>
-                <div className={style.inputButtonForm}>
-                  <button className={style.button}>Set Name</button>
-                  <input
-                    className={[style.input, style.medium].join(' ')}
-                    value={nameInput}
-                    onChange={(e) => {
-                      setNameInput(e.currentTarget.value);
+        <Foreground>
+          <FlexCenter expand>
+            <ThemedPanel>
+              <FlexCenter column>
+                <div className={style.subtitle}>Inertia</div>
+                <Divider />
+                <ThemedButton>Start Game</ThemedButton>
+                <Divider text={'or'} />
+                <ThemedFormLine>
+                  <ThemedButton
+                    onClick={() => {
+                      window.location.href = `/room/${joinGameInput}`;
                     }}
+                  >
+                    Join Game
+                  </ThemedButton>
+                  <ThemedInput
+                    size="short"
+                    value={joinGameInput}
+                    onInput={(e) => setJoinGameInput(e.currentTarget.value)}
                   />
-                  <button
-                    className={style.button}
+                </ThemedFormLine>
+                <Divider />
+                <ThemedFormLine>
+                  <ThemedButton>Set Name</ThemedButton>
+                  <ThemedInput
+                    value={nameInput}
+                    onInput={(e) => setNameInput(e.currentTarget.value)}
+                  />
+                  <ThemedButton
                     onClick={() => {
                       setNameInput(generatePlayerName());
                     }}
                   >
                     <img src="/refresh.svg" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+                  </ThemedButton>
+                </ThemedFormLine>
+              </FlexCenter>
+            </ThemedPanel>
+          </FlexCenter>
+        </Foreground>
       </div>
     </>
   );
