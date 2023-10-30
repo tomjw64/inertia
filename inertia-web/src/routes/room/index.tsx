@@ -1,9 +1,10 @@
 import { RoomState, ToClientMessage } from 'inertia-core';
-import { useEffect, useRef, useState } from 'preact/hooks';
+import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { RoundSummary } from '../../components/round-summary';
 import {
   getOrCreatePlayerId,
   getOrCreatePlayerName,
+  getOrCreatePlayerReconnectKey,
 } from '../../utils/storage';
 import { RoomWebSocket } from '../../utils/ws';
 import { RoundBidding } from '../../components/round-bidding';
@@ -18,17 +19,20 @@ const RoomStateType = {
   ROUND_SOLVING: 'RoundSolving',
 } as const;
 
-const buildDefaultRoomData = (_roomId: number): RoomState => ({
-  type: RoomStateType.NONE,
-});
-
 export const Room = ({ roomId: roomIdString }: { roomId: string }) => {
   const websocket = useRef<RoomWebSocket | null>(null);
   const roomId = parseInt(roomIdString);
 
-  const [roomState, setRoomState] = useState<RoomState>(
-    buildDefaultRoomData(roomId)
+  const userPlayerId = useMemo(() => getOrCreatePlayerId(), []);
+  const userPlayerReconnectKey = useMemo(
+    () => getOrCreatePlayerReconnectKey(),
+    []
   );
+  const userPlayerName = useMemo(() => getOrCreatePlayerName(), []);
+
+  const [roomState, setRoomState] = useState<RoomState>({
+    type: RoomStateType.NONE,
+  });
 
   const [countdownTimeLeft, setCountdownTimeLeft] = useState<number | null>(
     null
@@ -41,9 +45,9 @@ export const Room = ({ roomId: roomIdString }: { roomId: string }) => {
       ws.send({
         type: 'Join',
         content: {
-          player_name: getOrCreatePlayerName(),
-          player_id: getOrCreatePlayerId(),
-          player_reconnect_key: 1,
+          player_name: userPlayerName,
+          player_id: userPlayerId,
+          player_reconnect_key: userPlayerReconnectKey,
           room_id: roomId,
         },
       });
@@ -58,7 +62,7 @@ export const Room = ({ roomId: roomIdString }: { roomId: string }) => {
     return () => {
       ws.close();
     };
-  }, [roomId]);
+  }, [userPlayerId, userPlayerName, userPlayerReconnectKey, roomId]);
 
   const withWs = (f: (ws: RoomWebSocket) => void) => {
     const ws = websocket.current;
@@ -85,9 +89,34 @@ export const Room = ({ roomId: roomIdString }: { roomId: string }) => {
       });
     });
 
+  const onReadyBid = () =>
+    withWs((ws) => {
+      ws.send({
+        type: 'ReadyBid',
+      });
+    });
+
+  const onUnreadyBid = () =>
+    withWs((ws) => {
+      ws.send({
+        type: 'UnreadyBid',
+      });
+    });
+
+  const onYieldSolve = () =>
+    withWs((ws) => {
+      ws.send({
+        type: 'YieldSolve',
+      });
+    });
+
   if (roomState.type === RoomStateType.ROUND_SUMMARY) {
     return (
-      <RoundSummary state={roomState.content} onStartRound={onStartRound} />
+      <RoundSummary
+        state={roomState.content}
+        userPlayerId={userPlayerId}
+        onStartRound={onStartRound}
+      />
     );
   }
 
@@ -95,7 +124,10 @@ export const Room = ({ roomId: roomIdString }: { roomId: string }) => {
     return (
       <RoundBidding
         state={roomState.content}
+        userPlayerId={userPlayerId}
         onBid={onBid}
+        onReadyBid={onReadyBid}
+        onUnreadyBid={onUnreadyBid}
         countdownTimeLeft={countdownTimeLeft ?? 0}
       />
     );
@@ -105,7 +137,10 @@ export const Room = ({ roomId: roomIdString }: { roomId: string }) => {
     return (
       <RoundBidding
         state={roomState.content}
+        userPlayerId={userPlayerId}
         onBid={onBid}
+        onReadyBid={onReadyBid}
+        onUnreadyBid={onUnreadyBid}
         countdownTimeLeft={countdownTimeLeft ?? 0}
       />
     );
@@ -115,7 +150,9 @@ export const Room = ({ roomId: roomIdString }: { roomId: string }) => {
     return (
       <RoundSolving
         state={roomState.content}
+        userPlayerId={userPlayerId}
         countdownTimeLeft={countdownTimeLeft ?? 0}
+        onYieldSolve={onYieldSolve}
       />
     );
   }

@@ -1,6 +1,7 @@
 import {
   RoundStart as RoundStartState,
   RoundBidding as RoundBiddingState,
+  PlayerId,
 } from 'inertia-core';
 import { Countdown } from '../countdown';
 import { Starfield } from '../starfield';
@@ -16,17 +17,27 @@ import { Bids } from '../bids';
 
 export const RoundBidding = ({
   state,
+  userPlayerId,
   countdownTimeLeft,
   onBid,
+  onReadyBid,
+  onUnreadyBid,
 }: {
   state: RoundStartState | RoundBiddingState;
+  userPlayerId: PlayerId;
   countdownTimeLeft: number;
   onBid: (value: number) => void;
+  onReadyBid: () => void;
+  onUnreadyBid: () => void;
 }) => {
-  const [bid, setBid] = useState('');
+  const [pendingBid, setPendingBid] = useState('');
 
   const playerBids = 'player_bids' in state ? state.player_bids : undefined;
   const firstBidSubmitted = !!playerBids;
+  const bidType = playerBids?.bids?.[userPlayerId]?.type;
+  const isBidReady = bidType === 'ProspectiveReady';
+  const canChangeReadyStatus =
+    bidType === 'Prospective' || bidType === 'ProspectiveReady';
 
   return (
     <div>
@@ -34,7 +45,11 @@ export const RoundBidding = ({
       <Foreground>
         <FlexCenter wrap>
           <FlexCenter wrap>
-            <Bids players={state.meta.player_info} playerBids={playerBids} />
+            <Bids
+              players={state.meta.player_info}
+              playerBids={playerBids}
+              userPlayerId={userPlayerId}
+            />
             <ThemedPanel>
               <FlexCenter column>
                 <PanelTitle>Round {state.meta.round_number}</PanelTitle>
@@ -52,26 +67,34 @@ export const RoundBidding = ({
                 <Divider />
                 <ThemedFormLine>
                   <ThemedButton
+                    disabled={!canChangeReadyStatus}
                     onClick={() => {
-                      const bidValue = parseInt(bid);
-                      onBid(bidValue);
-                      setBid('');
+                      if (isBidReady) {
+                        onUnreadyBid();
+                      } else {
+                        onReadyBid();
+                      }
                     }}
                   >
-                    Bid
+                    {isBidReady ? 'Unready' : 'Ready'}
                   </ThemedButton>
                   <ThemedInput
                     size="short"
-                    value={bid}
+                    value={pendingBid}
                     numeric
-                    onInput={(e) => setBid(e.currentTarget.value)}
+                    onInput={(e) => setPendingBid(e.currentTarget.value)}
                   />
                   <ThemedButton
                     onClick={() => {
-                      // onReadyBid();
+                      const bidValue = parseInt(pendingBid);
+                      if (isNaN(bidValue)) {
+                        return;
+                      }
+                      onBid(bidValue);
+                      setPendingBid('');
                     }}
                   >
-                    Ready
+                    Bid
                   </ThemedButton>
                 </ThemedFormLine>
               </FlexCenter>

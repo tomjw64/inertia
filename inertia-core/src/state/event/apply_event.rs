@@ -13,7 +13,9 @@ use super::make_bid::round_bidding_make_bid;
 use super::make_bid::round_start_make_bid;
 use super::make_bid::MakeBid;
 use super::ready_bid::round_bidding_ready_bid;
+use super::ready_bid::round_bidding_unready_bid;
 use super::ready_bid::ReadyBid;
+use super::ready_bid::UnreadyBid;
 use super::result::EventError;
 use super::result::EventResult;
 use super::start_round::round_summary_start_round;
@@ -29,6 +31,7 @@ pub enum RoomEvent {
   StartRound,
   MakeBid(MakeBid),
   ReadyBid(ReadyBid),
+  UnreadyBid(UnreadyBid),
   FinalizeBids,
   UpdateSolution(UpdateSolution),
   YieldSolve,
@@ -54,6 +57,9 @@ impl RoomState {
       }
       (RoomState::RoundBidding(state), RoomEvent::ReadyBid(event)) => {
         round_bidding_ready_bid(state, event)
+      }
+      (RoomState::RoundBidding(state), RoomEvent::UnreadyBid(event)) => {
+        round_bidding_unready_bid(state, event)
       }
       (RoomState::RoundSolving(state), RoomEvent::UpdateSolution(event)) => {
         round_solving_update_solution(state, event)

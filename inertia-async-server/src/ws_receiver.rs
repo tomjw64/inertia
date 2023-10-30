@@ -5,6 +5,7 @@ use inertia_core::state::data::RoomId;
 use inertia_core::state::event::apply_event::RoomEvent;
 use inertia_core::state::event::make_bid::MakeBid;
 use inertia_core::state::event::ready_bid::ReadyBid;
+use inertia_core::state::event::ready_bid::UnreadyBid;
 use inertia_core::state::event::update_solution::UpdateSolution;
 use thiserror::Error;
 use tokio::sync::mpsc;
@@ -64,6 +65,11 @@ pub async fn handle_message_from_client(
         .apply_event(room_id, RoomEvent::ReadyBid(ReadyBid { player_id }))
         .await?
     }
+    FromClientMessage::UnreadyBid => {
+      state
+        .apply_event(room_id, RoomEvent::UnreadyBid(UnreadyBid { player_id }))
+        .await?
+    }
     FromClientMessage::UpdateSolution(update_solution_message) => {
       state
         .apply_event_with_validation(
@@ -75,7 +81,7 @@ pub async fn handle_message_from_client(
         )
         .await?
     }
-    FromClientMessage::GiveUpSolve => {
+    FromClientMessage::YieldSolve => {
       state
         .apply_event_with_validation(room_id, RoomEvent::YieldSolve, |state| {
           state.get_solver() == Some(player_id)

@@ -184,8 +184,12 @@ pub struct PlayerBids {
 pub struct MakeBidError;
 
 #[derive(Error, Debug)]
-#[error("Unable to lock in bid from the current state")]
+#[error("Unable to ready bid from the current state")]
 pub struct ReadyBidError;
+
+#[derive(Error, Debug)]
+#[error("Unable to unready bid from the current state")]
+pub struct UnreadyBidError;
 
 impl PlayerBids {
   pub fn get(&self, player_id: PlayerId) -> PlayerBid {
@@ -225,7 +229,7 @@ impl PlayerBids {
   pub fn unready_bid(
     &mut self,
     player_id: PlayerId,
-  ) -> Result<(), ReadyBidError> {
+  ) -> Result<(), UnreadyBidError> {
     let current_bid = self.bids.get(&player_id).unwrap_or(&PlayerBid::None);
 
     let can_update = match current_bid {
@@ -234,7 +238,7 @@ impl PlayerBids {
     };
 
     if !can_update {
-      return Err(ReadyBidError);
+      return Err(UnreadyBidError);
     }
 
     self.bids.insert(

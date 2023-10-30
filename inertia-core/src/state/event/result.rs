@@ -3,6 +3,7 @@ use thiserror::Error;
 use crate::state::data::MakeBidError;
 use crate::state::data::ReadyBidError;
 use crate::state::data::RoomState;
+use crate::state::data::UnreadyBidError;
 
 use super::apply_event::RoomEvent;
 use super::connect::ConnectError;
@@ -20,6 +21,8 @@ pub enum EventError {
   MakeBidError(#[from] MakeBidError),
   #[error(transparent)]
   ReadyBidError(#[from] ReadyBidError),
+  #[error(transparent)]
+  UnreadyBidError(#[from] UnreadyBidError),
 }
 
 pub struct EventResult {

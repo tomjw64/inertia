@@ -5,13 +5,18 @@ import { ThemedPanel } from '../themed-panel';
 import { FlexCenter } from '../flex-center';
 import { PanelTitle } from '../panel-title';
 import { get_next_solver } from 'inertia-wasm';
+import { RenderWhen } from '../utils/RenderWhen';
 
 export const Bids = ({
   players,
   playerBids,
+  userPlayerId,
+  solving = false,
 }: {
   players: Record<PlayerId, PlayerInfo>;
   playerBids?: PlayerBids;
+  userPlayerId: PlayerId;
+  solving?: boolean;
 }) => {
   const leader = playerBids == null ? undefined : get_next_solver(playerBids);
 
@@ -27,6 +32,8 @@ export const Bids = ({
                 playerName={playerInfo.player_name}
                 playerBid={playerBids?.bids?.[playerId] ?? { type: 'None' }}
                 leader={leader?.toString() === playerId}
+                solving={solving}
+                isPlayer={playerInfo.player_id === userPlayerId}
               />
             );
           })}
@@ -39,20 +46,38 @@ export const Bids = ({
 const PlayerItem = ({
   playerName,
   playerBid,
+  isPlayer,
   leader,
+  solving,
 }: {
   playerName: string;
   playerBid: PlayerBid;
+  isPlayer: boolean;
   leader: boolean;
+  solving: boolean;
 }) => {
+  const playerItemClassNames = [style.playerItem];
+  if (isPlayer) {
+    playerItemClassNames.push(style.isPlayer);
+  }
+
   const bidText = playerBid.type === 'None' ? '-' : playerBid.content.value;
+  const isBidReady = playerBid.type === 'ProspectiveReady';
+  const readyBoxImgSrc = isBidReady
+    ? '/check-box-checked.svg'
+    : '/check-box-empty.svg';
 
   return (
-    <div className={style.playerItem}>
+    <div className={playerItemClassNames.join(' ')}>
       <div className={style.playerNameAndStatus}>
         <span className={style.playerName}>{playerName}</span>
         <div className={style.playerStatus}>
-          {leader && <img src="/star.svg" />}
+          <RenderWhen when={!solving}>
+            <img src={readyBoxImgSrc} />
+          </RenderWhen>
+          <RenderWhen when={leader}>
+            <img src="/star.svg" />
+          </RenderWhen>
         </div>
       </div>
       <span className={style.playerBid}>{bidText}</span>

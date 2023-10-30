@@ -1,4 +1,4 @@
-import { RoundSummary as RoundSummaryState } from 'inertia-core';
+import { PlayerId, RoundSummary as RoundSummaryState } from 'inertia-core';
 import { Scoreboard } from '../scoreboard';
 import { Starfield } from '../starfield';
 import { Board } from '../board';
@@ -12,9 +12,11 @@ import { Divider } from '../divider';
 
 export const RoundSummary = ({
   state,
+  userPlayerId,
   onStartRound,
 }: {
   state: RoundSummaryState;
+  userPlayerId: PlayerId;
   onStartRound: () => void;
 }) => {
   const roundPanelTitle =
@@ -30,7 +32,10 @@ export const RoundSummary = ({
       <Foreground>
         <FlexCenter wrap>
           <FlexCenter wrap>
-            <Scoreboard players={state.meta.player_info} />
+            <Scoreboard
+              players={state.meta.player_info}
+              userPlayerId={userPlayerId}
+            />
             <ThemedPanel>
               <FlexCenter column>
                 <PanelTitle>{roundPanelTitle}</PanelTitle>

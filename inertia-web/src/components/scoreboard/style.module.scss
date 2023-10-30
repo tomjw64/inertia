@@ -1,12 +1,21 @@
 .playerList {
-  width: 100%
+  width: 100%;
 }
 
 .playerItem {
   display: flex;
   justify-content: space-between;
+
+  &.isPlayer .playerName {
+    text-decoration: underline;
+    font-weight: bold;
+  }
 }
 
 .playerScore {
   margin-left: 1em;
+}
+
+.playerName {
+  white-space: nowrap;
 }

@@ -17,8 +17,9 @@ pub enum FromClientMessage {
   StartRound,
   Bid(BidMessage),
   ReadyBid,
+  UnreadyBid,
   UpdateSolution(UpdateSolutionMessage),
-  GiveUpSolve,
+  YieldSolve,
 }
 
 #[typeshare]

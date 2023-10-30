@@ -5,6 +5,11 @@
 .playerItem {
   display: flex;
   justify-content: space-between;
+
+  &.isPlayer .playerName {
+    text-decoration: underline;
+    font-weight: bold;
+  }
 }
 
 .playerNameAndStatus {

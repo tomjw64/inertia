@@ -12,12 +12,14 @@ export const ThemedFormLine = ({
 export const ThemedButton = ({
   children,
   onClick,
+  disabled = false,
 }: {
   children?: ComponentChildren;
   onClick?: JSX.MouseEventHandler<HTMLButtonElement>;
+  disabled?: boolean;
 }) => {
   return (
-    <button className={style.button} onClick={onClick}>
+    <button className={style.button} onClick={onClick} disabled={disabled}>
       {children}
     </button>
   );
