@@ -2,6 +2,7 @@ import {
   RoundStart as RoundStartState,
   RoundBidding as RoundBiddingState,
   PlayerId,
+  ActorSquares,
 } from 'inertia-core';
 import { Countdown } from '../countdown';
 import { Starfield } from '../starfield';
@@ -19,11 +20,13 @@ export const RoundBidding = ({
   state,
   userPlayerId,
   countdownTimeLeft,
+  actorSquares,
   onBid,
   onReadyBid,
   onUnreadyBid,
 }: {
   state: RoundStartState | RoundBiddingState;
+  actorSquares: ActorSquares;
   userPlayerId: PlayerId;
   countdownTimeLeft: number;
   onBid: (value: number) => void;
@@ -34,10 +37,14 @@ export const RoundBidding = ({
 
   const playerBids = 'player_bids' in state ? state.player_bids : undefined;
   const firstBidSubmitted = !!playerBids;
-  const bidType = playerBids?.bids?.[userPlayerId]?.type;
-  const isBidReady = bidType === 'ProspectiveReady';
-  const canChangeReadyStatus =
-    bidType === 'Prospective' || bidType === 'ProspectiveReady';
+  const bidType = playerBids?.bids?.[userPlayerId]?.type ?? 'None';
+  const isBidReady = bidType === 'ProspectiveReady' || bidType === 'NoneReady';
+  const isStatusReadyable =
+    bidType === 'Prospective' ||
+    bidType === 'ProspectiveReady' ||
+    bidType === 'None' ||
+    bidType === 'NoneReady';
+  const canChangeReadyStatus = firstBidSubmitted && isStatusReadyable;
 
   return (
     <div>
@@ -85,6 +92,7 @@ export const RoundBidding = ({
                     onInput={(e) => setPendingBid(e.currentTarget.value)}
                   />
                   <ThemedButton
+                    disabled={isBidReady}
                     onClick={() => {
                       const bidValue = parseInt(pendingBid);
                       if (isNaN(bidValue)) {
@@ -103,7 +111,7 @@ export const RoundBidding = ({
           <Board
             walledBoard={state.board.walled_board}
             goal={state.board.goal}
-            actorSquares={state.board.actor_squares}
+            actorSquares={actorSquares}
           />
         </FlexCenter>
       </Foreground>

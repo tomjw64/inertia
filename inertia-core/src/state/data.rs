@@ -41,6 +41,7 @@ pub struct PlayerReconnectKey(pub usize);
 #[serde(tag = "type", content = "content")]
 pub enum PlayerBid {
   None,
+  NoneReady,
   Prospective {
     #[typeshare(serialized_as = "number")]
     value: usize,
@@ -63,6 +64,7 @@ impl PlayerBid {
   pub fn to_effective_value(self) -> usize {
     match self {
       PlayerBid::None => 0,
+      PlayerBid::NoneReady => 0,
       PlayerBid::Prospective { value, .. } => value,
       PlayerBid::ProspectiveReady { value, .. } => value,
       PlayerBid::Failed { value } => value,
@@ -72,6 +74,7 @@ impl PlayerBid {
   pub fn to_order(self) -> usize {
     match self {
       PlayerBid::None => 0,
+      PlayerBid::NoneReady => 0,
       PlayerBid::Prospective { order, .. } => order,
       PlayerBid::ProspectiveReady { order, .. } => order,
       PlayerBid::Failed { .. } => 0,
@@ -84,6 +87,26 @@ impl PlayerBid {
     Self::ProspectiveReady {
       value: effective_value,
       order,
+    }
+  }
+
+  pub fn to_ready(self) -> Self {
+    match self {
+      PlayerBid::None => PlayerBid::NoneReady,
+      PlayerBid::Prospective { value, order } => {
+        PlayerBid::ProspectiveReady { value, order }
+      }
+      _ => self,
+    }
+  }
+
+  pub fn to_unready(self) -> Self {
+    match self {
+      PlayerBid::NoneReady => PlayerBid::None,
+      PlayerBid::ProspectiveReady { value, order } => {
+        PlayerBid::Prospective { value, order }
+      }
+      _ => self,
     }
   }
 
@@ -208,6 +231,7 @@ impl PlayerBids {
     let current_bid = self.bids.get(&player_id).unwrap_or(&PlayerBid::None);
 
     let can_update = match current_bid {
+      PlayerBid::None { .. } => true,
       PlayerBid::Prospective { .. } => true,
       _ => false,
     };
@@ -216,13 +240,7 @@ impl PlayerBids {
       return Err(ReadyBidError);
     }
 
-    self.bids.insert(
-      player_id,
-      PlayerBid::ProspectiveReady {
-        value: current_bid.to_effective_value(),
-        order: current_bid.to_order(),
-      },
-    );
+    self.bids.insert(player_id, current_bid.to_ready());
     Ok(())
   }
 
@@ -233,6 +251,7 @@ impl PlayerBids {
     let current_bid = self.bids.get(&player_id).unwrap_or(&PlayerBid::None);
 
     let can_update = match current_bid {
+      PlayerBid::NoneReady { .. } => true,
       PlayerBid::ProspectiveReady { .. } => true,
       _ => false,
     };
@@ -241,13 +260,7 @@ impl PlayerBids {
       return Err(UnreadyBidError);
     }
 
-    self.bids.insert(
-      player_id,
-      PlayerBid::Prospective {
-        value: current_bid.to_effective_value(),
-        order: current_bid.to_order(),
-      },
-    );
+    self.bids.insert(player_id, current_bid.to_unready());
     Ok(())
   }
 

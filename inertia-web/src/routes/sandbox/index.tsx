@@ -33,9 +33,18 @@ export const Sandbox = () => {
     setActorSquares(initialActorSquares);
   }, [initialActorSquares]);
 
-  const onMoveActor = (actorIndex: number, squareIndex: number) => {
+  const onMoveActor = ({ actor, direction }: SolutionStep) => {
+    const destinationSquareIndex = get_movement_for_actor(
+      {
+        walled_board: walledBoard,
+        actor_squares: actorSquares,
+        goal,
+      },
+      actor,
+      direction
+    );
     const newActorSquares = [...actorSquares] as ActorSquares;
-    newActorSquares[actorIndex] = squareIndex;
+    newActorSquares[actor] = destinationSquareIndex;
     setActorSquares(newActorSquares);
   };
 

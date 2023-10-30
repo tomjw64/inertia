@@ -19,6 +19,12 @@ pub struct WalledBoardPosition {
 
 impl WalledBoardPosition {
   pub fn is_solution(&self, solution: &[SolutionStep]) -> bool {
+    let actor_squares = self.apply_solution(solution);
+
+    actor_squares.0.contains(&self.goal)
+  }
+
+  pub fn apply_solution(&self, solution: &[SolutionStep]) -> ActorSquares {
     let move_board = MoveBoard::from(&self.walled_board);
     let mut actor_squares = self.actor_squares;
     for &SolutionStep {
@@ -31,8 +37,7 @@ impl WalledBoardPosition {
         move_board.get_move_destination(actor_square, actor_squares, direction);
       actor_squares.0[actor_index] = move_destination;
     }
-
-    actor_squares.0.contains(&self.goal)
+    return actor_squares;
   }
 }
 

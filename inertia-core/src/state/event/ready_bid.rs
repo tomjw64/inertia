@@ -43,7 +43,12 @@ pub fn round_bidding_ready_bid(
     .player_info
     .iter()
     .map(|(some_player, _)| player_bids.get(*some_player))
-    .all(|bid| matches!(bid, PlayerBid::ProspectiveReady { .. }))
+    .all(|bid| {
+      matches!(
+        bid,
+        PlayerBid::ProspectiveReady { .. } | PlayerBid::NoneReady
+      )
+    })
   {
     let next_solver = player_bids.get_next_solver();
     return match next_solver {

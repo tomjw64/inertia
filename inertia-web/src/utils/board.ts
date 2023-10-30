@@ -1,4 +1,4 @@
-import { WallGrid, WalledBoard } from 'inertia-core';
+import { WallGrid, WalledBoard, WalledBoardPosition } from 'inertia-core';
 
 export const emptyBoard = (): WalledBoard => {
   const vertical = [...Array(16)].map((_row) =>
@@ -10,5 +10,13 @@ export const emptyBoard = (): WalledBoard => {
   return {
     vertical,
     horizontal,
+  };
+};
+
+export const defaultWalledBoardPosition = (): WalledBoardPosition => {
+  return {
+    walled_board: emptyBoard(),
+    goal: 255,
+    actor_squares: [0, 1, 2, 3],
   };
 };

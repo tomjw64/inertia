@@ -2,6 +2,7 @@ mod js_ffi;
 mod log;
 mod utils;
 
+use inertia_core::mechanics::ActorSquares;
 use inertia_core::mechanics::Direction;
 use inertia_core::mechanics::ExpandedBitBoard;
 use inertia_core::mechanics::MoveBoard;
@@ -9,8 +10,8 @@ use inertia_core::mechanics::Square;
 use inertia_core::mechanics::WalledBoard;
 
 use inertia_core::mechanics::WalledBoardPosition;
+use inertia_core::solvers::SolutionStep;
 use inertia_core::state::data::PlayerBids;
-use inertia_core::state::data::PlayerId;
 use serde::Deserialize;
 use serde::Serialize;
 use serde_with::serde_as;
@@ -45,7 +46,15 @@ pub struct SquareWrapper(Square);
 
 #[derive(Debug, Serialize, Deserialize, Tsify)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
+pub struct ActorSquaresWrapper(ActorSquares);
+
+#[derive(Debug, Serialize, Deserialize, Tsify)]
+#[tsify(into_wasm_abi, from_wasm_abi)]
 pub struct PlayerBidsWrapper(PlayerBids);
+
+#[derive(Debug, Serialize, Deserialize, Tsify)]
+#[tsify(into_wasm_abi, from_wasm_abi)]
+pub struct SolutionWrapper(Vec<SolutionStep>);
 
 #[wasm_bindgen]
 pub fn math() {
@@ -105,6 +114,14 @@ pub fn get_movement_for_actor(
     }
     _ => SquareWrapper(Square::new(0)),
   }
+}
+
+#[wasm_bindgen]
+pub fn apply_solution(
+  board_position: WalledBoardPositionWrapper,
+  solution: SolutionWrapper,
+) -> ActorSquaresWrapper {
+  ActorSquaresWrapper(board_position.0.apply_solution(&solution.0))
 }
 
 #[wasm_bindgen]

@@ -16,7 +16,7 @@ pub fn round_solving_yield_solve(state: RoundSolving) -> EventResult {
     board,
     mut player_bids,
     solver,
-    solution,
+    ..
   } = state;
 
   player_bids.fail(solver);
@@ -30,7 +30,7 @@ pub fn round_solving_yield_solve(state: RoundSolving) -> EventResult {
         board,
         player_bids,
         solver: next_bidder_id,
-        solution,
+        solution: Vec::new(),
       }))
     }
     None => EventResult::ok(RoomState::RoundSummary(RoundSummary {

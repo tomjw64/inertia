@@ -1,4 +1,10 @@
-import { RoomState, ToClientMessage } from 'inertia-core';
+import {
+  RoomState,
+  RoundSolving as RoundSolvingState,
+  SolutionStep,
+  ToClientMessage,
+  WalledBoardPosition,
+} from 'inertia-core';
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { RoundSummary } from '../../components/round-summary';
 import {
@@ -9,6 +15,9 @@ import {
 import { RoomWebSocket } from '../../utils/ws';
 import { RoundBidding } from '../../components/round-bidding';
 import { RoundSolving } from '../../components/round-solving';
+import { defaultWalledBoardPosition } from '../../utils/board';
+import { apply_solution } from 'inertia-wasm';
+import { ACTOR_FLIP_ANIMATE_DURATION } from '../../components/board';
 
 const RoomStateType = {
   NONE: 'None',
@@ -37,6 +46,54 @@ export const Room = ({ roomId: roomIdString }: { roomId: string }) => {
   const [countdownTimeLeft, setCountdownTimeLeft] = useState<number | null>(
     null
   );
+
+  const walledBoardPosition: WalledBoardPosition = useMemo(() => {
+    if (roomState.type === 'None' || roomState.type === 'Closed') {
+      return defaultWalledBoardPosition();
+    } else if (roomState.type === 'RoundSummary') {
+      return roomState.content.last_round_board ?? defaultWalledBoardPosition();
+    } else {
+      return roomState.content.board;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roomState.type]);
+
+  const serverSolution: SolutionStep[] = useMemo(() => {
+    if (roomState.type === 'RoundSolving') {
+      return roomState.content.solution;
+    } else if (roomState.type === 'RoundSummary') {
+      return roomState.content.last_round_solution ?? [];
+    } else {
+      return [];
+    }
+  }, [roomState]);
+
+  const [localSolution, setLocalSolution] = useState<SolutionStep[]>([]);
+
+  const actorSquares = useMemo(() => {
+    if (roomState.type === 'RoundSolving') {
+      return apply_solution(walledBoardPosition, localSolution);
+    } else if (roomState.type === 'RoundSummary') {
+      return apply_solution(walledBoardPosition, serverSolution);
+    } else {
+      return walledBoardPosition.actor_squares;
+    }
+  }, [localSolution, roomState.type, serverSolution, walledBoardPosition]);
+
+  const solver = (roomState.content as Partial<RoundSolvingState>)?.solver;
+  useEffect(() => {
+    setLocalSolution([]);
+  }, [roomState.type, solver]);
+
+  useEffect(() => {
+    if (serverSolution.length > localSolution.length) {
+      const stepToAdd = serverSolution[localSolution.length];
+      const updated = [...localSolution, stepToAdd];
+      setTimeout(() => {
+        setLocalSolution(updated);
+      }, ACTOR_FLIP_ANIMATE_DURATION + 0.1);
+    }
+  }, [serverSolution, localSolution]);
 
   useEffect(() => {
     websocket.current = new RoomWebSocket();
@@ -110,11 +167,25 @@ export const Room = ({ roomId: roomIdString }: { roomId: string }) => {
       });
     });
 
+  const onMoveActor = (step: SolutionStep) => {
+    const updated = [...localSolution, step];
+    withWs((ws) => {
+      ws.send({
+        type: 'UpdateSolution',
+        content: {
+          solution: updated,
+        },
+      });
+    });
+    setLocalSolution(updated);
+  };
+
   if (roomState.type === RoomStateType.ROUND_SUMMARY) {
     return (
       <RoundSummary
         state={roomState.content}
         userPlayerId={userPlayerId}
+        actorSquares={actorSquares}
         onStartRound={onStartRound}
       />
     );
@@ -125,6 +196,7 @@ export const Room = ({ roomId: roomIdString }: { roomId: string }) => {
       <RoundBidding
         state={roomState.content}
         userPlayerId={userPlayerId}
+        actorSquares={actorSquares}
         onBid={onBid}
         onReadyBid={onReadyBid}
         onUnreadyBid={onUnreadyBid}
@@ -138,6 +210,7 @@ export const Room = ({ roomId: roomIdString }: { roomId: string }) => {
       <RoundBidding
         state={roomState.content}
         userPlayerId={userPlayerId}
+        actorSquares={actorSquares}
         onBid={onBid}
         onReadyBid={onReadyBid}
         onUnreadyBid={onUnreadyBid}
@@ -151,8 +224,10 @@ export const Room = ({ roomId: roomIdString }: { roomId: string }) => {
       <RoundSolving
         state={roomState.content}
         userPlayerId={userPlayerId}
+        actorSquares={actorSquares}
         countdownTimeLeft={countdownTimeLeft ?? 0}
         onYieldSolve={onYieldSolve}
+        onMoveActor={onMoveActor}
       />
     );
   }

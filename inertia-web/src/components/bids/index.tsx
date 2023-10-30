@@ -31,7 +31,7 @@ export const Bids = ({
               <PlayerItem
                 playerName={playerInfo.player_name}
                 playerBid={playerBids?.bids?.[playerId] ?? { type: 'None' }}
-                leader={leader?.toString() === playerId}
+                isLeader={leader?.toString() === playerId}
                 solving={solving}
                 isPlayer={playerInfo.player_id === userPlayerId}
               />
@@ -47,25 +47,35 @@ const PlayerItem = ({
   playerName,
   playerBid,
   isPlayer,
-  leader,
+  isLeader,
   solving,
 }: {
   playerName: string;
   playerBid: PlayerBid;
   isPlayer: boolean;
-  leader: boolean;
+  isLeader: boolean;
   solving: boolean;
 }) => {
+  const bidType = playerBid.type;
+  const bidText =
+    bidType === 'None' || bidType === 'NoneReady'
+      ? '-'
+      : playerBid.content.value;
+  const isBidReady = bidType === 'ProspectiveReady';
+  const isFailed = bidType === 'Failed';
+  const readyBoxImgSrc = isBidReady
+    ? '/check-box-checked.svg'
+    : '/check-box-empty.svg';
+
   const playerItemClassNames = [style.playerItem];
   if (isPlayer) {
     playerItemClassNames.push(style.isPlayer);
   }
 
-  const bidText = playerBid.type === 'None' ? '-' : playerBid.content.value;
-  const isBidReady = playerBid.type === 'ProspectiveReady';
-  const readyBoxImgSrc = isBidReady
-    ? '/check-box-checked.svg'
-    : '/check-box-empty.svg';
+  const playerBidClassNames = [style.playerBid];
+  if (isFailed) {
+    playerBidClassNames.push(style.failed);
+  }
 
   return (
     <div className={playerItemClassNames.join(' ')}>
@@ -75,12 +85,15 @@ const PlayerItem = ({
           <RenderWhen when={!solving}>
             <img src={readyBoxImgSrc} />
           </RenderWhen>
-          <RenderWhen when={leader}>
+          <RenderWhen when={isFailed}>
+            <img src="/fail.svg" />
+          </RenderWhen>
+          <RenderWhen when={isLeader}>
             <img src="/star.svg" />
           </RenderWhen>
         </div>
       </div>
-      <span className={style.playerBid}>{bidText}</span>
+      <span className={playerBidClassNames.join(' ')}>{bidText}</span>
     </div>
   );
 };

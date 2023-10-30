@@ -13,6 +13,7 @@ import {
   ActorSquares,
   Direction,
   ExpandedBitBoard,
+  SolutionStep,
   Square,
   WalledBoard,
 } from 'inertia-core';
@@ -20,6 +21,8 @@ import {
   get_movement_for_actor,
   get_movement_ray_for_actor,
 } from 'inertia-wasm';
+
+export const ACTOR_FLIP_ANIMATE_DURATION = 0.2;
 
 const actorColors = ['red', 'blue', 'green', 'yellow'];
 const getActorColor = (actorIndex: number) => {
@@ -33,7 +36,7 @@ const keySelectionMap = {
   y: 3,
 };
 
-type MoveActorFunction = (actorIndex: number, squareIndex: number) => void;
+type MoveActorFunction = (solutionStep: SolutionStep) => void;
 
 type BoardProps = {
   walledBoard: WalledBoard;
@@ -56,7 +59,6 @@ export const Board = ({
 
   const actorFlipRects = useRef(new Map()).current;
   const actorFlipAttr = 'data-animate-actor-flip-key';
-  const actorFlipAnimateDuration = 0.2;
 
   const moveIndicatorAttr = 'data-animate-move-indicator';
   const moveIndicatorAnimateDelay = 0.2;
@@ -138,10 +140,10 @@ export const Board = ({
             'translate(0px, 0px)',
           ],
         },
-        { duration: actorFlipAnimateDuration, easing: 'ease-in-out' }
+        { duration: ACTOR_FLIP_ANIMATE_DURATION, easing: 'ease-in-out' }
       );
     });
-  });
+  }, [actorFlipRects, actorSquares]);
 
   useLayoutEffect(() => {
     const boardElementCurrent = boardElement.current;
@@ -379,7 +381,7 @@ const BoardSquare = ({
         <div
           className={features.join(' ')}
           data-no-deselect
-          onClick={() => onMoveActor(selectedActor, movementSquares[direction])}
+          onClick={() => onMoveActor({ actor: selectedActor, direction })}
         >
           {moveIndicator}
         </div>
@@ -401,7 +403,7 @@ const BoardSquare = ({
         <div
           className={features.join(' ')}
           data-no-deselect
-          onClick={() => onMoveActor(selectedActor, movementSquares[direction])}
+          onClick={() => onMoveActor({ actor: selectedActor, direction })}
         >
           {moveRayIndicator}
         </div>
