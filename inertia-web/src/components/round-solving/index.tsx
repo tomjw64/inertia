@@ -15,7 +15,6 @@ import { PanelTitle } from '../panel-title';
 import { Bids } from '../bids';
 import { RenderWhen } from '../utils/RenderWhen';
 import { ThemedButton } from '../themed-form';
-import { useLayoutEffect } from 'preact/hooks';
 import { animate } from 'motion';
 
 const emphasizeOutOfMoves = () => {
