@@ -10,6 +10,8 @@ services:
       - ./inertia-web/public:/app/public
     ports:
       - 8080:8080
+    environment:
+      WS_PORT: 8001
 
   backend:
     build:

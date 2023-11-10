@@ -1,13 +1,17 @@
 import { FromClientMessage, ToClientMessage } from 'inertia-core';
 
-const BACKEND_HOST = process.env.BACKEND_HOST;
-const WS_CONNECTION_URL = `ws://${BACKEND_HOST}/ws`;
+const WS_PORT = process.env.WS_PORT === 'auto' ? '' : `:${process.env.WS_PORT}`;
+const WS_RELATIVE_PROTOCOL =
+  window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+const WS_URL = `${WS_RELATIVE_PROTOCOL}//${window.location.hostname}${WS_PORT}/ws`;
+
+console.log(WS_URL);
 
 export class RoomWebSocket {
   private inner: WebSocket;
 
   constructor() {
-    this.inner = new WebSocket(WS_CONNECTION_URL);
+    this.inner = new WebSocket(WS_URL);
   }
 
   onOpen(handler: () => void) {

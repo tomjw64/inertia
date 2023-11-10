@@ -8,4 +8,4 @@ perf.data*
 node_modules/
 dist/
 
-db/
+create-board-db/db/

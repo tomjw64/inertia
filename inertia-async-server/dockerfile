@@ -16,3 +16,4 @@ RUN cargo build --release
 FROM debian:bookworm-slim as prod
 COPY --from=prod-build /build/inertia-async-server/target/release/inertia-async-server /usr/local/bin
 COPY --from=prod-build /build/inertia-async-server/db /app/db
+CMD inertia-async-server
