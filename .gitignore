@@ -7,3 +7,5 @@ perf.data*
 
 node_modules/
 dist/
+
+db/
