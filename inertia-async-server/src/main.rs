@@ -1,3 +1,4 @@
+mod difficulty_board_generator;
 mod join;
 mod state;
 mod ws_receiver;
@@ -21,6 +22,7 @@ use inertia_core::message::FromClientMessage;
 use inertia_core::message::ToClientMessage;
 use inertia_core::state::event::apply_event::RoomEvent;
 use inertia_core::state::event::disconnect::Disconnect;
+use sqlx::sqlite::SqlitePoolOptions;
 use tokio::sync::broadcast;
 use tokio::sync::mpsc;
 use tokio::sync::RwLock;
@@ -32,6 +34,42 @@ use crate::join::JoinInfo;
 
 use crate::state::AppState;
 use crate::ws_receiver::handle_message_from_client;
+
+const DB_URL: &str = "sqlite:db/boards.db?mode=ro";
+
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
+  tracing_subscriber::registry()
+    .with(
+      tracing_subscriber::EnvFilter::try_from_default_env()
+        .unwrap_or_else(|_| "inertia_async_server=debug".into()),
+    )
+    .with(tracing_subscriber::fmt::layer())
+    .init();
+
+  let db_pool = SqlitePoolOptions::new()
+    .max_connections(16)
+    .connect(&std::env::var("DB_URL").unwrap_or(DB_URL.to_string()))
+    .await?;
+
+  let app_state = AppState {
+    db_pool,
+    rooms: Arc::new(RwLock::new(HashMap::new())),
+  };
+
+  let app = Router::new()
+    .route("/", get(|| async { "Hello, World!" }))
+    .route("/ws", get(ws_handler))
+    .with_state(app_state);
+
+  let address = SocketAddr::from(([0, 0, 0, 0], 8001));
+  tracing::info!("Listening on {}", address);
+  Server::bind(&address)
+    .serve(app.into_make_service_with_connect_info::<SocketAddr>())
+    .await
+    .unwrap();
+  Ok(())
+}
 
 async fn ws_handler(
   ws: WebSocketUpgrade,
@@ -196,31 +234,4 @@ async fn handle_socket(
   let disconect_event = RoomEvent::SoftDisconnect(Disconnect { player_id });
   state.apply_event(room_id, disconect_event).await.ok();
   state.cleanup_room(room_id).await;
-}
-
-#[tokio::main]
-async fn main() {
-  tracing_subscriber::registry()
-    .with(
-      tracing_subscriber::EnvFilter::try_from_default_env()
-        .unwrap_or_else(|_| "inertia_async_server=debug".into()),
-    )
-    .with(tracing_subscriber::fmt::layer())
-    .init();
-
-  let app_state = AppState {
-    rooms: Arc::new(RwLock::new(HashMap::new())),
-  };
-
-  let app = Router::new()
-    .route("/", get(|| async { "Hello, World!" }))
-    .route("/ws", get(ws_handler))
-    .with_state(app_state);
-
-  let address = SocketAddr::from(([127, 0, 0, 1], 8001));
-  tracing::info!("Listening on {}", address);
-  Server::bind(&address)
-    .serve(app.into_make_service_with_connect_info::<SocketAddr>())
-    .await
-    .unwrap();
 }

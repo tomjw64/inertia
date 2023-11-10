@@ -34,7 +34,7 @@ pub struct WalledBoard {
 }
 
 impl WalledBoard {
-  pub(crate) const EMPTY: Self = Self {
+  pub const EMPTY: Self = Self {
     vertical: [[false; 15]; 16],
     horizontal: [[false; 15]; 16],
   };

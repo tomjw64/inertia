@@ -1,6 +1,7 @@
 import { FromClientMessage, ToClientMessage } from 'inertia-core';
 
-const WS_CONNECTION_URL = 'ws://127.0.0.1:8001/ws';
+const BACKEND_HOST = process.env.BACKEND_HOST;
+const WS_CONNECTION_URL = `ws://${BACKEND_HOST}/ws`;
 
 export class RoomWebSocket {
   private inner: WebSocket;

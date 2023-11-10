@@ -20,28 +20,38 @@ const KEY_PLAYER_NAME = 'playerName';
 const KEY_PLAYER_ID = 'playerId';
 const KEY_PLAYER_RECONNECT_KEY = 'playerReconnectKey';
 
-export const getOrCreatePlayerName = (): string => {
+export const getPlayerName = (): string => {
   const storedPlayerName = localStorage.getItem(KEY_PLAYER_NAME);
   if (storedPlayerName) {
     return storedPlayerName;
   }
-  return generatePlayerName();
+  const playerName = generatePlayerName();
+  savePlayerName(playerName);
+  return playerName;
 };
 
-export const getOrCreatePlayerId = (): number => {
+export const savePlayerName = (name: string) => {
+  localStorage.setItem(KEY_PLAYER_NAME, name);
+};
+
+export const getPlayerId = (): number => {
   const storedPlayerId = localStorage.getItem(KEY_PLAYER_ID);
   if (storedPlayerId) {
     return parseInt(storedPlayerId, 10);
   }
-  return generatePlayerId();
+  const playerId = generatePlayerId();
+  localStorage.setItem(KEY_PLAYER_ID, playerId.toString());
+  return playerId;
 };
 
-export const getOrCreatePlayerReconnectKey = (): number => {
+export const getPlayerReconnectKey = (): number => {
   const storedPlayerReconnectKey = localStorage.getItem(
     KEY_PLAYER_RECONNECT_KEY
   );
   if (storedPlayerReconnectKey) {
     return parseInt(storedPlayerReconnectKey, 10);
   }
-  return generatePlayerReconnectKey();
+  const playerReconnectKey = generatePlayerReconnectKey();
+  localStorage.setItem(KEY_PLAYER_RECONNECT_KEY, playerReconnectKey.toString());
+  return playerReconnectKey;
 };

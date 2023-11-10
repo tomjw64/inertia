@@ -112,7 +112,7 @@ pub fn get_movement_for_actor(
       );
       SquareWrapper(square)
     }
-    _ => SquareWrapper(Square::new(0)),
+    _ => SquareWrapper(Square(0)),
   }
 }
 

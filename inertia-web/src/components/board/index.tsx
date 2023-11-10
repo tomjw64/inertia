@@ -151,7 +151,7 @@ export const Board = ({
       return;
     }
 
-    const handleKeyPress = (e: KeyboardEvent) => {
+    const handleKeyDown = (e: KeyboardEvent) => {
       if (!interactive) {
         return;
       }
@@ -165,9 +165,9 @@ export const Board = ({
       setSelectedActor(selection);
     };
 
-    boardElementCurrent.addEventListener('keydown', handleKeyPress);
+    boardElementCurrent.addEventListener('keydown', handleKeyDown);
     return () => {
-      boardElementCurrent.removeEventListener('keydown', handleKeyPress);
+      boardElementCurrent.removeEventListener('keydown', handleKeyDown);
     };
   }, [interactive]);
 

@@ -1,0 +1,40 @@
+FROM rustlang/rust:nightly-bookworm-slim AS rust-deps-build
+RUN cargo install wasm-pack
+
+RUN apt update && apt -y install git
+RUN git clone -b allow-override-for-disallowed-types https://github.com/tomjw64/typeshare.git custom-typeshare
+WORKDIR /custom-typeshare/
+RUN rm Cargo.lock rust-toolchain.toml
+RUN cargo build --release
+RUN cp ./target/release/typeshare /usr/local/bin
+
+COPY inertia-core /build/inertia-core
+WORKDIR /build/inertia-core/
+RUN cargo build --release
+RUN ./script/build-types.sh
+
+COPY inertia-wasm /build/inertia-wasm
+WORKDIR /build/inertia-wasm/
+RUN wasm-pack build --release
+
+
+FROM node:20-bookworm-slim as node-common
+COPY --from=rust-deps-build /build/inertia-core/pkg /inertia-core/pkg
+COPY --from=rust-deps-build /build/inertia-wasm/pkg /inertia-wasm/pkg
+WORKDIR /app/
+COPY inertia-web/package.json /app/
+COPY inertia-web/package-lock.json /app/
+RUN npm ci
+COPY inertia-web/ /app/
+
+
+FROM node-common as dev
+
+
+FROM node-common as prod-build
+RUN npm run build:prod
+
+
+FROM nginx:latest as prod
+COPY --from=prod-build /app/public/ /app/dist/ /usr/share/nginx/html/
+COPY inertia-web/nginx.prod.conf /etc/nginx/conf.d/default.conf

@@ -3,6 +3,7 @@ use inertia_core::board_generators::EmptyMiddleGoalBoardGenerator;
 use inertia_core::mechanics::MoveBoard;
 use inertia_core::mechanics::WalledBoardPosition;
 use inertia_core::mechanics::WalledBoardPositionGenerator;
+use inertia_core::solvers::difficulty::get_solution_difficulty;
 use inertia_core::solvers::idas::deepening_search_to_depth;
 use inertia_core::solvers::SolutionStep;
 use rouille::router;
@@ -18,11 +19,12 @@ fn main() {
         let WalledBoardPosition { walled_board, actor_squares, goal } = position;
         let board = MoveBoard::from(&walled_board);
 
-        let solution: Option<Vec<SolutionStep>> =
-          deepening_search_to_depth(&board, goal, actor_squares, 45);
-        println!("{:?}", solution);
+        let solution: Vec<SolutionStep> =
+          deepening_search_to_depth(&board, goal, actor_squares, 45).unwrap();
+        // println!("{:?}", solution);
         println!("{}", serde_json::to_string(&solution).unwrap());
-        dbg!(solution.map(|v| v.len()));
+        dbg!(solution.len());
+        dbg!(get_solution_difficulty(&solution));
 
         rouille::Response::json(&position).with_additional_header("Access-Control-Allow-Origin", "*")
       },

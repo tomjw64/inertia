@@ -8,7 +8,7 @@ use typeshare::typeshare;
 #[derive(
   Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize,
 )]
-pub struct Square(pub(crate) u8);
+pub struct Square(pub u8);
 
 impl From<u8> for Square {
   fn from(value: u8) -> Self {
@@ -29,10 +29,6 @@ impl From<(usize, usize)> for Square {
 }
 
 impl Square {
-  pub const fn new(index: u8) -> Square {
-    Square(index)
-  }
-
   pub fn from_row_col(row: usize, col: usize) -> Self {
     let row = min(row, 15);
     let col = min(col, 15);

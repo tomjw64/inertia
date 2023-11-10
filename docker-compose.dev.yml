@@ -1,0 +1,24 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: ./inertia-web/dockerfile
+      target: dev
+    command: npm start
+    volumes:
+      - ./inertia-web/src:/app/src
+      - ./inertia-web/public:/app/public
+    ports:
+      - 8080:8080
+
+  backend:
+    build:
+      context: .
+      dockerfile: ./inertia-async-server/dockerfile
+      target: dev
+    command: cargo watch -x run
+    volumes:
+      - ./inertia-core/src:/build/inertia-core/src
+      - ./inertia-async-server/src:/build/inertia-async-server/src
+    ports:
+      - 8001:8001

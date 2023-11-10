@@ -18,6 +18,14 @@ impl ActorSquares {
     bitboard
   }
 
+  pub fn from_bytes(bytes: [u8; 4]) -> Self {
+    Self(bytes.map(Square))
+  }
+
+  pub fn as_bytes(self) -> [u8; 4] {
+    self.0.map(|square| square.0)
+  }
+
   pub fn as_u32(self) -> u32 {
     u32::from_le_bytes(self.0.map(|square| square.0))
   }

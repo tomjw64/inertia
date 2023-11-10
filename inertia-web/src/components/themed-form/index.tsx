@@ -30,6 +30,7 @@ export const ThemedInput = ({
   onInput,
   numeric,
   size = 'medium',
+  autofocus = false,
 }: {
   value?:
     | string
@@ -38,6 +39,7 @@ export const ThemedInput = ({
     | JSX.SignalLike<string | number | string[] | undefined>;
   onInput?: JSX.DOMAttributes<HTMLInputElement>['onInput'];
   numeric?: boolean;
+  autofocus?: boolean;
   size?: 'short' | 'medium';
 }) => {
   const classNames = [style.input, style[size]];
@@ -55,6 +57,8 @@ export const ThemedInput = ({
     : {};
   return (
     <input
+      autoFocus={autofocus}
+      autofocus={autofocus}
       className={classNames.join(' ')}
       value={value}
       onInput={onInput}

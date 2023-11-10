@@ -8,9 +8,9 @@ import {
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { RoundSummary } from '../../components/round-summary';
 import {
-  getOrCreatePlayerId,
-  getOrCreatePlayerName,
-  getOrCreatePlayerReconnectKey,
+  getPlayerName,
+  getPlayerReconnectKey,
+  getPlayerId,
 } from '../../utils/storage';
 import { RoomWebSocket } from '../../utils/ws';
 import { RoundBidding } from '../../components/round-bidding';
@@ -32,12 +32,9 @@ export const Room = ({ roomId: roomIdString }: { roomId: string }) => {
   const websocket = useRef<RoomWebSocket | null>(null);
   const roomId = parseInt(roomIdString);
 
-  const userPlayerId = useMemo(() => getOrCreatePlayerId(), []);
-  const userPlayerReconnectKey = useMemo(
-    () => getOrCreatePlayerReconnectKey(),
-    []
-  );
-  const userPlayerName = useMemo(() => getOrCreatePlayerName(), []);
+  const userPlayerId = useMemo(() => getPlayerId(), []);
+  const userPlayerReconnectKey = useMemo(() => getPlayerReconnectKey(), []);
+  const userPlayerName = useMemo(() => getPlayerName(), []);
 
   const [roomState, setRoomState] = useState<RoomState>({
     type: RoomStateType.NONE,

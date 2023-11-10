@@ -6,3 +6,5 @@ pub use solution_step::SolutionStep;
 
 mod heuristic_board;
 pub use heuristic_board::HeuristicBoard;
+
+pub mod difficulty;

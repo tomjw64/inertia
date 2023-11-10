@@ -20,7 +20,7 @@ const NAME_PAIRINGS: NamePairing[] = [
   { names: [], descriptors: [] },
   {
     names: ['NOG', 'NAGATA', 'NAUSICAAN'],
-    descriptors: ['NICE', 'NEARLY', 'NOBLE', 'NATURAL'],
+    descriptors: ['NICE', 'NEARLY', 'NOBLE', 'NATURALLY'],
   },
   {
     names: ['GORN', 'GUNGAN', 'GERRERA', 'GAMORREAN'],
@@ -73,7 +73,7 @@ const NAME_PAIRINGS: NamePairing[] = [
       'DRAB',
       'DARING',
       'DOZY',
-      'DECENT',
+      'DECENTLY',
       'DISTINCTLY',
     ],
   },
@@ -104,15 +104,7 @@ const NAME_PAIRINGS: NamePairing[] = [
   },
   {
     names: ['KYLO', 'KENOBI', 'KIRK', 'KAYLEE', 'KLINGON', 'KANAN', 'KAMINOAN'],
-    descriptors: [
-      'KEEN',
-      'KIND',
-      'KINETIC',
-      'KINGLY',
-      'KINKY',
-      'KILLER',
-      'KINDA',
-    ],
+    descriptors: ['KEEN', 'KIND', 'KINETIC', 'KINGLY', 'KILLER', 'KINDA'],
   },
   {
     names: ['CRUSHER', 'COOPER', 'CASE', 'CARDASSIAN'],
@@ -145,9 +137,8 @@ const NAME_PAIRINGS: NamePairing[] = [
     descriptors: [
       'PROPER',
       'PROUD',
-      'POLITE',
       'PESKY',
-      'PRACTICAL',
+      'PRACTICALLY',
       'PRECISE',
       'PRETTY',
       'PERFECTLY',

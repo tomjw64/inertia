@@ -1,8 +1,8 @@
 import debounce from 'lodash/debounce';
-import { useEffect, useRef, useState } from 'preact/hooks';
+import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import style from './style.module.scss';
 import { Starfield } from '../../components/starfield';
-import { getOrCreatePlayerName } from '../../utils/storage';
+import { getPlayerName, savePlayerName } from '../../utils/storage';
 import { generatePlayerName } from '../../utils/player-gen';
 import { Divider } from '../../components/divider';
 import { ThemedPanel } from '../../components/themed-panel';
@@ -18,7 +18,11 @@ export const Home = () => {
   const homeRef = useRef<HTMLDivElement | null>(null);
   const titleRef = useRef<HTMLDivElement | null>(null);
 
-  const [nameInput, setNameInput] = useState(getOrCreatePlayerName());
+  const initialSavedPlayerName = useMemo(() => getPlayerName(), []);
+
+  const [nameInput, setNameInput] = useState(initialSavedPlayerName);
+
+  const debouncedSavePlayerName = debounce(savePlayerName, 200);
 
   const [joinGameInput, setJoinGameInput] = useState('');
 
@@ -42,12 +46,12 @@ export const Home = () => {
     };
     setAnimationVars();
 
-    const debouncedResetActorFlipRects = debounce(setAnimationVars, 200);
-    window.addEventListener('resize', debouncedResetActorFlipRects);
-    const justInCaseInterval = setInterval(debouncedResetActorFlipRects, 1000);
+    const debouncedResetAnimationVars = debounce(setAnimationVars, 200);
+    window.addEventListener('resize', debouncedResetAnimationVars);
+    const justInCaseInterval = setInterval(debouncedResetAnimationVars, 1000);
     return () => {
       clearInterval(justInCaseInterval);
-      window.removeEventListener('resize', debouncedResetActorFlipRects);
+      window.removeEventListener('resize', debouncedResetAnimationVars);
     };
   }, []);
 
@@ -64,7 +68,15 @@ export const Home = () => {
               <FlexCenter column>
                 <div className={style.subtitle}>Inertia</div>
                 <Divider />
-                <ThemedButton>Start Game</ThemedButton>
+                <ThemedButton
+                  onClick={() => {
+                    window.location.href = `/room/${Math.floor(
+                      Math.random() * 999_999
+                    )}`;
+                  }}
+                >
+                  Start Game
+                </ThemedButton>
                 <Divider text={'or'} />
                 <ThemedFormLine>
                   <ThemedButton
@@ -81,20 +93,27 @@ export const Home = () => {
                   />
                 </ThemedFormLine>
                 <Divider />
-                <ThemedFormLine>
-                  <ThemedButton>Set Name</ThemedButton>
-                  <ThemedInput
-                    value={nameInput}
-                    onInput={(e) => setNameInput(e.currentTarget.value)}
-                  />
-                  <ThemedButton
-                    onClick={() => {
-                      setNameInput(generatePlayerName());
-                    }}
-                  >
-                    <img src="/refresh.svg" />
-                  </ThemedButton>
-                </ThemedFormLine>
+                <FlexCenter>
+                  <div className={style.nameHeader}>Name:</div>
+                  <ThemedFormLine>
+                    <ThemedInput
+                      value={nameInput}
+                      onInput={(e) => {
+                        setNameInput(e.currentTarget.value);
+                        debouncedSavePlayerName(e.currentTarget.value);
+                      }}
+                    />
+                    <ThemedButton
+                      onClick={() => {
+                        const generatedName = generatePlayerName();
+                        setNameInput(generatedName);
+                        debouncedSavePlayerName(generatedName);
+                      }}
+                    >
+                      <img src="/refresh.svg" />
+                    </ThemedButton>
+                  </ThemedFormLine>
+                </FlexCenter>
               </FlexCenter>
             </ThemedPanel>
           </FlexCenter>

@@ -1,3 +1,4 @@
+const webpack = require('webpack');
 const path = require('path');
 
 module.exports = {
@@ -20,10 +21,14 @@ module.exports = {
       },
     ],
   },
+  plugins: [
+    new webpack.EnvironmentPlugin({
+      'BACKEND_HOST': '127.0.0.1:8001'
+    })
+  ],
   resolve: {
     extensions: ['.tsx', '.ts', '.jsx', '.js', '.css'],
   },
-  mode: 'development',
   experiments: {
     syncWebAssembly: true,
     asyncWebAssembly: true,

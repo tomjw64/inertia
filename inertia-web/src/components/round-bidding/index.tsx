@@ -11,7 +11,7 @@ import { Foreground } from '../foreground';
 import { FlexCenter } from '../flex-center';
 import { ThemedPanel } from '../themed-panel';
 import { ThemedButton, ThemedFormLine, ThemedInput } from '../themed-form';
-import { useState } from 'preact/hooks';
+import { useCallback, useEffect, useState } from 'preact/hooks';
 import { Divider } from '../divider';
 import { PanelTitle } from '../panel-title';
 import { Bids } from '../bids';
@@ -45,6 +45,32 @@ export const RoundBidding = ({
     bidType === 'None' ||
     bidType === 'NoneReady';
   const canChangeReadyStatus = firstBidSubmitted && isStatusReadyable;
+
+  const handleSubmitBid = useCallback(() => {
+    const bidValue = parseInt(pendingBid);
+    console.log(bidValue);
+    if (isNaN(bidValue)) {
+      return;
+    }
+    onBid(bidValue);
+    setPendingBid('');
+  }, [onBid, pendingBid]);
+
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if (e.key === 'Enter') {
+        handleSubmitBid();
+      }
+    },
+    [handleSubmitBid]
+  );
+
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [handleKeyDown]);
 
   return (
     <div>
@@ -86,22 +112,15 @@ export const RoundBidding = ({
                     {isBidReady ? 'Unready' : 'Ready'}
                   </ThemedButton>
                   <ThemedInput
+                    autofocus
                     size="short"
                     value={pendingBid}
                     numeric
-                    onInput={(e) => setPendingBid(e.currentTarget.value)}
-                  />
-                  <ThemedButton
-                    disabled={isBidReady}
-                    onClick={() => {
-                      const bidValue = parseInt(pendingBid);
-                      if (isNaN(bidValue)) {
-                        return;
-                      }
-                      onBid(bidValue);
-                      setPendingBid('');
+                    onInput={(e) => {
+                      setPendingBid(e.currentTarget.value);
                     }}
-                  >
+                  />
+                  <ThemedButton disabled={isBidReady} onClick={handleSubmitBid}>
                     Bid
                   </ThemedButton>
                 </ThemedFormLine>

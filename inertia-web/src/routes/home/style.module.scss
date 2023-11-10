@@ -56,8 +56,14 @@ $button-height: 2.5em;
   animation: animationY var(--bounce-y-speed) linear infinite alternate;
 }
 
+.nameHeader {
+  margin-right: 0.5em;
+  font-weight: bold;
+}
+
 @mixin glow($color) {
   color: $color;
+  // color: white;
   // text-shadow:
   //   0 0 0.1em white,
   //   0 0 0.2em white,
