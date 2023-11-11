@@ -1,16 +1,10 @@
 services:
   web:
-    build:
-      context: .
-      dockerfile: ./inertia-web/dockerfile
-      target: prod
+    image: ${INERTIA_WEB_IMAGE}
     restart: unless-stopped
 
   backend:
-    build:
-      context: .
-      dockerfile: ./inertia-async-server/dockerfile
-      target: prod
+    image: ${INERTIA_BACKEND_IMAGE}
     restart: unless-stopped
     environment:
       DB_URL: sqlite:/app/db/boards.db?mode=ro
