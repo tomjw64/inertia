@@ -19,3 +19,6 @@ services:
     volumes:
       - ./nginx-proxy-manager-data:/data
       - ./letsencrypt:/etc/letsencrypt
+    depends_on:
+      - web
+      - backend
