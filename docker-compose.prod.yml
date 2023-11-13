@@ -2,10 +2,14 @@ services:
   web:
     image: ${INERTIA_WEB_IMAGE}
     restart: unless-stopped
+    expose:
+      - 8080
 
   backend:
     image: ${INERTIA_BACKEND_IMAGE}
     restart: unless-stopped
+    expose:
+      - 8001
     environment:
       DB_URL: sqlite:/app/db/boards.db?mode=ro
 
