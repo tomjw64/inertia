@@ -12,7 +12,7 @@ import {
   getPlayerReconnectKey,
   getPlayerId,
 } from '../../utils/storage';
-import { RoomWebSocket } from '../../utils/ws';
+import { RoomWebSocket } from '../../utils/room-websocket';
 import { RoundBidding } from '../../components/round-bidding';
 import { RoundSolving } from '../../components/round-solving';
 import { defaultWalledBoardPosition } from '../../utils/board';
