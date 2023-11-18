@@ -41,8 +41,8 @@ pub fn round_bidding_ready_bid(
 
   if meta
     .player_info
-    .iter()
-    .map(|(some_player, _)| player_bids.get(*some_player))
+    .keys()
+    .map(|some_player| player_bids.get(*some_player))
     .all(|bid| {
       matches!(
         bid,

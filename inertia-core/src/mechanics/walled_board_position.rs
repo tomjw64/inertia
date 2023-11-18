@@ -62,25 +62,25 @@ impl WalledBoardPosition {
 
   pub fn from_compressed_byte_array(bytes: &[u8; 69]) -> Self {
     let mut vertical = [[false; 15]; 16];
-    for byte_idx in 0..32 {
+    for (byte_idx, byte) in bytes.iter().enumerate().take(32) {
       for bit_idx in 0..8 {
         let row_idx = byte_idx / 2;
         let bool_idx = bit_idx + ((byte_idx % 2) * 8);
         if bool_idx >= 15 {
           continue;
         }
-        vertical[row_idx][bool_idx] = bytes[byte_idx] & (1 << bit_idx) > 0;
+        vertical[row_idx][bool_idx] = byte & (1 << bit_idx) > 0;
       }
     }
     let mut horizontal = [[false; 15]; 16];
-    for byte_idx in 32..64 {
+    for (byte_idx, byte) in bytes.iter().enumerate().take(64).skip(32) {
       for bit_idx in 0..8 {
         let col_idx = (byte_idx - 32) / 2;
         let bool_idx = bit_idx + ((byte_idx % 2) * 8);
         if bool_idx >= 15 {
           continue;
         }
-        horizontal[col_idx][bool_idx] = bytes[byte_idx] & (1 << bit_idx) > 0;
+        horizontal[col_idx][bool_idx] = byte & (1 << bit_idx) > 0;
       }
     }
     let actor_squares = ActorSquares::from_bytes(
@@ -120,7 +120,7 @@ impl WalledBoardPosition {
         move_board.get_move_destination(actor_square, actor_squares, direction);
       actor_squares.0[actor_index] = move_destination;
     }
-    return actor_squares;
+    actor_squares
   }
 }
 

@@ -230,11 +230,10 @@ impl PlayerBids {
   ) -> Result<(), ReadyBidError> {
     let current_bid = self.bids.get(&player_id).unwrap_or(&PlayerBid::None);
 
-    let can_update = match current_bid {
-      PlayerBid::None { .. } => true,
-      PlayerBid::Prospective { .. } => true,
-      _ => false,
-    };
+    let can_update = matches!(
+      current_bid,
+      PlayerBid::None { .. } | PlayerBid::Prospective { .. }
+    );
 
     if !can_update {
       return Err(ReadyBidError);
@@ -250,11 +249,10 @@ impl PlayerBids {
   ) -> Result<(), UnreadyBidError> {
     let current_bid = self.bids.get(&player_id).unwrap_or(&PlayerBid::None);
 
-    let can_update = match current_bid {
-      PlayerBid::NoneReady { .. } => true,
-      PlayerBid::ProspectiveReady { .. } => true,
-      _ => false,
-    };
+    let can_update = matches!(
+      current_bid,
+      PlayerBid::NoneReady { .. } | PlayerBid::ProspectiveReady { .. }
+    );
 
     if !can_update {
       return Err(UnreadyBidError);
