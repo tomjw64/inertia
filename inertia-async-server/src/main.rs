@@ -132,9 +132,12 @@ async fn handle_socket(
           continue;
         }
       };
-      if ws_sender.send(ws::Message::Text(msg_json)).await.is_err() {
-        ws_debug!("Failed to send WS message");
-        break;
+      match ws_sender.send(ws::Message::Text(msg_json)).await {
+        Ok(_) => continue,
+        Err(err) => {
+          ws_debug!("Failed to send WS message: {}", err);
+          break;
+        }
       }
     }
   });
