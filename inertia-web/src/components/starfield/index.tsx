@@ -1,6 +1,7 @@
 import { useRef, useEffect } from 'preact/hooks';
 import style from './style.module.scss';
 import debounce from 'lodash/debounce';
+import groupBy from 'lodash/groupBy';
 
 // Heavily inspired by: https://codepen.io/ksenia-k/pen/gOPboQg
 
@@ -35,7 +36,7 @@ const moveStar = (star: Star, speed: number) => {
 };
 
 const getStarAsNStepsAgo = (star: Star, speed: number, n: number): Star => {
-  return { ...star, z: Math.max(0, star.z - speed * n) };
+  return { x: star.x, y: star.y, z: Math.max(0, star.z - speed * n) };
 };
 
 const getStarInfo = (
@@ -83,13 +84,12 @@ const getStarInfoNStepsAgo = (
   };
 };
 
-const showStar = (
+const starToPathAndOpacity = (
   canvas: HTMLCanvasElement,
-  context: CanvasRenderingContext2D,
   star: Star,
   speed: number,
   blurNSteps: number
-) => {
+): [Path2D, number] | null => {
   const { x, y, radius, opacity } = getStarInfo(canvas, star);
   const { lastX, lastY, lastRadius } = getStarInfoNStepsAgo(
     canvas,
@@ -104,19 +104,16 @@ const showStar = (
   const arcStart = angle + Math.PI / 2;
   const arcEnd = angle - Math.PI / 2;
 
-  const color = `rgba(255, 255, 255, ${opacity})`;
-
   if (lastX < 0 || lastY < 0 || lastX > canvas.width || lastY > canvas.height) {
     resetStar(star);
-    return;
+    return null;
   }
 
-  context.beginPath();
-  context.fillStyle = color;
-  context.arc(lastX, lastY, lastRadius, arcStart, arcEnd);
-  context.arc(x, y, radius, arcEnd, arcStart);
-  context.closePath();
-  context.fill();
+  const path = new Path2D();
+  path.arc(lastX, lastY, lastRadius, arcStart, arcEnd);
+  path.arc(x, y, radius, arcEnd, arcStart);
+  path.closePath();
+  return [path, opacity];
 };
 
 type StarfieldProps = {
@@ -166,10 +163,7 @@ export const Starfield = ({ numStars, speed }: StarfieldProps) => {
 
   useEffect(() => {
     // TODO: Separate animations for hyperspace effects (enter + exit) :)
-    // Don't forget this might help:
-    // context.fillStyle = '#ffffff'; // go full opacity and skip individual
-    // fillStyle for hyperspace effect
-    const animateMotion = (_timestamp: DOMHighResTimeStamp) => {
+    const animateMotion = (_timestamp: number) => {
       const canvas = canvasRef.current;
       if (canvas == null) {
         return;
@@ -182,8 +176,23 @@ export const Starfield = ({ numStars, speed }: StarfieldProps) => {
 
       context.fillStyle = '#373b55';
       context.fillRect(0, 0, canvas.width, canvas.height);
+
+      const starPaths: [Path2D, number][] = stars.current
+        .map((star) => starToPathAndOpacity(canvas, star, speed, 1))
+        .filter((path): path is [Path2D, number] => path != null);
+      const pathsByApproxOpacity = groupBy(starPaths, ([_path, opacity]) =>
+        opacity.toFixed(1)
+      );
+
+      Object.entries(pathsByApproxOpacity).forEach(([opacity, paths]) => {
+        const color = `rgba(255, 255, 255, ${opacity})`;
+        context.fillStyle = color;
+        for (const [path, _] of paths) {
+          context.fill(path);
+        }
+      });
+
       for (const star of stars.current) {
-        showStar(canvas, context, star, speed, 1);
         moveStar(star, speed);
       }
       animationFrame.current = window.requestAnimationFrame(animateMotion);

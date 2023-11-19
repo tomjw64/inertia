@@ -1,6 +1,14 @@
 @use "sass:color";
 @use "../../styles/common.scss";
 
+:root {
+  --border-size: 2px;
+
+  @media (min-width: 800px) and (min-height: 800px) {
+    --border-size: 3px;
+  }
+}
+
 .board {
   border: 2px solid common.$board-border-color;
   width: 94svmin;
@@ -15,25 +23,25 @@
 .square {
   background: common.$square-color;
   border: 1px solid common.$board-border-color;
-  box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
 
   &.block-right {
-    border-right: 3px solid #222;
+    border-right: var(--border-size) solid #222;
   }
   
   &.block-left {
-    border-left: 3px solid #222;
+    border-left: var(--border-size) solid #222;
   }
   
   &.block-up {
-    border-top: 3px solid #222;
+    border-top: var(--border-size) solid #222;
   }
   
   &.block-down {
-    border-bottom: 3px solid #222;
+    border-bottom: var(--border-size) solid #222;
   }
 
   &.move-target {
@@ -77,11 +85,16 @@
 .actor {
   box-sizing: border-box;
   border-radius: 35%;
-  width: 80%;
-  height: 80%;
   border: 2px solid #222;
   cursor: pointer;
   z-index: 2;
+
+  width: 85%;
+  height: 85%;
+  @media (min-width: 700px) and (min-height: 700px) {
+    width: 80%;
+    height: 80%;
+  }
 
   &.selected {
     border: 3px solid #eee;
