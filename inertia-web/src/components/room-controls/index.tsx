@@ -79,11 +79,11 @@ export const RoomControls = () => {
             </div>
           </a>
         </div>
-        {/* <div className={style.controlGroup}>
+        <div className={style.controlGroup}>
           <a>
             <img className={style.control} src="/settings.svg" />
           </a>
-        </div> */}
+        </div>
       </div>
     </>
   );
