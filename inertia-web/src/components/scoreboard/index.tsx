@@ -4,6 +4,7 @@ import { Divider } from '../divider';
 import { ThemedPanel } from '../themed-panel';
 import { FlexCenter } from '../flex-center';
 import { PanelTitle } from '../panel-title';
+import { PlayerListItem } from '../player-status';
 
 export const Scoreboard = ({
   userPlayerId,
@@ -20,33 +21,16 @@ export const Scoreboard = ({
         <div className={style.playerList}>
           {Object.values(players).map((playerInfo) => {
             return (
-              <PlayerItem
-                data={playerInfo}
-                isPlayer={playerInfo.player_id === userPlayerId}
-              />
+              <PlayerListItem
+                userPlayerId={userPlayerId}
+                playerInfo={playerInfo}
+              >
+                <span>{playerInfo.player_score}</span>
+              </PlayerListItem>
             );
           })}
         </div>
       </FlexCenter>
     </ThemedPanel>
-  );
-};
-
-const PlayerItem = ({
-  isPlayer,
-  data,
-}: {
-  isPlayer: boolean;
-  data: PlayerInfo;
-}) => {
-  const playerItemClassNames = [style.playerItem];
-  if (isPlayer) {
-    playerItemClassNames.push(style.isPlayer);
-  }
-  return (
-    <div className={playerItemClassNames.join(' ')}>
-      <span className={style.playerName}>{data.player_name}</span>
-      <span className={style.playerScore}>{data.player_score}</span>
-    </div>
   );
 };

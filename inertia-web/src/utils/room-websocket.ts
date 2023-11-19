@@ -15,7 +15,6 @@ export class RoomWebSocket {
       minReconnectionDelay: 1000,
       reconnectionDelayGrowFactor: 1.1,
       connectionTimeout: 3000,
-      debug: true,
     });
   }
 

@@ -1,3 +1,4 @@
+import style from './style.module.scss';
 import {
   RoomState,
   RoundSolving as RoundSolvingState,
@@ -18,6 +19,9 @@ import { RoundSolving } from '../../components/round-solving';
 import { defaultWalledBoardPosition } from '../../utils/board';
 import { apply_solution } from 'inertia-wasm';
 import { ACTOR_FLIP_ANIMATE_DURATION } from '../../components/board';
+import { Starfield } from '../../components/starfield';
+import { ThemedPanel } from '../../components/themed-panel';
+import { FlexCenter } from '../../components/flex-center';
 
 const RoomStateType = {
   NONE: 'None',
@@ -177,66 +181,94 @@ export const Room = ({ roomId: roomIdString }: { roomId: string }) => {
     setLocalSolution(updated);
   };
 
-  if (roomState.type === RoomStateType.ROUND_SUMMARY) {
+  const getRoundStateComponent = () => {
+    if (roomState.type === RoomStateType.ROUND_SUMMARY) {
+      return (
+        <RoundSummary
+          state={roomState.content}
+          userPlayerId={userPlayerId}
+          actorSquares={actorSquares}
+          onStartRound={onStartRound}
+        />
+      );
+    }
+
+    if (roomState.type === RoomStateType.ROUND_START) {
+      return (
+        <RoundBidding
+          state={roomState.content}
+          userPlayerId={userPlayerId}
+          actorSquares={actorSquares}
+          onBid={onBid}
+          onReadyBid={onReadyBid}
+          onUnreadyBid={onUnreadyBid}
+          countdownTimeLeft={countdownTimeLeft ?? 0}
+        />
+      );
+    }
+
+    if (roomState.type === RoomStateType.ROUND_BIDDING) {
+      return (
+        <RoundBidding
+          state={roomState.content}
+          userPlayerId={userPlayerId}
+          actorSquares={actorSquares}
+          onBid={onBid}
+          onReadyBid={onReadyBid}
+          onUnreadyBid={onUnreadyBid}
+          countdownTimeLeft={countdownTimeLeft ?? 0}
+        />
+      );
+    }
+
+    if (roomState.type === RoomStateType.ROUND_SOLVING) {
+      return (
+        <RoundSolving
+          state={roomState.content}
+          userPlayerId={userPlayerId}
+          actorSquares={actorSquares}
+          countdownTimeLeft={countdownTimeLeft ?? 0}
+          onYieldSolve={onYieldSolve}
+          onMoveActor={onMoveActor}
+        />
+      );
+    }
+
+    if (roomState.type === RoomStateType.NONE) {
+      return (
+        <div className={style.fullScreen}>
+          <FlexCenter expand>
+            <ThemedPanel>Nothing here.</ThemedPanel>
+          </FlexCenter>
+        </div>
+      );
+    }
+
+    if (roomState.type === RoomStateType.CLOSED) {
+      return (
+        <div className={style.fullScreen}>
+          <FlexCenter expand>
+            <ThemedPanel>Room closed.</ThemedPanel>
+          </FlexCenter>
+        </div>
+      );
+    }
+
     return (
-      <RoundSummary
-        state={roomState.content}
-        userPlayerId={userPlayerId}
-        actorSquares={actorSquares}
-        onStartRound={onStartRound}
-      />
+      <div className={style.fullScreen}>
+        <FlexCenter expand>
+          <ThemedPanel>Unknown state.</ThemedPanel>
+        </FlexCenter>
+      </div>
     );
-  }
+  };
 
-  if (roomState.type === RoomStateType.ROUND_START) {
-    return (
-      <RoundBidding
-        state={roomState.content}
-        userPlayerId={userPlayerId}
-        actorSquares={actorSquares}
-        onBid={onBid}
-        onReadyBid={onReadyBid}
-        onUnreadyBid={onUnreadyBid}
-        countdownTimeLeft={countdownTimeLeft ?? 0}
-      />
-    );
-  }
+  const roundState = getRoundStateComponent();
 
-  if (roomState.type === RoomStateType.ROUND_BIDDING) {
-    return (
-      <RoundBidding
-        state={roomState.content}
-        userPlayerId={userPlayerId}
-        actorSquares={actorSquares}
-        onBid={onBid}
-        onReadyBid={onReadyBid}
-        onUnreadyBid={onUnreadyBid}
-        countdownTimeLeft={countdownTimeLeft ?? 0}
-      />
-    );
-  }
-
-  if (roomState.type === RoomStateType.ROUND_SOLVING) {
-    return (
-      <RoundSolving
-        state={roomState.content}
-        userPlayerId={userPlayerId}
-        actorSquares={actorSquares}
-        countdownTimeLeft={countdownTimeLeft ?? 0}
-        onYieldSolve={onYieldSolve}
-        onMoveActor={onMoveActor}
-      />
-    );
-  }
-
-  if (roomState.type === RoomStateType.NONE) {
-    return <>Nothing here.</>;
-  }
-
-  if (roomState.type === RoomStateType.CLOSED) {
-    roomState.content;
-    return <>Room closed.</>;
-  }
-
-  return <span>Unknown Room State</span>;
+  return (
+    <>
+      <Starfield numStars={500} speed={0.5} />
+      {roundState}
+    </>
+  );
 };

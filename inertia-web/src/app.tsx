@@ -9,7 +9,7 @@ const NotFound = () => {
 };
 
 const App = () => (
-  <main>
+  <main style={{ minHeight: '100vh' }}>
     <Router>
       <Route path="/" component={Home} />
       <Route path="/room/:roomId" component={Room} />

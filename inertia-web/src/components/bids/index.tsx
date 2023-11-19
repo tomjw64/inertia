@@ -6,6 +6,7 @@ import { FlexCenter } from '../flex-center';
 import { PanelTitle } from '../panel-title';
 import { get_next_solver } from 'inertia-wasm';
 import { RenderWhen } from '../utils/RenderWhen';
+import { PlayerListItem } from '../player-status';
 
 export const Bids = ({
   players,
@@ -29,11 +30,11 @@ export const Bids = ({
           {Object.entries(players).map(([playerId, playerInfo]) => {
             return (
               <PlayerItem
-                playerName={playerInfo.player_name}
+                userPlayerId={userPlayerId}
+                playerInfo={playerInfo}
                 playerBid={playerBids?.bids?.[playerId] ?? { type: 'None' }}
                 isLeader={leader?.toString() === playerId}
                 solving={solving}
-                isPlayer={playerInfo.player_id === userPlayerId}
               />
             );
           })}
@@ -44,15 +45,15 @@ export const Bids = ({
 };
 
 const PlayerItem = ({
-  playerName,
+  userPlayerId,
+  playerInfo,
   playerBid,
-  isPlayer,
   isLeader,
   solving,
 }: {
-  playerName: string;
+  userPlayerId: PlayerId;
+  playerInfo: PlayerInfo;
   playerBid: PlayerBid;
-  isPlayer: boolean;
   isLeader: boolean;
   solving: boolean;
 }) => {
@@ -67,21 +68,17 @@ const PlayerItem = ({
     ? '/check-box-checked.svg'
     : '/check-box-empty.svg';
 
-  const playerItemClassNames = [style.playerItem];
-  if (isPlayer) {
-    playerItemClassNames.push(style.isPlayer);
-  }
-
   const playerBidClassNames = [style.playerBid];
   if (isFailed) {
     playerBidClassNames.push(style.failed);
   }
 
   return (
-    <div className={playerItemClassNames.join(' ')}>
-      <div className={style.playerNameAndStatus}>
-        <span className={style.playerName}>{playerName}</span>
-        <div className={style.playerStatus}>
+    <PlayerListItem
+      userPlayerId={userPlayerId}
+      playerInfo={playerInfo}
+      modifier={
+        <>
           <RenderWhen when={!solving}>
             <img src={readyBoxImgSrc} />
           </RenderWhen>
@@ -91,9 +88,10 @@ const PlayerItem = ({
           <RenderWhen when={isLeader}>
             <img src="/star.svg" />
           </RenderWhen>
-        </div>
-      </div>
+        </>
+      }
+    >
       <span className={playerBidClassNames.join(' ')}>{bidText}</span>
-    </div>
+    </PlayerListItem>
   );
 };

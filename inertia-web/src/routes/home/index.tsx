@@ -6,7 +6,6 @@ import { getPlayerName, savePlayerName } from '../../utils/storage';
 import { generatePlayerName } from '../../utils/player-gen';
 import { Divider } from '../../components/divider';
 import { ThemedPanel } from '../../components/themed-panel';
-import { Foreground } from '../../components/foreground';
 import { FlexCenter } from '../../components/flex-center';
 import {
   ThemedButton,
@@ -62,62 +61,62 @@ export const Home = () => {
         <div className={[style.title, style.titleX].join(' ')} ref={titleRef}>
           <div className={style.titleY}>INERTIA</div>
         </div>
-        <Foreground>
-          <FlexCenter expand>
-            <ThemedPanel>
-              <FlexCenter column>
-                <div className={style.subtitle}>Inertia</div>
-                <Divider />
+        <FlexCenter expand>
+          <ThemedPanel>
+            <FlexCenter column>
+              <div className={style.subtitle}>Inertia</div>
+              <Divider />
+              <ThemedButton
+                onClick={() => {
+                  window.location.href = `/room/${Math.floor(
+                    Math.random() * 999_999
+                  )}`;
+                }}
+              >
+                Start Game
+              </ThemedButton>
+              <Divider text={'or'} />
+              <ThemedFormLine>
                 <ThemedButton
+                  disabled={!joinGameInput}
                   onClick={() => {
-                    window.location.href = `/room/${Math.floor(
-                      Math.random() * 999_999
-                    )}`;
+                    window.location.href = `/room/${joinGameInput}`;
                   }}
                 >
-                  Start Game
+                  Join Game
                 </ThemedButton>
-                <Divider text={'or'} />
+                <ThemedInput
+                  size="short"
+                  numeric
+                  value={joinGameInput}
+                  onInput={(e) => setJoinGameInput(e.currentTarget.value)}
+                />
+              </ThemedFormLine>
+              <Divider />
+              <FlexCenter>
+                <div className={style.nameHeader}>Name:</div>
                 <ThemedFormLine>
+                  <ThemedInput
+                    value={nameInput}
+                    onInput={(e) => {
+                      setNameInput(e.currentTarget.value);
+                      debouncedSavePlayerName(e.currentTarget.value);
+                    }}
+                  />
                   <ThemedButton
                     onClick={() => {
-                      window.location.href = `/room/${joinGameInput}`;
+                      const generatedName = generatePlayerName();
+                      setNameInput(generatedName);
+                      debouncedSavePlayerName(generatedName);
                     }}
                   >
-                    Join Game
+                    <img src="/refresh.svg" />
                   </ThemedButton>
-                  <ThemedInput
-                    size="short"
-                    value={joinGameInput}
-                    onInput={(e) => setJoinGameInput(e.currentTarget.value)}
-                  />
                 </ThemedFormLine>
-                <Divider />
-                <FlexCenter>
-                  <div className={style.nameHeader}>Name:</div>
-                  <ThemedFormLine>
-                    <ThemedInput
-                      value={nameInput}
-                      onInput={(e) => {
-                        setNameInput(e.currentTarget.value);
-                        debouncedSavePlayerName(e.currentTarget.value);
-                      }}
-                    />
-                    <ThemedButton
-                      onClick={() => {
-                        const generatedName = generatePlayerName();
-                        setNameInput(generatedName);
-                        debouncedSavePlayerName(generatedName);
-                      }}
-                    >
-                      <img src="/refresh.svg" />
-                    </ThemedButton>
-                  </ThemedFormLine>
-                </FlexCenter>
               </FlexCenter>
-            </ThemedPanel>
-          </FlexCenter>
-        </Foreground>
+            </FlexCenter>
+          </ThemedPanel>
+        </FlexCenter>
       </div>
     </>
   );

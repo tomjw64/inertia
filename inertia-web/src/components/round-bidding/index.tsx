@@ -5,9 +5,7 @@ import {
   ActorSquares,
 } from 'inertia-core';
 import { Countdown } from '../countdown';
-import { Starfield } from '../starfield';
 import { Board } from '../board';
-import { Foreground } from '../foreground';
 import { FlexCenter } from '../flex-center';
 import { ThemedPanel } from '../themed-panel';
 import { ThemedButton, ThemedFormLine, ThemedInput } from '../themed-form';
@@ -48,7 +46,6 @@ export const RoundBidding = ({
 
   const handleSubmitBid = useCallback(() => {
     const bidValue = parseInt(pendingBid);
-    console.log(bidValue);
     if (isNaN(bidValue)) {
       return;
     }
@@ -73,67 +70,62 @@ export const RoundBidding = ({
   }, [handleKeyDown]);
 
   return (
-    <div>
-      <Starfield numStars={500} speed={0.5} />
-      <Foreground>
-        <FlexCenter wrap>
-          <FlexCenter wrap>
-            <Bids
-              players={state.meta.player_info}
-              playerBids={playerBids}
-              userPlayerId={userPlayerId}
+    <FlexCenter wrap>
+      <FlexCenter wrap>
+        <Bids
+          players={state.meta.player_info}
+          playerBids={playerBids}
+          userPlayerId={userPlayerId}
+        />
+        <ThemedPanel>
+          <FlexCenter column>
+            <PanelTitle>Round {state.meta.round_number}</PanelTitle>
+            <Divider />
+            <div>First bid</div>
+            <Countdown
+              timeLeft={countdownTimeLeft}
+              paused={firstBidSubmitted}
             />
-            <ThemedPanel>
-              <FlexCenter column>
-                <PanelTitle>Round {state.meta.round_number}</PanelTitle>
-                <Divider />
-                <div>First bid</div>
-                <Countdown
-                  timeLeft={countdownTimeLeft}
-                  paused={firstBidSubmitted}
-                />
-                <div>All bids</div>
-                <Countdown
-                  timeLeft={firstBidSubmitted ? countdownTimeLeft : 60000}
-                  paused={!firstBidSubmitted}
-                />
-                <Divider />
-                <ThemedFormLine>
-                  <ThemedButton
-                    disabled={!canChangeReadyStatus}
-                    onClick={() => {
-                      if (isBidReady) {
-                        onUnreadyBid();
-                      } else {
-                        onReadyBid();
-                      }
-                    }}
-                  >
-                    {isBidReady ? 'Unready' : 'Ready'}
-                  </ThemedButton>
-                  <ThemedInput
-                    autofocus
-                    size="short"
-                    value={pendingBid}
-                    numeric
-                    onInput={(e) => {
-                      setPendingBid(e.currentTarget.value);
-                    }}
-                  />
-                  <ThemedButton disabled={isBidReady} onClick={handleSubmitBid}>
-                    Bid
-                  </ThemedButton>
-                </ThemedFormLine>
-              </FlexCenter>
-            </ThemedPanel>
+            <div>All bids</div>
+            <Countdown
+              timeLeft={firstBidSubmitted ? countdownTimeLeft : 60000}
+              paused={!firstBidSubmitted}
+            />
+            <Divider />
+            <ThemedFormLine>
+              <ThemedButton
+                disabled={!canChangeReadyStatus}
+                onClick={() => {
+                  if (isBidReady) {
+                    onUnreadyBid();
+                  } else {
+                    onReadyBid();
+                  }
+                }}
+              >
+                {isBidReady ? 'Unready' : 'Ready'}
+              </ThemedButton>
+              <ThemedInput
+                autofocus
+                size="short"
+                value={pendingBid}
+                numeric
+                onInput={(e) => {
+                  setPendingBid(e.currentTarget.value);
+                }}
+              />
+              <ThemedButton disabled={isBidReady} onClick={handleSubmitBid}>
+                Bid
+              </ThemedButton>
+            </ThemedFormLine>
           </FlexCenter>
-          <Board
-            walledBoard={state.board.walled_board}
-            goal={state.board.goal}
-            actorSquares={actorSquares}
-          />
-        </FlexCenter>
-      </Foreground>
-    </div>
+        </ThemedPanel>
+      </FlexCenter>
+      <Board
+        walledBoard={state.board.walled_board}
+        goal={state.board.goal}
+        actorSquares={actorSquares}
+      />
+    </FlexCenter>
   );
 };

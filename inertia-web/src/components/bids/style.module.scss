@@ -2,29 +2,6 @@
   width: 100%
 }
 
-.playerItem {
-  display: flex;
-  justify-content: space-between;
-
-  &.isPlayer .playerName {
-    text-decoration: underline;
-    font-weight: bold;
-  }
-}
-
-.playerNameAndStatus {
-  display: flex;
-}
-
-.playerName {
-  white-space: nowrap;
-}
-
-.playerStatus {
-  display: flex;
-  margin-left: 0.25em;
-}
-
 .playerBid {
   margin-left: 1em;
 

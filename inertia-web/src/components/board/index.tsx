@@ -55,6 +55,8 @@ export const Board = ({
 }: BoardProps) => {
   const [selectedActor, setSelectedActor] = useState(-1);
 
+  const actorSquaresForHookDependency = JSON.stringify(actorSquares);
+
   const boardElement = useRef<HTMLDivElement>(null);
 
   const actorFlipRects = useRef(new Map()).current;
@@ -92,7 +94,7 @@ export const Board = ({
   resetActorFlipRects();
 
   useEffect(() => {
-    const deselectActor = (e) => {
+    const deselectActor = (e: MouseEvent) => {
       const target = e.target;
       if (
         target instanceof HTMLElement &&
@@ -143,7 +145,7 @@ export const Board = ({
         { duration: ACTOR_FLIP_ANIMATE_DURATION, easing: 'ease-in-out' }
       );
     });
-  }, [actorFlipRects, actorSquares]);
+  }, [actorFlipRects, actorSquaresForHookDependency]);
 
   useLayoutEffect(() => {
     const boardElementCurrent = boardElement.current;
