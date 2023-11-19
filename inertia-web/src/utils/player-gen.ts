@@ -41,7 +41,15 @@ const NAME_PAIRINGS: NamePairing[] = [
       'DJARIN',
       'JAR JAR',
     ],
-    descriptors: ['JARRING', 'JUST', 'JOLLY', 'JOVIAL', 'JAZZY', 'GENIAL'],
+    descriptors: [
+      'JARRING',
+      'JUST',
+      'JOLLY',
+      'JOVIAL',
+      'JAZZY',
+      'GENIAL',
+      'GENUINELY',
+    ],
   },
   {
     names: ['HOLDEN', 'HAN', 'HONDO', 'HUTT'],
@@ -58,11 +66,11 @@ const NAME_PAIRINGS: NamePairing[] = [
       'BAJORAN',
       'BETAZOID',
     ],
-    descriptors: ['BARELY', 'BOLD', 'BRAVE', 'BIZARRE', 'BASHFUL', 'BITTER'],
+    descriptors: ['BARELY', 'BOLDLY', 'BRAVE', 'BIZARRE', 'BASHFUL', 'BITTER'],
   },
   {
     names: ['TROI', 'TARS', 'TARKIN', 'TUVOK', 'TIGH', 'TRILL', 'TRANDOSHAN'],
-    descriptors: ['TOTALLY', 'TIRED', 'TRANQUIL', 'TACKY', 'TACTICAL'],
+    descriptors: ['TOTALLY', 'TIRED', 'TRANQUIL', 'TACKY', 'TACTICAL', 'TRULY'],
   },
   {
     names: ['DOOKU', 'DATA', 'DAX', 'DRAPER', 'DRUMMER', 'DARMOK'],
@@ -70,7 +78,6 @@ const NAME_PAIRINGS: NamePairing[] = [
       'DOWNRIGHT',
       'DEFINITELY',
       'DORKY',
-      'DRAB',
       'DARING',
       'DOZY',
       'DECENTLY',
@@ -108,11 +115,11 @@ const NAME_PAIRINGS: NamePairing[] = [
   },
   {
     names: ['CRUSHER', 'COOPER', 'CASE', 'CARDASSIAN'],
-    descriptors: ['CALM', 'COOL', 'CUTE', 'CARING', 'CAPABLE', 'CLEARLY'],
+    descriptors: ['CALM', 'COOL', 'CARING', 'CAPABLE', 'CLEARLY'],
   },
   {
     names: ['VADER', 'VULCAN', 'VENTRESS'],
-    descriptors: ['VIBRANT', 'VERMILLION', 'VEXED', 'VERY'],
+    descriptors: ['VIBRANT', 'VERMILLION', 'VEXED', 'VERY', 'VERITABLY'],
   },
   {
     names: ['RIKER', 'RO', 'REY', 'ROMULAN', 'RODIAN'],
@@ -126,6 +133,7 @@ const NAME_PAIRINGS: NamePairing[] = [
       'REALLY',
       'RATHER',
       'REMOTELY',
+      'RARE',
     ],
   },
   {
@@ -139,7 +147,7 @@ const NAME_PAIRINGS: NamePairing[] = [
       'PROUD',
       'PESKY',
       'PRACTICALLY',
-      'PRECISE',
+      'PRECISELY',
       'PRETTY',
       'PERFECTLY',
     ],
