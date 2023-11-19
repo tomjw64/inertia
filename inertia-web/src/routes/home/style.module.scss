@@ -94,7 +94,7 @@ $button-height: 2.5em;
     transform: translateX(0px);
   }
   100% {
-    transform: translateX(calc(100dvw - var(--bounce-width, 0px)));
+    transform: translateX(calc(100vw - var(--bounce-width, 0px)));
   }
 }
 @keyframes animationY {
@@ -102,6 +102,6 @@ $button-height: 2.5em;
     transform: translateY(0px);
   }
   100% {
-    transform: translateY(calc(100dvh - var(--bounce-height, 0px)));
+    transform: translateY(calc(100vh - var(--bounce-height, 0px)));
   }
 }

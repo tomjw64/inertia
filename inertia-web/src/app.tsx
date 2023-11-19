@@ -3,13 +3,25 @@ import { Home } from './routes/home';
 import { Sandbox } from './routes/sandbox';
 import { Room } from './routes/room';
 import { StarfieldSandbox } from './routes/starfield-sandbox';
+import { FlexCenter } from './components/flex-center';
+import { ThemedPanel } from './components/themed-panel';
+import { Starfield } from './components/starfield';
 
 const NotFound = () => {
-  return <span>{'Not Found'}</span>;
+  return (
+    <>
+      <Starfield numStars={500} speed={0.5} />
+      <div style={{ height: '100vh', width: '100vw' }}>
+        <FlexCenter expand>
+          <ThemedPanel>Nothing here.</ThemedPanel>
+        </FlexCenter>
+      </div>
+    </>
+  );
 };
 
 const App = () => (
-  <main style={{ minHeight: '100vh' }}>
+  <main style={{ minHeight: '100svh' }}>
     <Router>
       <Route path="/" component={Home} />
       <Route path="/room/:roomId" component={Room} />

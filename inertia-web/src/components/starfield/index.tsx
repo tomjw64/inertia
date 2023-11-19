@@ -150,8 +150,9 @@ export const Starfield = ({ numStars, speed }: StarfieldProps) => {
         return;
       }
 
-      canvas.height = window.innerHeight;
-      canvas.width = window.innerWidth;
+      const pixelRatio = window.devicePixelRatio;
+      canvas.height = Math.floor(window.innerHeight * pixelRatio);
+      canvas.width = Math.floor(window.innerWidth * pixelRatio);
     };
 
     setup();
@@ -196,6 +197,9 @@ export const Starfield = ({ numStars, speed }: StarfieldProps) => {
       }
     };
   }, [speed]);
-
-  return <canvas className={style.background} ref={canvasRef} />;
+  return (
+    <div className={style.background}>
+      <canvas className={style.canvas} ref={canvasRef} />;
+    </div>
+  );
 };
