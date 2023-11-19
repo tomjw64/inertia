@@ -22,6 +22,7 @@ import { ACTOR_FLIP_ANIMATE_DURATION } from '../../components/board';
 import { Starfield } from '../../components/starfield';
 import { ThemedPanel } from '../../components/themed-panel';
 import { FlexCenter } from '../../components/flex-center';
+import { RoomControls } from '../../components/room-controls';
 
 const RoomStateType = {
   NONE: 'None',
@@ -268,6 +269,7 @@ export const Room = ({ roomId: roomIdString }: { roomId: string }) => {
   return (
     <>
       <Starfield numStars={500} speed={0.5} />
+      <RoomControls />
       {roundState}
     </>
   );

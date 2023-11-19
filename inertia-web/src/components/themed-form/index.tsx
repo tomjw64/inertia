@@ -17,6 +17,7 @@ export const ThemedButton = ({
   children?: ComponentChildren;
   onClick?: JSX.MouseEventHandler<HTMLButtonElement>;
   disabled?: boolean;
+  link?: boolean;
 }) => {
   return (
     <button className={style.button} onClick={onClick} disabled={disabled}>
