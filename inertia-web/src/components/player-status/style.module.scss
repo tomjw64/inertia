@@ -1,0 +1,41 @@
+.playerItem {
+  display: flex;
+  justify-content: space-between;
+
+  &.isPlayer .playerName {
+    text-decoration: underline;
+    font-weight: bold;
+  }
+}
+
+.playerNameAndStatus {
+  display: flex;
+}
+
+.playerMetaStatus {
+  display: flex;
+  margin-right: 0.25em;
+}
+
+.playerName {
+  white-space: nowrap;
+}
+
+.playerModifier {
+  display: flex;
+  margin-left: 0.25em;
+}
+
+.playerData {
+  margin-left: 1em;
+}
+
+
+.connectedIcon {
+  fill: green;
+}
+
+
+.connectedIcon path {
+  fill: green;
+}
