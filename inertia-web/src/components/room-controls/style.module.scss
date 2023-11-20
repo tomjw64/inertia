@@ -1,13 +1,12 @@
 .controls {
   @media (orientation: landscape) {
-    position: fixed;
+    position: absolute;
   }
 
   @media (orientation: portrait) {
     position: relative;
   }
 
-  z-index: 100;
   display: flex;
   justify-content: space-between;
   top: 0;
