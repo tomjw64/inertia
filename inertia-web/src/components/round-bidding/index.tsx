@@ -13,6 +13,7 @@ import { useCallback, useEffect, useState } from 'preact/hooks';
 import { Divider } from '../divider';
 import { PanelTitle } from '../panel-title';
 import { Bids } from '../bids';
+import { isMobile } from '../../utils/is-mobile';
 
 export const RoundBidding = ({
   state,
@@ -106,7 +107,7 @@ export const RoundBidding = ({
                 {isBidReady ? 'Unready' : 'Ready'}
               </ThemedButton>
               <ThemedInput
-                autofocus
+                autofocus={!isMobile()}
                 size="short"
                 value={pendingBid}
                 numeric
