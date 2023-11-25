@@ -29,8 +29,8 @@ impl Walls {
 #[typeshare]
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct WalledBoard {
-  pub(crate) vertical: WallGrid,   // 16 ROWS of 15
-  pub(crate) horizontal: WallGrid, // 16 COLUMNS of 15
+  pub vertical: WallGrid,   // 16 ROWS of 15
+  pub horizontal: WallGrid, // 16 COLUMNS of 15
 }
 
 impl WalledBoard {

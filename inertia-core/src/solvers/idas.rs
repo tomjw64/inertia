@@ -118,6 +118,7 @@ mod benchmarks {
 
   #[bench]
   fn bench_solve_generated_15(_b: &mut Bencher) {
+    println!("#######");
     let walled_board = WalledBoard {
       vertical: [
         [
@@ -263,12 +264,41 @@ mod benchmarks {
     assert_eq!(solution.map(|v| v.len()), Some(15));
 
     let elapsed = start.elapsed();
+    println!("Elapsed: {:.2?}", elapsed);
+  }
+
+  #[bench]
+  fn bench_solve_shuffle_puzzle(_b: &mut Bencher) {
     println!("#######");
+    let mut vertical = [[false; 15]; 16];
+    vertical[0] = [true; 15];
+    vertical[15] = [true; 15];
+    let mut horizontal = [[false; 15]; 16];
+    horizontal[0] = [true; 15];
+    horizontal[15] = [true; 15];
+    let walled_board = WalledBoard {
+      vertical,
+      horizontal,
+    };
+    let actor_squares =
+      ActorSquares([Square(17), Square(18), Square(33), Square(34)]);
+    let goal = Square::from_row_col(8, 8);
+
+    let board = MoveBoard::from(&walled_board);
+
+    let start = Instant::now();
+
+    let solution: Option<Vec<SolutionStep>> =
+      deepening_search_to_depth(&board, goal, actor_squares, 80);
+    assert_eq!(solution.map(|v| v.len()), Some(70));
+
+    let elapsed = start.elapsed();
     println!("Elapsed: {:.2?}", elapsed);
   }
 
   #[bench]
   fn bench_solve_empty_middle_goal(_b: &mut Bencher) {
+    println!("#######");
     let position = EmptyMiddleGoalBoardGenerator::new().generate_position();
     let WalledBoardPosition {
       walled_board,
@@ -284,7 +314,6 @@ mod benchmarks {
     assert_eq!(solution.map(|v| v.len()), Some(41));
 
     let elapsed = start.elapsed();
-    println!("#######");
     println!("Elapsed: {:.2?}", elapsed);
   }
 }
