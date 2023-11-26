@@ -15,6 +15,7 @@ import { PanelTitle } from '../panel-title';
 import { Bids } from '../bids';
 import { isMobile } from '../../utils/is-mobile';
 import { RenderWhen } from '../utils/RenderWhen';
+import { BlockText } from '../spaced-text';
 
 export const RoundBidding = ({
   state,
@@ -103,7 +104,7 @@ export const RoundBidding = ({
             />
             <Divider />
             <RenderWhen when={showInvalidBid}>
-              <span>You can't raise your bid!</span>
+              <BlockText>You can't raise your bid!</BlockText>
             </RenderWhen>
             <ThemedFormLine>
               <ThemedButton

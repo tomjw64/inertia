@@ -11,6 +11,8 @@ import { ThemedPanel } from '../themed-panel';
 import { ThemedButton } from '../themed-form';
 import { PanelTitle } from '../panel-title';
 import { Divider } from '../divider';
+import { RenderWhen } from '../utils/RenderWhen';
+import { BlockText } from '../spaced-text';
 
 export const RoundSummary = ({
   state,
@@ -27,8 +29,14 @@ export const RoundSummary = ({
     state.meta.round_number === 0
       ? 'Lobby'
       : `End of Round ${state.meta.round_number}`;
-  const roundStartButtonText =
-    state.meta.round_number === 0 ? 'Start Game' : ' Start Next Round';
+  const isGameStart = state.meta.round_number === 0;
+  const roundStartButtonText = isGameStart ? 'Start Game' : ' Start Next Round';
+  const wasLastRoundSolved = state.last_round_solution != null;
+  const lastRoundSolutionMoves = state.last_round_solution?.length ?? -1;
+  const lastRoundSolverName =
+    state.last_solver != null
+      ? state.meta.player_info[state.last_solver].player_name ?? 'unknown'
+      : 'unknown';
 
   return (
     <FlexCenter wrap>
@@ -41,6 +49,12 @@ export const RoundSummary = ({
           <FlexCenter column>
             <PanelTitle>{roundPanelTitle}</PanelTitle>
             <Divider />
+            <RenderWhen when={wasLastRoundSolved}>
+              <BlockText>{`${lastRoundSolverName} found a solution with ${lastRoundSolutionMoves} moves!`}</BlockText>
+            </RenderWhen>
+            <RenderWhen when={!isGameStart && !wasLastRoundSolved}>
+              <BlockText>Nobody found a solution last round.</BlockText>
+            </RenderWhen>
             <ThemedButton onClick={onStartRound}>
               {roundStartButtonText}
             </ThemedButton>

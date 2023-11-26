@@ -15,6 +15,7 @@ import { RenderWhen } from '../utils/RenderWhen';
 import { ThemedButton } from '../themed-form';
 import { shake } from '../../animations/shake';
 import { useRef } from 'preact/hooks';
+import { BlockText } from '../spaced-text';
 
 export const RoundSolving = ({
   state,
@@ -62,9 +63,9 @@ export const RoundSolving = ({
           <FlexCenter column>
             <Divider />
             <FlexCenter column>
-              <span>{`Moves used: ${movesMade}/${bidMoves}`}</span>
+              <BlockText>{`Moves used: ${movesMade}/${bidMoves}`}</BlockText>
               <RenderWhen when={isOutOfMoves}>
-                <span>Out of moves!</span>
+                <BlockText>Out of moves!</BlockText>
               </RenderWhen>
 
               <RenderWhen when={isUserSolver}>
