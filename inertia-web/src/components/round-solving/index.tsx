@@ -13,25 +13,8 @@ import { PanelTitle } from '../panel-title';
 import { Bids } from '../bids';
 import { RenderWhen } from '../utils/RenderWhen';
 import { ThemedButton } from '../themed-form';
-import { animate } from 'motion';
-
-const emphasizeOutOfMoves = () => {
-  const outOfMovesElement = document.querySelector(
-    `[data-animate-out-of-moves]`
-  );
-  if (outOfMovesElement == null) {
-    return;
-  }
-  const animationOffset = [0, -1, 2, -4, 4, -4, 4, -4, 2, -1, 0];
-  const animationOffsetAsTranslate = animationOffset.map(
-    (offset) => `translateX(${offset}px)`
-  );
-  animate(
-    outOfMovesElement,
-    { transform: animationOffsetAsTranslate },
-    { duration: 1 }
-  );
-};
+import { shake } from '../../animations/shake';
+import { useRef } from 'preact/hooks';
 
 export const RoundSolving = ({
   state,
@@ -56,6 +39,9 @@ export const RoundSolving = ({
   const bidMoves = state.player_bids.bids[solver.player_id].content!.value;
   const isOutOfMoves = movesMade >= bidMoves;
 
+  const giveUpButton = useRef<HTMLDivElement | null>(null);
+  const emphasizeOutOfMoves = () => shake(giveUpButton.current);
+
   return (
     <FlexCenter wrap>
       <FlexCenter wrap>
@@ -78,11 +64,11 @@ export const RoundSolving = ({
             <FlexCenter column>
               <span>{`Moves used: ${movesMade}/${bidMoves}`}</span>
               <RenderWhen when={isOutOfMoves}>
-                <span>{`Out of moves`}</span>
+                <span>Out of moves!</span>
               </RenderWhen>
 
               <RenderWhen when={isUserSolver}>
-                <div data-animate-out-of-moves>
+                <div ref={giveUpButton}>
                   <ThemedButton
                     onClick={() => {
                       onYieldSolve();

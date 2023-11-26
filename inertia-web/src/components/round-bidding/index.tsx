@@ -14,6 +14,7 @@ import { Divider } from '../divider';
 import { PanelTitle } from '../panel-title';
 import { Bids } from '../bids';
 import { isMobile } from '../../utils/is-mobile';
+import { RenderWhen } from '../utils/RenderWhen';
 
 export const RoundBidding = ({
   state,
@@ -34,9 +35,12 @@ export const RoundBidding = ({
 }) => {
   const [pendingBid, setPendingBid] = useState('');
 
+  const [showInvalidBid, setShowInvalidBid] = useState(false);
+
   const playerBids = 'player_bids' in state ? state.player_bids : undefined;
   const firstBidSubmitted = !!playerBids;
   const bidType = playerBids?.bids?.[userPlayerId]?.type ?? 'None';
+  const currentBidValue = playerBids?.bids?.[userPlayerId]?.content?.value;
   const isBidReady = bidType === 'ProspectiveReady' || bidType === 'NoneReady';
   const isStatusReadyable =
     bidType === 'Prospective' ||
@@ -50,9 +54,14 @@ export const RoundBidding = ({
     if (isNaN(bidValue)) {
       return;
     }
+    if (currentBidValue != null && currentBidValue < bidValue) {
+      setShowInvalidBid(true);
+      return;
+    }
+    setShowInvalidBid(false);
     onBid(bidValue);
     setPendingBid('');
-  }, [onBid, pendingBid]);
+  }, [currentBidValue, onBid, pendingBid]);
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -93,6 +102,9 @@ export const RoundBidding = ({
               paused={!firstBidSubmitted}
             />
             <Divider />
+            <RenderWhen when={showInvalidBid}>
+              <span>You can't raise your bid!</span>
+            </RenderWhen>
             <ThemedFormLine>
               <ThemedButton
                 disabled={!canChangeReadyStatus}
