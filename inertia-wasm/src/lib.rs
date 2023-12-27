@@ -2,6 +2,10 @@ mod js_ffi;
 mod log;
 mod utils;
 
+use std::convert::TryInto;
+
+use base64::engine::general_purpose;
+use base64::Engine;
 use inertia_core::mechanics::ActorSquares;
 use inertia_core::mechanics::Direction;
 use inertia_core::mechanics::ExpandedBitBoard;
@@ -127,4 +131,19 @@ pub fn apply_solution(
 #[wasm_bindgen]
 pub fn get_next_solver(player_bids: PlayerBidsWrapper) -> Option<usize> {
   player_bids.0.get_next_solver().map(|id| id.0)
+}
+
+#[wasm_bindgen]
+pub fn decode_position(bytes: String) -> Option<WalledBoardPositionWrapper> {
+  let bytes = general_purpose::URL_SAFE_NO_PAD.decode(bytes).ok()?;
+  Some(WalledBoardPositionWrapper(
+    WalledBoardPosition::from_compressed_byte_array(
+      &bytes[0..69].try_into().ok()?,
+    ),
+  ))
+}
+
+#[wasm_bindgen]
+pub fn encode_position(position: WalledBoardPositionWrapper) -> String {
+  general_purpose::URL_SAFE_NO_PAD.encode(position.0.to_compressed_byte_array())
 }
