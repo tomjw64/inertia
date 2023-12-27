@@ -13,11 +13,11 @@ use crate::solvers::SolutionStep;
 
 #[typeshare(serialized_as = "number")]
 #[derive(Serialize, Deserialize, Eq, PartialEq, Hash, Copy, Clone, Debug)]
-pub struct PlayerId(pub usize);
+pub struct PlayerId(pub u64);
 
 #[typeshare(serialized_as = "number")]
 #[derive(Serialize, Deserialize, Eq, PartialEq, Hash, Copy, Clone, Debug)]
-pub struct RoomId(pub usize);
+pub struct RoomId(pub u64);
 
 #[typeshare]
 #[derive(Serialize, Deserialize, Eq, PartialEq, Clone, Debug)]
@@ -34,7 +34,7 @@ where
 
 #[typeshare(serialized_as = "number")]
 #[derive(Serialize, Deserialize, Eq, PartialEq, Copy, Clone, Debug)]
-pub struct PlayerReconnectKey(pub usize);
+pub struct PlayerReconnectKey(pub u64);
 
 #[typeshare]
 #[derive(Serialize, Deserialize, Eq, PartialEq, Copy, Clone, Debug)]
@@ -44,24 +44,24 @@ pub enum PlayerBid {
   NoneReady,
   Prospective {
     #[typeshare(serialized_as = "number")]
-    value: usize,
+    value: u64,
     #[typeshare(serialized_as = "number")]
-    order: usize,
+    order: u64,
   },
   ProspectiveReady {
     #[typeshare(serialized_as = "number")]
-    value: usize,
+    value: u64,
     #[typeshare(serialized_as = "number")]
-    order: usize,
+    order: u64,
   },
   Failed {
     #[typeshare(serialized_as = "number")]
-    value: usize,
+    value: u64,
   },
 }
 
 impl PlayerBid {
-  pub fn to_effective_value(self) -> usize {
+  pub fn to_effective_value(self) -> u64 {
     match self {
       PlayerBid::None => 0,
       PlayerBid::NoneReady => 0,
@@ -71,7 +71,7 @@ impl PlayerBid {
     }
   }
 
-  pub fn to_order(self) -> usize {
+  pub fn to_order(self) -> u64 {
     match self {
       PlayerBid::None => 0,
       PlayerBid::NoneReady => 0,
@@ -133,10 +133,10 @@ pub struct PlayerInfo {
   #[serde(skip)]
   pub player_reconnect_key: PlayerReconnectKey,
   #[serde(skip)]
-  pub player_last_seen: usize,
+  pub player_last_seen: u64,
   pub player_connected: bool,
   #[typeshare(typescript(type = "number"))]
-  pub player_score: usize,
+  pub player_score: u64,
 }
 
 #[typeshare]
@@ -147,7 +147,7 @@ pub struct RoomMeta {
   pub generator: Box<dyn WalledBoardPositionGenerator>,
   pub player_info: HashMap<PlayerId, PlayerInfo>,
   #[typeshare(typescript(type = "number"))]
-  pub round_number: usize,
+  pub round_number: u64,
 }
 
 impl PartialEq for RoomMeta {
@@ -199,7 +199,7 @@ pub struct RoundSolving {
 pub struct PlayerBids {
   pub bids: HashMap<PlayerId, PlayerBid>,
   #[serde(skip)]
-  pub timestamp: usize,
+  pub timestamp: u64,
 }
 
 #[derive(Error, Debug)]
@@ -265,7 +265,7 @@ impl PlayerBids {
   pub fn make_bid(
     &mut self,
     player_id: PlayerId,
-    bid_value: usize,
+    bid_value: u64,
   ) -> Result<(), MakeBidError> {
     let current_bid = self.bids.get(&player_id).unwrap_or(&PlayerBid::None);
 

@@ -62,7 +62,7 @@ const PlayerItem = ({
     bidType === 'None' || bidType === 'NoneReady'
       ? '-'
       : playerBid.content.value;
-  const isBidReady = bidType === 'ProspectiveReady';
+  const isBidReady = bidType === 'ProspectiveReady' || bidType === 'NoneReady';
   const isFailed = bidType === 'Failed';
   const readyBoxImgSrc = isBidReady
     ? '/check-box-checked.svg'

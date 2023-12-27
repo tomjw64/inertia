@@ -55,6 +55,8 @@ export const Room = ({ roomId: roomIdString }: { roomId: string }) => {
     } else {
       return roomState.content.board;
     }
+    // Fine because we know the board never changes except when the type changes
+    // And we don't want to put the board data here because useMemo uses shallow equality.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roomState.type]);
 
@@ -89,6 +91,10 @@ export const Room = ({ roomId: roomIdString }: { roomId: string }) => {
     if (serverSolution.length > localSolution.length) {
       const stepToAdd = serverSolution[localSolution.length];
       const updated = [...localSolution, stepToAdd];
+      // FIXME: This can still cause actors to not appear to go in straight
+      // lines if two states are received in close proximity (because they both
+      // wait the same amount of time - rather than waiting a certain time after
+      // the last animation)
       setTimeout(() => {
         setLocalSolution(updated);
       }, ACTOR_FLIP_ANIMATE_DURATION + 0.1);

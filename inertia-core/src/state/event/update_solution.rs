@@ -36,7 +36,7 @@ pub fn round_solving_update_solution(
   let bid = player_bids.get(solver);
   let effective_bid_value = bid.to_effective_value();
 
-  if updated_solution.len() > effective_bid_value {
+  if updated_solution.len() as u64 > effective_bid_value {
     return EventResult::err(
       RoomState::RoundSolving(RoundSolving {
         board,
