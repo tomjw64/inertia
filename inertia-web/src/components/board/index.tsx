@@ -6,7 +6,6 @@ import {
   useLayoutEffect,
   useRef,
 } from 'preact/hooks';
-import {} from 'preact/hooks';
 import { animate } from 'motion';
 import style from './style.module.scss';
 import {

@@ -1,4 +1,3 @@
-import style from './style.module.scss';
 import {
   RoomState,
   RoundSolving as RoundSolvingState,
@@ -20,9 +19,8 @@ import { defaultWalledBoardPosition } from '../../utils/board';
 import { apply_solution } from 'inertia-wasm';
 import { ACTOR_FLIP_ANIMATE_DURATION } from '../../components/board';
 import { Starfield } from '../../components/starfield';
-import { ThemedPanel } from '../../components/themed-panel';
-import { FlexCenter } from '../../components/flex-center';
 import { RoomControls } from '../../components/room-controls';
+import { ErrorPage } from '../../components/error-page';
 
 const RoomStateType = {
   NONE: 'None',
@@ -236,32 +234,14 @@ export const Room = ({ roomId: roomIdString }: { roomId: string }) => {
     }
 
     if (roomState.type === RoomStateType.NONE) {
-      return (
-        <div className={style.fullScreen}>
-          <FlexCenter expand>
-            <ThemedPanel>Nothing here.</ThemedPanel>
-          </FlexCenter>
-        </div>
-      );
+      return <ErrorPage>Nothing here.</ErrorPage>;
     }
 
     if (roomState.type === RoomStateType.CLOSED) {
-      return (
-        <div className={style.fullScreen}>
-          <FlexCenter expand>
-            <ThemedPanel>Room closed.</ThemedPanel>
-          </FlexCenter>
-        </div>
-      );
+      return <ErrorPage>Room closed.</ErrorPage>;
     }
 
-    return (
-      <div className={style.fullScreen}>
-        <FlexCenter expand>
-          <ThemedPanel>Unknown state.</ThemedPanel>
-        </FlexCenter>
-      </div>
-    );
+    return <ErrorPage>Unknown state.</ErrorPage>;
   };
 
   const roundState = getRoundStateComponent();

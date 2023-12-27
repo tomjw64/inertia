@@ -15,7 +15,7 @@ import { RenderWhen } from '../utils/RenderWhen';
 import { ThemedButton } from '../themed-form';
 import { shake } from '../../animations/shake';
 import { useRef } from 'preact/hooks';
-import { BlockText } from '../spaced-text';
+import { BlockText } from '../block-text';
 
 export const RoundSolving = ({
   state,

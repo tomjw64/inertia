@@ -6,6 +6,7 @@ import { StarfieldSandbox } from './routes/starfield-sandbox';
 import { FlexCenter } from './components/flex-center';
 import { ThemedPanel } from './components/themed-panel';
 import { Starfield } from './components/starfield';
+import { BoardExplorer } from './routes/board-explorer';
 
 const NotFound = () => {
   return (
@@ -25,6 +26,7 @@ const App = () => (
     <Router>
       <Route path="/" component={Home} />
       <Route path="/room/:roomId" component={Room} />
+      <Route path="/board" component={BoardExplorer} />
       <Route path="/sandbox" component={Sandbox} />
       <Route path="/starfield-sandbox" component={StarfieldSandbox} />
       <Route default component={NotFound} />

@@ -15,7 +15,7 @@ import { PanelTitle } from '../panel-title';
 import { Bids } from '../bids';
 import { isMobile } from '../../utils/is-mobile';
 import { RenderWhen } from '../utils/RenderWhen';
-import { BlockText } from '../spaced-text';
+import { BlockText } from '../block-text';
 
 export const RoundBidding = ({
   state,

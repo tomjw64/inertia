@@ -12,7 +12,7 @@ import { ThemedButton } from '../themed-form';
 import { PanelTitle } from '../panel-title';
 import { Divider } from '../divider';
 import { RenderWhen } from '../utils/RenderWhen';
-import { BlockText } from '../spaced-text';
+import { BlockText } from '../block-text';
 
 export const RoundSummary = ({
   state,
