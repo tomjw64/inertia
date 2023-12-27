@@ -79,7 +79,7 @@ fn search_at_depth(
       new_actor_squares.0[actor_index] = move_destination;
 
       solution.push(SolutionStep {
-        actor: actor_index,
+        actor: actor_index as u8,
         direction,
       });
       let result = search_at_depth(

@@ -90,6 +90,8 @@ impl HeuristicBoard {
     let mut current_square_set = BTreeSet::new();
     current_square_set.insert(goal);
 
+    // TODO: Augment bitboards that work even when walls are present
+    // TODO: Augment bitboards that take into account a limited number of actors
     loop {
       let square_set_has_no_blocks = current_square_set
         .iter()

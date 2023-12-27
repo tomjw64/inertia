@@ -35,7 +35,14 @@ pub fn deepening_search_to_depth(
 
     for actor in 0..actor_squares.0.len() {
       for direction in Direction::VARIANTS {
-        stack.push((0, actor_squares, SolutionStep { actor, direction }))
+        stack.push((
+          0,
+          actor_squares,
+          SolutionStep {
+            actor: actor as u8,
+            direction,
+          },
+        ))
       }
     }
 
@@ -44,6 +51,7 @@ pub fn deepening_search_to_depth(
       solution.push(step_to_make);
 
       let SolutionStep { actor, direction } = step_to_make;
+      let actor = actor as usize;
       let actor_square = actor_squares.0[actor];
 
       let move_destination =
@@ -87,7 +95,7 @@ pub fn deepening_search_to_depth(
             at_depth + 1,
             next_actor_squares,
             SolutionStep {
-              actor: next_actor,
+              actor: next_actor as u8,
               direction: next_direction,
             },
           ))

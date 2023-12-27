@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use serde::Deserialize;
 use serde::Serialize;
 use typeshare::typeshare;
@@ -31,7 +33,7 @@ impl WalledBoardPosition {
   pub fn to_compressed_byte_array(&self) -> [u8; 69] {
     let mut bytes = [0u8; 69];
     let mut offset = 0;
-    // 32 bytes
+    // 32 bytes for vertical walls
     for row in self.walled_board.vertical {
       for (idx, &bit) in row.iter().enumerate() {
         let byte = idx / 8;
@@ -40,7 +42,7 @@ impl WalledBoardPosition {
       }
       offset += 2;
     }
-    // 32 bytes
+    // 32 bytes for horizontal walls
     for col in self.walled_board.horizontal {
       for (idx, &bit) in col.iter().enumerate() {
         let byte = idx / 8;
@@ -49,12 +51,12 @@ impl WalledBoardPosition {
       }
       offset += 2;
     }
-    // 4 bytes
+    // 4 bytes for actor squares
     self.actor_squares.as_bytes().into_iter().for_each(|byte| {
       bytes[offset] = byte;
       offset += 1;
     });
-    // 1 byte
+    // 1 byte for goal
     bytes[offset] = self.goal.0;
     // All done
     bytes
@@ -91,7 +93,7 @@ impl WalledBoardPosition {
         .expect("This is exactly 4 bytes"),
     );
     let goal = Square(bytes[68]);
-    WalledBoardPosition {
+    Self {
       walled_board: WalledBoard {
         vertical,
         horizontal,
@@ -115,10 +117,10 @@ impl WalledBoardPosition {
       direction,
     } in solution
     {
-      let actor_square = actor_squares.0[actor_index];
+      let actor_square = actor_squares.0[actor_index as usize];
       let move_destination =
         move_board.get_move_destination(actor_square, actor_squares, direction);
-      actor_squares.0[actor_index] = move_destination;
+      actor_squares.0[actor_index as usize] = move_destination;
     }
     actor_squares
   }
@@ -144,6 +146,36 @@ pub trait WalledBoardPositionGenerator:
 }
 
 impl Clone for Box<dyn WalledBoardPositionGenerator> {
+  fn clone(&self) -> Self {
+    self.clone_dyn()
+  }
+}
+
+pub struct SolvedPosition {
+  pub position: WalledBoardPosition,
+  pub solution: Vec<SolutionStep>,
+}
+
+pub trait CloneDynSolvedPositionGenerator {
+  fn clone_dyn(&self) -> Box<dyn SolvedPositionGenerator>;
+}
+
+impl<T> CloneDynSolvedPositionGenerator for T
+where
+  T: 'static + SolvedPositionGenerator + Clone,
+{
+  fn clone_dyn(&self) -> Box<dyn SolvedPositionGenerator> {
+    Box::new(self.clone())
+  }
+}
+
+pub trait SolvedPositionGenerator:
+  CloneDynSolvedPositionGenerator + std::fmt::Debug + Send + Sync
+{
+  fn generate_solved_position(&self) -> SolvedPosition;
+}
+
+impl Clone for Box<dyn SolvedPositionGenerator> {
   fn clone(&self) -> Self {
     self.clone_dyn()
   }
