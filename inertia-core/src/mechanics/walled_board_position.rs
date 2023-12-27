@@ -126,11 +126,11 @@ impl WalledBoardPosition {
   }
 }
 
-pub trait DynCloneWalledBoardPositionGenerator {
+pub trait CloneDynWalledBoardPositionGenerator {
   fn clone_dyn(&self) -> Box<dyn WalledBoardPositionGenerator>;
 }
 
-impl<T> DynCloneWalledBoardPositionGenerator for T
+impl<T> CloneDynWalledBoardPositionGenerator for T
 where
   T: 'static + WalledBoardPositionGenerator + Clone,
 {
@@ -140,7 +140,7 @@ where
 }
 
 pub trait WalledBoardPositionGenerator:
-  DynCloneWalledBoardPositionGenerator + std::fmt::Debug + Send + Sync
+  CloneDynWalledBoardPositionGenerator + std::fmt::Debug + Send + Sync
 {
   fn generate_position(&self) -> WalledBoardPosition;
 }
