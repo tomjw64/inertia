@@ -60,6 +60,10 @@ export const Room = ({ roomId: roomIdString }: { roomId: string }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roomState.type]);
 
+  const nextServerSolutionAnimation = useRef<ReturnType<
+    typeof setTimeout
+  > | null>(null);
+  const serverSolutionAnimationQueue = useRef<SolutionStep[]>([]);
   const serverSolution: SolutionStep[] = useMemo(() => {
     if (roomState.type === 'RoundSolving') {
       return roomState.content.solution;
@@ -69,37 +73,74 @@ export const Room = ({ roomId: roomIdString }: { roomId: string }) => {
       return [];
     }
   }, [roomState]);
-
+  const [appliedServerSolution, setAppliedServerSolution] = useState<
+    SolutionStep[]
+  >([]);
   const [localSolution, setLocalSolution] = useState<SolutionStep[]>([]);
 
-  const actorSquares = useMemo(() => {
-    if (roomState.type === 'RoundSolving') {
-      return apply_solution(walledBoardPosition, localSolution);
-    } else if (roomState.type === 'RoundSummary') {
-      return apply_solution(walledBoardPosition, serverSolution);
-    } else {
-      return walledBoardPosition.actor_squares;
-    }
-  }, [localSolution, roomState.type, serverSolution, walledBoardPosition]);
-
   const solver = (roomState.content as Partial<RoundSolvingState>)?.solver;
+  const isUserSolver = solver === userPlayerId;
+  const useLocalSolution = isUserSolver;
+  const solutionToApply = useLocalSolution
+    ? localSolution
+    : appliedServerSolution;
+
+  useEffect(() => {
+    const startOrContinueServerSolutionAnimation = () => {
+      if (nextServerSolutionAnimation.current) {
+        return;
+      }
+      const triggerAnimation = () => {
+        const solutionStepToAnimate =
+          serverSolutionAnimationQueue.current.shift();
+        if (solutionStepToAnimate) {
+          nextServerSolutionAnimation.current = setTimeout(() => {
+            triggerAnimation();
+          }, (ACTOR_FLIP_ANIMATE_DURATION + 0.1) * 1000);
+          setAppliedServerSolution((current) => [
+            ...current,
+            solutionStepToAnimate,
+          ]);
+        } else {
+          nextServerSolutionAnimation.current = null;
+        }
+      };
+      triggerAnimation();
+    };
+
+    const cancelServerSolutionAnimation = () => {
+      if (!nextServerSolutionAnimation.current) {
+        return;
+      }
+      clearTimeout(nextServerSolutionAnimation.current);
+      nextServerSolutionAnimation.current = null;
+      serverSolutionAnimationQueue.current = [];
+    };
+
+    // If the solution lengths are equal, nothing to do.
+    if (serverSolution.length === appliedServerSolution.length) {
+      return;
+    }
+    // If the solution to apply is smaller, apply it immediately
+    if (serverSolution.length < appliedServerSolution.length) {
+      cancelServerSolutionAnimation();
+      setAppliedServerSolution(serverSolution);
+      return;
+    }
+    // Otherwise, there are steps we haven't displayed yet. Queue them for animation
+    serverSolutionAnimationQueue.current = serverSolution.slice(
+      appliedServerSolution.length
+    );
+    startOrContinueServerSolutionAnimation();
+  }, [appliedServerSolution, serverSolution]);
+
   useEffect(() => {
     setLocalSolution([]);
   }, [roomState.type, solver]);
 
-  useEffect(() => {
-    if (serverSolution.length > localSolution.length) {
-      const stepToAdd = serverSolution[localSolution.length];
-      const updated = [...localSolution, stepToAdd];
-      // FIXME: This can still cause actors to not appear to go in straight
-      // lines if two states are received in close proximity (because they both
-      // wait the same amount of time - rather than waiting a certain time after
-      // the last animation)
-      setTimeout(() => {
-        setLocalSolution(updated);
-      }, ACTOR_FLIP_ANIMATE_DURATION + 0.1);
-    }
-  }, [serverSolution, localSolution]);
+  const actorSquares = useMemo(() => {
+    return apply_solution(walledBoardPosition, solutionToApply);
+  }, [solutionToApply, walledBoardPosition]);
 
   useEffect(() => {
     websocket.current = new RoomWebSocket();
