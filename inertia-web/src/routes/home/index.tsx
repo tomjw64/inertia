@@ -13,6 +13,8 @@ import {
   ThemedInput,
 } from '../../components/themed-form';
 
+const debouncedSavePlayerName = debounce(savePlayerName, 200);
+
 export const Home = () => {
   const homeRef = useRef<HTMLDivElement | null>(null);
   const titleRef = useRef<HTMLDivElement | null>(null);
@@ -20,8 +22,6 @@ export const Home = () => {
   const initialSavedPlayerName = useMemo(() => getPlayerName(), []);
 
   const [nameInput, setNameInput] = useState(initialSavedPlayerName);
-
-  const debouncedSavePlayerName = debounce(savePlayerName, 200);
 
   const [joinGameInput, setJoinGameInput] = useState('');
 
