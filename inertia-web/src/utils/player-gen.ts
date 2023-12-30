@@ -28,7 +28,15 @@ const NAME_PAIRINGS: NamePairing[] = [
   },
   {
     names: ['ERSO', 'EWOK', 'EZRA'],
-    descriptors: ['ECCENTRIC', 'EQUALLY', 'ELATED', 'EAGER', 'EXACTLY'],
+    descriptors: [
+      'ECCENTRIC',
+      'EQUALLY',
+      'ELATED',
+      'EAGER',
+      'EXACTLY',
+      'EXTRA',
+      'EXCEEDINGLY',
+    ],
   },
   {
     names: [
