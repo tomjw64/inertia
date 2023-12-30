@@ -191,10 +191,12 @@ export const generatePlayerName = () => {
   return COLLECTED_NAMES[index];
 };
 
+const MAX_U32 = 4_294_967_295;
+
 export const generatePlayerId = () => {
-  return Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
+  return Math.floor(Math.random() * MAX_U32);
 };
 
 export const generatePlayerReconnectKey = () => {
-  return Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
+  return Math.floor(Math.random() * MAX_U32);
 };

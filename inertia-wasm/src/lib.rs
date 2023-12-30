@@ -129,7 +129,7 @@ pub fn apply_solution(
 }
 
 #[wasm_bindgen]
-pub fn get_next_solver(player_bids: PlayerBidsWrapper) -> Option<u64> {
+pub fn get_next_solver(player_bids: PlayerBidsWrapper) -> Option<u32> {
   player_bids.0.get_next_solver().map(|id| id.0)
 }
 

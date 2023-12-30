@@ -9,7 +9,7 @@ use super::result::EventResult;
 #[derive(Debug, Clone)]
 pub struct MakeBid {
   pub player_id: PlayerId,
-  pub bid_value: u64,
+  pub bid_value: u32,
 }
 
 pub fn round_start_make_bid(state: RoundStart, event: MakeBid) -> EventResult {

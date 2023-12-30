@@ -22,6 +22,8 @@ import {
 } from 'inertia-wasm';
 
 export const ACTOR_FLIP_ANIMATE_DURATION = 0.2;
+export const MOVE_INDICATOR_ANIMATE_DELAY = ACTOR_FLIP_ANIMATE_DURATION;
+export const MOVE_INDICATOR_ANIMATE_DURATION = 0.2;
 
 const BOARD_FLIP_ATTR = 'data-flip-board';
 const ACTOR_FLIP_ATTR = 'data-animate-actor-flip-key';
@@ -65,9 +67,6 @@ export const Board = ({
   const boardFlipRect = useRef<DOMRect | null>(null);
   const actorFlipRects = useRef(new Map()).current;
 
-  const moveIndicatorAnimateDelay = 0.2;
-  const moveIndicatorAnimateDuration = 0.2;
-
   const animateMoveIndicators = (delay: number = 0) => {
     document
       .querySelectorAll(`[${MOVE_INDICATOR_ATTR}]`)
@@ -77,7 +76,7 @@ export const Board = ({
           { opacity: [0, 1], scale: [0.1, 1] },
           {
             // delay,
-            duration: moveIndicatorAnimateDuration,
+            duration: MOVE_INDICATOR_ANIMATE_DURATION,
             easing: 'ease-out',
           }
         );
@@ -124,7 +123,7 @@ export const Board = ({
   }, [selectedActor]);
 
   useLayoutEffect(() => {
-    animateMoveIndicators(moveIndicatorAnimateDelay);
+    animateMoveIndicators(MOVE_INDICATOR_ANIMATE_DELAY);
   }, [actorSquares]);
 
   useLayoutEffect(() => {

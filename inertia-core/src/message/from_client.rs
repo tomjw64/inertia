@@ -32,7 +32,7 @@ pub struct UpdateSolutionMessage {
 #[derive(Deserialize, Debug)]
 pub struct BidMessage {
   #[typeshare(typescript(type = "number"))]
-  pub bid_value: u64,
+  pub bid_value: u32,
 }
 
 #[typeshare]
