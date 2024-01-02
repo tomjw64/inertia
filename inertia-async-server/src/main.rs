@@ -58,7 +58,7 @@ async fn main() -> anyhow::Result<()> {
   };
 
   let app = Router::new()
-    .route("/", get(|| async { "Hello, World!" }))
+    .route("/healthcheck", get(healthcheck))
     .route("/ws", get(ws_handler))
     .with_state(app_state);
 
@@ -78,6 +78,10 @@ async fn ws_handler(
 ) -> Response {
   tracing::debug!("WebSocket connect: {}", socket_address);
   ws.on_upgrade(move |socket| handle_socket(socket, socket_address, state))
+}
+
+async fn healthcheck() -> &'static str {
+  return "200 OK";
 }
 
 async fn handle_socket(
