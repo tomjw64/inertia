@@ -130,7 +130,7 @@ impl AppState {
     }
   }
 
-  pub async fn cleanup_room(&self, room_id: RoomId) {
+  pub async fn clean_up_room(&self, room_id: RoomId) {
     let should_remove = self
       .with_room_read(room_id, |room| {
         Ok::<_, NoRoomExistsError>(matches!(room.state, RoomState::Closed))

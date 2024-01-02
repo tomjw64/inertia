@@ -236,5 +236,5 @@ async fn handle_socket(
 
   let disconect_event = RoomEvent::SoftDisconnect(Disconnect { player_id });
   state.apply_event(room_id, disconect_event).await.ok();
-  state.cleanup_room(room_id).await;
+  state.clean_up_room(room_id).await;
 }
