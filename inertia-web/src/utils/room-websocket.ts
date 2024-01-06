@@ -1,10 +1,6 @@
 import { FromClientMessage, ToClientMessage } from 'inertia-core';
 import ReconnectingWebSocket from 'reconnecting-websocket';
-
-const WS_PORT = process.env.WS_PORT === 'auto' ? '' : `:${process.env.WS_PORT}`;
-const WS_RELATIVE_PROTOCOL =
-  window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-const WS_URL = `${WS_RELATIVE_PROTOCOL}//${window.location.hostname}${WS_PORT}/ws`;
+import { WS_URL } from './backend';
 
 export class RoomWebSocket {
   private inner: ReconnectingWebSocket;

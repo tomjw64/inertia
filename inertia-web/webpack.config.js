@@ -23,7 +23,7 @@ module.exports = {
   },
   plugins: [
     new webpack.EnvironmentPlugin({
-      WS_PORT: 'auto'
+      BACKEND_PORT: 'auto'
     })
   ],
   resolve: {
