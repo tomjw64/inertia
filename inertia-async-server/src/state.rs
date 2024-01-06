@@ -151,6 +151,10 @@ impl AppState {
     }
   }
 
+  pub async fn get_room_count(&self) -> usize {
+    self.rooms.read().await.len()
+  }
+
   pub async fn get_broadcast_channel_pair(
     &self,
     room_id: RoomId,

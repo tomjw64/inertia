@@ -14,6 +14,7 @@ use axum::extract::State;
 use axum::extract::WebSocketUpgrade;
 use axum::response::Response;
 use axum::routing::get;
+use axum::Json;
 use axum::Router;
 use axum::Server;
 use futures::SinkExt;
@@ -22,10 +23,13 @@ use inertia_core::message::FromClientMessage;
 use inertia_core::message::ToClientMessage;
 use inertia_core::state::event::apply_event::RoomEvent;
 use inertia_core::state::event::disconnect::Disconnect;
+use serde_json::json;
+use serde_json::Value;
 use sqlx::sqlite::SqlitePoolOptions;
 use tokio::sync::broadcast;
 use tokio::sync::mpsc;
 use tokio::sync::RwLock;
+use tower_http::cors::CorsLayer;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 
@@ -59,6 +63,8 @@ async fn main() -> anyhow::Result<()> {
 
   let app = Router::new()
     .route("/healthcheck", get(healthcheck))
+    .route("/status", get(status))
+    .layer(CorsLayer::permissive())
     .route("/ws", get(ws_handler))
     .with_state(app_state);
 
@@ -81,7 +87,12 @@ async fn ws_handler(
 }
 
 async fn healthcheck() -> &'static str {
-  return "200 OK";
+  "200 OK"
+}
+
+async fn status(State(state): State<AppState>) -> Json<Value> {
+  let room_count = state.get_room_count().await;
+  Json(json!({ "room_count": room_count }))
 }
 
 async fn handle_socket(

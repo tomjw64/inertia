@@ -16,3 +16,7 @@ tracing = "0.1.37"
 tracing-subscriber = { version = "0.3.17", features = ["env-filter"] }
 sqlx = { version = "0.7.2", features = ["sqlite", "runtime-tokio", "migrate"] }
 rand = "0.8.5"
+tower-http = { version = "0.4.4", features = ["cors"] }
+
+[dev-dependencies]
+axum = { version = "0.6.20", features = ["ws", "macros"] }
