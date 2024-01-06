@@ -32,6 +32,7 @@ export const ThemedInput = ({
   numeric,
   size = 'medium',
   autofocus = false,
+  placeholder,
 }: {
   value?:
     | string
@@ -42,6 +43,7 @@ export const ThemedInput = ({
   numeric?: boolean;
   autofocus?: boolean;
   size?: 'short' | 'medium';
+  placeholder?: string;
 }) => {
   const classNames = [style.input, style[size]];
   const numericProps = numeric
@@ -63,6 +65,7 @@ export const ThemedInput = ({
       className={classNames.join(' ')}
       value={value}
       onInput={onInput}
+      placeholder={placeholder}
       {...numericProps}
     />
   );
