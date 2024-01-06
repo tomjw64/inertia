@@ -4,7 +4,7 @@ import {
   RoundSolving as RoundSolvingState,
   SolutionStep,
   ToClientMessage,
-  WalledBoardPosition,
+  Position,
 } from 'inertia-core';
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { RoundSummary } from '../../components/round-summary';
@@ -16,7 +16,7 @@ import {
 import { RoomWebSocket } from '../../utils/room-websocket';
 import { RoundBidding } from '../../components/round-bidding';
 import { RoundSolving } from '../../components/round-solving';
-import { defaultWalledBoardPosition } from '../../utils/board';
+import { defaultPosition } from '../../utils/board';
 import { apply_solution } from 'inertia-wasm';
 import { ACTOR_FLIP_ANIMATE_DURATION } from '../../components/board';
 import { Starfield } from '../../components/starfield';
@@ -48,11 +48,11 @@ export const Room = ({ roomId: roomIdString }: { roomId: string }) => {
     null
   );
 
-  const walledBoardPosition: WalledBoardPosition = useMemo(() => {
+  const position: Position = useMemo(() => {
     if (roomState.type === 'None' || roomState.type === 'Closed') {
-      return defaultWalledBoardPosition();
+      return defaultPosition();
     } else if (roomState.type === 'RoundSummary') {
-      return roomState.content.last_round_board ?? defaultWalledBoardPosition();
+      return roomState.content.last_round_board ?? defaultPosition();
     } else {
       return roomState.content.board;
     }
@@ -140,8 +140,8 @@ export const Room = ({ roomId: roomIdString }: { roomId: string }) => {
   }, [roomState.type, solver]);
 
   const actorSquares = useMemo(() => {
-    return apply_solution(walledBoardPosition, solutionToApply);
-  }, [solutionToApply, walledBoardPosition]);
+    return apply_solution(position, solutionToApply);
+  }, [solutionToApply, position]);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);

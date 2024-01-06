@@ -13,7 +13,7 @@ use inertia_core::mechanics::MoveBoard;
 use inertia_core::mechanics::Square;
 use inertia_core::mechanics::WalledBoard;
 
-use inertia_core::mechanics::WalledBoardPosition;
+use inertia_core::mechanics::Position;
 use inertia_core::solvers::SolutionStep;
 use inertia_core::state::data::PlayerBids;
 use serde::Deserialize;
@@ -31,7 +31,7 @@ pub struct WalledBoardWrapper(WalledBoard);
 
 #[derive(Debug, Serialize, Deserialize, Tsify)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
-pub struct WalledBoardPositionWrapper(WalledBoardPosition);
+pub struct PositionWrapper(Position);
 
 #[serde_as]
 #[derive(Debug, Serialize, Deserialize, Tsify)]
@@ -72,13 +72,13 @@ pub fn greet() {
 
 #[wasm_bindgen]
 pub fn get_movement_ray_for_actor(
-  board_position: WalledBoardPositionWrapper,
+  board_position: PositionWrapper,
   actor: usize,
   direction: DirectionWrapper,
 ) -> ExpandedBitBoardWrapper {
   match actor {
     0..=3 => {
-      let WalledBoardPosition {
+      let Position {
         walled_board,
         actor_squares,
         ..
@@ -96,13 +96,13 @@ pub fn get_movement_ray_for_actor(
 
 #[wasm_bindgen]
 pub fn get_movement_for_actor(
-  board_position: WalledBoardPositionWrapper,
+  board_position: PositionWrapper,
   actor: usize,
   direction: DirectionWrapper,
 ) -> SquareWrapper {
   match actor {
     0..=3 => {
-      let WalledBoardPosition {
+      let Position {
         walled_board,
         actor_squares,
         ..
@@ -122,7 +122,7 @@ pub fn get_movement_for_actor(
 
 #[wasm_bindgen]
 pub fn apply_solution(
-  board_position: WalledBoardPositionWrapper,
+  board_position: PositionWrapper,
   solution: SolutionWrapper,
 ) -> ActorSquaresWrapper {
   ActorSquaresWrapper(board_position.0.apply_solution(&solution.0))
@@ -134,16 +134,14 @@ pub fn get_next_solver(player_bids: PlayerBidsWrapper) -> Option<u32> {
 }
 
 #[wasm_bindgen]
-pub fn decode_position(bytes: String) -> Option<WalledBoardPositionWrapper> {
+pub fn decode_position(bytes: String) -> Option<PositionWrapper> {
   let bytes = general_purpose::URL_SAFE_NO_PAD.decode(bytes).ok()?;
-  Some(WalledBoardPositionWrapper(
-    WalledBoardPosition::from_compressed_byte_array(
-      &bytes[0..69].try_into().ok()?,
-    ),
-  ))
+  Some(PositionWrapper(Position::from_compressed_byte_array(
+    &bytes[0..69].try_into().ok()?,
+  )))
 }
 
 #[wasm_bindgen]
-pub fn encode_position(position: WalledBoardPositionWrapper) -> String {
+pub fn encode_position(position: PositionWrapper) -> String {
   general_purpose::URL_SAFE_NO_PAD.encode(position.0.to_compressed_byte_array())
 }

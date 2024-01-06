@@ -2,7 +2,7 @@ import {
   ActorSquares,
   SolutionStep,
   WalledBoard,
-  WalledBoardPosition,
+  Position,
 } from 'inertia-core';
 import { StateUpdater, useState } from 'preact/hooks';
 import { JSX } from 'preact/jsx-runtime';
@@ -47,7 +47,7 @@ export const Controls = ({
 
   const handleNewBoard = async () => {
     const response = await fetch('http://0.0.0.0:8000/board/random');
-    const result = (await response.json()) as WalledBoardPosition;
+    const result = (await response.json()) as Position;
     setInitialActorSquares(result['actor_squares']);
     setWalledBoard(result['walled_board']);
     setGoal(result['goal']);

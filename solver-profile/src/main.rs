@@ -1,14 +1,14 @@
 use inertia_core::board_generators::EmptyMiddleGoalBoardGenerator;
 use inertia_core::mechanics::MoveBoard;
-use inertia_core::mechanics::WalledBoardPosition;
-use inertia_core::mechanics::WalledBoardPositionGenerator;
+use inertia_core::mechanics::Position;
+use inertia_core::mechanics::PositionGenerator;
 // use inertia_core::solvers::idas::deepening_search_to_depth;
 use inertia_core::solvers::idas_nonrecursive::deepening_search_to_depth;
 use inertia_core::solvers::SolutionStep;
 
 fn main() {
   let position = EmptyMiddleGoalBoardGenerator::new().generate_position();
-  let WalledBoardPosition {
+  let Position {
     walled_board,
     actor_squares,
     goal,

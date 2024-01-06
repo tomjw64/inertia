@@ -1,4 +1,4 @@
-use inertia_core::mechanics::WalledBoardPositionGenerator;
+use inertia_core::mechanics::PositionGenerator;
 use inertia_core::message::CountdownUpdateMessage;
 use inertia_core::message::ToClientMessage;
 use inertia_core::state::data::RoomId;
@@ -35,7 +35,7 @@ pub struct Room {
 }
 
 impl Room {
-  pub fn new<G: WalledBoardPositionGenerator + 'static>(
+  pub fn new<G: PositionGenerator + 'static>(
     room_id: RoomId,
     generator: G,
   ) -> Self {
@@ -114,7 +114,7 @@ impl AppState {
     f(&mut room)
   }
 
-  pub async fn ensure_room_exists<G: WalledBoardPositionGenerator + 'static>(
+  pub async fn ensure_room_exists<G: PositionGenerator + 'static>(
     &self,
     room_id: RoomId,
     generator: G,

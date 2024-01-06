@@ -1,8 +1,8 @@
 use inertia_core::board_generators::ClassicBoardGenerator;
 use inertia_core::board_generators::EmptyMiddleGoalBoardGenerator;
 use inertia_core::mechanics::MoveBoard;
-use inertia_core::mechanics::WalledBoardPosition;
-use inertia_core::mechanics::WalledBoardPositionGenerator;
+use inertia_core::mechanics::Position;
+use inertia_core::mechanics::PositionGenerator;
 use inertia_core::solvers::difficulty::get_solution_difficulty;
 use inertia_core::solvers::idas::deepening_search_to_depth;
 use inertia_core::solvers::SolutionStep;
@@ -16,7 +16,7 @@ fn main() {
     router!(request,
       (GET) (/board/random) => {
         let position = ClassicBoardGenerator::new().generate_position();
-        let WalledBoardPosition { walled_board, actor_squares, goal } = position;
+        let Position { walled_board, actor_squares, goal } = position;
         let board = MoveBoard::from(&walled_board);
 
         let solution: Vec<SolutionStep> =

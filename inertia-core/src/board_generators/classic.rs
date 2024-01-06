@@ -7,10 +7,10 @@ use rand::thread_rng;
 use rand::Rng;
 
 use crate::mechanics::ActorSquares;
+use crate::mechanics::Position;
+use crate::mechanics::PositionGenerator;
 use crate::mechanics::Square;
 use crate::mechanics::WalledBoard;
-use crate::mechanics::WalledBoardPosition;
-use crate::mechanics::WalledBoardPositionGenerator;
 
 #[derive(Debug, Clone, Copy)]
 pub struct ClassicFreeGoalBoardGenerator;
@@ -27,8 +27,8 @@ impl Default for ClassicFreeGoalBoardGenerator {
   }
 }
 
-impl WalledBoardPositionGenerator for ClassicFreeGoalBoardGenerator {
-  fn generate_position(&self) -> WalledBoardPosition {
+impl PositionGenerator for ClassicFreeGoalBoardGenerator {
+  fn generate_position(&self) -> Position {
     let mut walled_board = WalledBoard::EMPTY;
     let mut rng = thread_rng();
 
@@ -48,7 +48,7 @@ impl WalledBoardPositionGenerator for ClassicFreeGoalBoardGenerator {
       .choose_multiple_fill(&mut rng, &mut goal_and_actor_squares);
     goal_and_actor_squares.shuffle(&mut rng);
 
-    WalledBoardPosition {
+    Position {
       goal: Square(goal_and_actor_squares[0]),
       actor_squares: ActorSquares([
         Square(goal_and_actor_squares[1]),
@@ -76,8 +76,8 @@ impl Default for ClassicBoardGenerator {
   }
 }
 
-impl WalledBoardPositionGenerator for ClassicBoardGenerator {
-  fn generate_position(&self) -> WalledBoardPosition {
+impl PositionGenerator for ClassicBoardGenerator {
+  fn generate_position(&self) -> Position {
     let mut walled_board = WalledBoard::EMPTY;
     let mut rng = thread_rng();
 
@@ -111,7 +111,7 @@ impl WalledBoardPositionGenerator for ClassicBoardGenerator {
       .choose(&mut rng)
       .expect("There will be always square that satisfies these conditions");
 
-    WalledBoardPosition {
+    Position {
       goal: Square(goal_square),
       actor_squares: ActorSquares(actor_squares.map(Square)),
       walled_board,

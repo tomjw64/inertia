@@ -1,8 +1,8 @@
 use crate::mechanics::ActorSquares;
+use crate::mechanics::Position;
+use crate::mechanics::PositionGenerator;
 use crate::mechanics::Square;
 use crate::mechanics::WalledBoard;
-use crate::mechanics::WalledBoardPosition;
-use crate::mechanics::WalledBoardPositionGenerator;
 
 #[derive(Debug, Clone, Copy)]
 pub struct EmptyMiddleGoalBoardGenerator;
@@ -19,9 +19,9 @@ impl Default for EmptyMiddleGoalBoardGenerator {
   }
 }
 
-impl WalledBoardPositionGenerator for EmptyMiddleGoalBoardGenerator {
-  fn generate_position(&self) -> WalledBoardPosition {
-    WalledBoardPosition {
+impl PositionGenerator for EmptyMiddleGoalBoardGenerator {
+  fn generate_position(&self) -> Position {
+    Position {
       goal: Square::from_row_col(8, 8),
       actor_squares: ActorSquares([Square(0), Square(1), Square(2), Square(3)]),
       walled_board: WalledBoard::EMPTY,

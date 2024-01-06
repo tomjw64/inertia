@@ -7,8 +7,8 @@ use strum::Display;
 use thiserror::Error;
 use typeshare::typeshare;
 
-use crate::mechanics::WalledBoardPosition;
-use crate::mechanics::WalledBoardPositionGenerator;
+use crate::mechanics::Position;
+use crate::mechanics::PositionGenerator;
 use crate::solvers::SolutionStep;
 
 #[typeshare(serialized_as = "number")]
@@ -144,7 +144,7 @@ pub struct PlayerInfo {
 pub struct RoomMeta {
   pub room_id: RoomId,
   #[serde(skip)]
-  pub generator: Box<dyn WalledBoardPositionGenerator>,
+  pub generator: Box<dyn PositionGenerator>,
   pub player_info: HashMap<PlayerId, PlayerInfo>,
   #[typeshare(typescript(type = "number"))]
   pub round_number: u32,
@@ -164,7 +164,7 @@ impl Eq for RoomMeta {}
 #[derive(Serialize, Debug, Clone, PartialEq, Eq)]
 pub struct RoundSummary {
   pub meta: RoomMeta,
-  pub last_round_board: Option<WalledBoardPosition>,
+  pub last_round_board: Option<Position>,
   pub last_round_solution: Option<Vec<SolutionStep>>,
   pub last_solver: Option<PlayerId>,
 }
@@ -173,14 +173,14 @@ pub struct RoundSummary {
 #[derive(Serialize, Debug, Clone, PartialEq, Eq)]
 pub struct RoundStart {
   pub meta: RoomMeta,
-  pub board: WalledBoardPosition,
+  pub board: Position,
 }
 
 #[typeshare]
 #[derive(Serialize, Debug, Clone, PartialEq, Eq)]
 pub struct RoundBidding {
   pub meta: RoomMeta,
-  pub board: WalledBoardPosition,
+  pub board: Position,
   pub player_bids: PlayerBids,
 }
 
@@ -188,7 +188,7 @@ pub struct RoundBidding {
 #[derive(Serialize, Debug, Clone, PartialEq, Eq)]
 pub struct RoundSolving {
   pub meta: RoomMeta,
-  pub board: WalledBoardPosition,
+  pub board: Position,
   pub player_bids: PlayerBids,
   pub solver: PlayerId,
   pub solution: Vec<SolutionStep>,
@@ -313,7 +313,7 @@ pub enum RoomState {
 }
 
 impl RoomState {
-  pub fn initial<T: WalledBoardPositionGenerator + 'static>(
+  pub fn initial<T: PositionGenerator + 'static>(
     room_id: RoomId,
     generator: T,
   ) -> Self {

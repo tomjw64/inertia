@@ -110,9 +110,9 @@ mod benchmarks {
   use std::time::Instant;
 
   use crate::board_generators::EmptyMiddleGoalBoardGenerator;
+  use crate::mechanics::Position;
+  use crate::mechanics::PositionGenerator;
   use crate::mechanics::WalledBoard;
-  use crate::mechanics::WalledBoardPosition;
-  use crate::mechanics::WalledBoardPositionGenerator;
 
   use super::*;
 
@@ -300,7 +300,7 @@ mod benchmarks {
   fn bench_solve_empty_middle_goal(_b: &mut Bencher) {
     println!("#######");
     let position = EmptyMiddleGoalBoardGenerator::new().generate_position();
-    let WalledBoardPosition {
+    let Position {
       walled_board,
       actor_squares,
       goal,

@@ -8,8 +8,8 @@ mod test {
 
   use crate::board_generators::OneMoveSolutionBoardGenerator;
   use crate::mechanics::Direction;
-  use crate::mechanics::WalledBoardPosition;
-  use crate::mechanics::WalledBoardPositionGenerator;
+  use crate::mechanics::Position;
+  use crate::mechanics::PositionGenerator;
   use crate::solvers::SolutionStep;
   use crate::state::data::PlayerBids;
   use crate::state::data::PlayerId;
@@ -30,11 +30,11 @@ mod test {
   use super::event::make_bid::MakeBid;
   use super::event::update_solution::UpdateSolution;
 
-  fn expected_board() -> WalledBoardPosition {
+  fn expected_board() -> Position {
     OneMoveSolutionBoardGenerator::new().generate_position()
   }
 
-  fn expected_generator() -> Box<dyn WalledBoardPositionGenerator> {
+  fn expected_generator() -> Box<dyn PositionGenerator> {
     Box::new(OneMoveSolutionBoardGenerator::new())
   }
 

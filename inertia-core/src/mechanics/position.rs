@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use serde::Deserialize;
 use serde::Serialize;
 use typeshare::typeshare;
@@ -9,17 +7,18 @@ use crate::mechanics::Square;
 use crate::mechanics::WalledBoard;
 use crate::solvers::SolutionStep;
 
+use super::Direction;
 use super::MoveBoard;
 
 #[typeshare]
 #[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
-pub struct WalledBoardPosition {
+pub struct Position {
   pub walled_board: WalledBoard,
   pub actor_squares: ActorSquares,
   pub goal: Square,
 }
 
-impl Default for WalledBoardPosition {
+impl Default for Position {
   fn default() -> Self {
     Self {
       walled_board: WalledBoard::EMPTY,
@@ -29,7 +28,7 @@ impl Default for WalledBoardPosition {
   }
 }
 
-impl WalledBoardPosition {
+impl Position {
   pub fn to_compressed_byte_array(&self) -> [u8; 69] {
     let mut bytes = [0u8; 69];
     let mut offset = 0;
@@ -126,34 +125,52 @@ impl WalledBoardPosition {
   }
 }
 
-pub trait CloneDynWalledBoardPositionGenerator {
-  fn clone_dyn(&self) -> Box<dyn WalledBoardPositionGenerator>;
+pub trait CloneDynPositionGenerator {
+  fn clone_dyn(&self) -> Box<dyn PositionGenerator>;
 }
 
-impl<T> CloneDynWalledBoardPositionGenerator for T
+impl<T> CloneDynPositionGenerator for T
 where
-  T: 'static + WalledBoardPositionGenerator + Clone,
+  T: 'static + PositionGenerator + Clone,
 {
-  fn clone_dyn(&self) -> Box<dyn WalledBoardPositionGenerator> {
+  fn clone_dyn(&self) -> Box<dyn PositionGenerator> {
     Box::new(self.clone())
   }
 }
 
-pub trait WalledBoardPositionGenerator:
-  CloneDynWalledBoardPositionGenerator + std::fmt::Debug + Send + Sync
+pub trait PositionGenerator:
+  CloneDynPositionGenerator + std::fmt::Debug + Send + Sync
 {
-  fn generate_position(&self) -> WalledBoardPosition;
+  fn generate_position(&self) -> Position;
 }
 
-impl Clone for Box<dyn WalledBoardPositionGenerator> {
+impl Clone for Box<dyn PositionGenerator> {
   fn clone(&self) -> Self {
     self.clone_dyn()
   }
 }
 
 pub struct SolvedPosition {
-  pub position: WalledBoardPosition,
+  pub position: Position,
   pub solution: Vec<SolutionStep>,
+}
+
+impl Default for SolvedPosition {
+  fn default() -> Self {
+    Self {
+      position: Position::default(),
+      solution: vec![
+        SolutionStep {
+          actor: 0,
+          direction: Direction::Down,
+        },
+        SolutionStep {
+          actor: 0,
+          direction: Direction::Right,
+        },
+      ],
+    }
+  }
 }
 
 pub trait CloneDynSolvedPositionGenerator {
@@ -181,18 +198,27 @@ impl Clone for Box<dyn SolvedPositionGenerator> {
   }
 }
 
+impl<T> PositionGenerator for T
+where
+  T: 'static + SolvedPositionGenerator + Clone,
+{
+  fn generate_position(&self) -> Position {
+    self.generate_solved_position().position
+  }
+}
+
 #[cfg(test)]
 mod test {
   use super::*;
 
   #[test]
   fn to_and_from_bytes_identity_empty() {
-    let position = WalledBoardPosition {
+    let position = Position {
       walled_board: WalledBoard::EMPTY,
       actor_squares: ActorSquares([Square(0); 4]),
       goal: Square(255),
     };
-    let identity = WalledBoardPosition::from_compressed_byte_array(
+    let identity = Position::from_compressed_byte_array(
       &position.to_compressed_byte_array(),
     );
     assert_eq!(position, identity)
@@ -200,7 +226,7 @@ mod test {
 
   #[test]
   fn to_and_from_bytes_identity_generated() {
-    let position = WalledBoardPosition {
+    let position = Position {
       walled_board: WalledBoard {
         vertical: [
           [
@@ -339,7 +365,7 @@ mod test {
       goal: Square(184),
     };
 
-    let identity = WalledBoardPosition::from_compressed_byte_array(
+    let identity = Position::from_compressed_byte_array(
       &position.to_compressed_byte_array(),
     );
     assert_eq!(position, identity)

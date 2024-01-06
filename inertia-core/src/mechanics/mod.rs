@@ -16,5 +16,5 @@ pub use square::*;
 mod walled_board;
 pub use walled_board::*;
 
-mod walled_board_position;
-pub use walled_board_position::*;
+mod position;
+pub use position::*;
