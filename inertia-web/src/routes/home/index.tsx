@@ -12,12 +12,24 @@ import {
   ThemedFormLine,
   ThemedInput,
 } from '../../components/themed-form';
+import { Difficulty } from 'inertia-core';
+
+const DIFFICULTY_TO_VALUE = {
+  [Difficulty.Easiest]: 0,
+  [Difficulty.Easy]: 1,
+  [Difficulty.Medium]: 2,
+  [Difficulty.Hard]: 3,
+  [Difficulty.Hardest]: 4,
+};
 
 const debouncedSavePlayerName = debounce(savePlayerName, 200);
 
 export const Home = () => {
   const homeRef = useRef<HTMLDivElement | null>(null);
   const titleRef = useRef<HTMLDivElement | null>(null);
+
+  const [minDifficulty, setMinDifficulty] = useState(Difficulty.Easiest);
+  const [maxDifficulty, setMaxDifficulty] = useState(Difficulty.Hard);
 
   const initialSavedPlayerName = useMemo(() => getPlayerName(), []);
 
@@ -70,11 +82,65 @@ export const Home = () => {
                 onClick={() => {
                   window.location.href = `/room/${Math.floor(
                     Math.random() * 999_999
-                  )}`;
+                  )}?minDifficulty=${minDifficulty}&maxDifficulty=${maxDifficulty}`;
                 }}
               >
                 Start Game
               </ThemedButton>
+              <FlexCenter column>
+                <div className={style.difficultySelection}>
+                  <FlexCenter>
+                    <span className={style.difficultySelectionLabel}>
+                      Min difficulty:
+                    </span>
+                    <select
+                      value={minDifficulty}
+                      onChange={(e) => {
+                        const selection = e.currentTarget.value as Difficulty;
+                        const other = maxDifficulty;
+
+                        setMinDifficulty(selection);
+                        if (
+                          DIFFICULTY_TO_VALUE[selection] >
+                          DIFFICULTY_TO_VALUE[other]
+                        ) {
+                          setMaxDifficulty(selection);
+                        }
+                      }}
+                    >
+                      {Object.keys(DIFFICULTY_TO_VALUE).map((difficulty) => (
+                        <option>{difficulty}</option>
+                      ))}
+                    </select>
+                  </FlexCenter>
+                </div>
+                <div className={style.difficultySelection}>
+                  <FlexCenter>
+                    <span className={style.difficultySelectionLabel}>
+                      Max difficulty:
+                    </span>
+                    <select
+                      value={maxDifficulty}
+                      onChange={(e) => {
+                        const selection = e.currentTarget.value as Difficulty;
+                        const other = minDifficulty;
+
+                        setMaxDifficulty(selection);
+                        if (
+                          DIFFICULTY_TO_VALUE[selection] <
+                          DIFFICULTY_TO_VALUE[other]
+                        ) {
+                          setMinDifficulty(selection);
+                        }
+                      }}
+                    >
+                      {Object.keys(DIFFICULTY_TO_VALUE).map((difficulty) => (
+                        <option>{difficulty}</option>
+                      ))}
+                    </select>
+                  </FlexCenter>
+                </div>
+              </FlexCenter>
               <Divider text={'or'} />
               <ThemedFormLine>
                 <ThemedButton
@@ -90,6 +156,7 @@ export const Home = () => {
                   numeric
                   value={joinGameInput}
                   onInput={(e) => setJoinGameInput(e.currentTarget.value)}
+                  placeholder="Room #"
                 />
               </ThemedFormLine>
               <Divider />

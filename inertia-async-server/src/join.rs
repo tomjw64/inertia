@@ -83,6 +83,8 @@ pub async fn join(
       player_name,
       player_reconnect_key,
       room_id,
+      min_difficulty,
+      max_difficulty,
     } = join_message;
 
     state
@@ -90,11 +92,19 @@ pub async fn join(
         room_id,
         DifficultyDbBoardGenerator::new(
           state.db_pool.clone(),
-          Difficulty::Easiest,
-          Difficulty::Hard,
+          min_difficulty.unwrap_or(Difficulty::Easiest),
+          max_difficulty.unwrap_or(Difficulty::Hard),
         ),
       )
       .await;
+
+    tracing::debug!(
+      "WebSocket [{}]: Joining room {:?} with difficulty {:?} -> {:?}",
+      socket_address,
+      room_id,
+      min_difficulty,
+      max_difficulty
+    );
 
     let (broadcast_channel_sender, broadcast_channel_receiver) =
       match state.get_broadcast_channel_pair(room_id).await {

@@ -56,6 +56,18 @@ $button-height: 2.5em;
   animation: animationY var(--bounce-y-speed) linear infinite alternate;
 }
 
+.difficultySelectionContainer {
+  padding-top: 0.5em;
+}
+
+.difficultySelection {
+  padding: 0.25em;
+}
+
+.difficultySelectionLabel {
+  margin-right: 0.25em;
+}
+
 .nameHeader {
   margin-right: 0.5em;
   font-weight: bold;

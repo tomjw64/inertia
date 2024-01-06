@@ -4,8 +4,14 @@ $button-height: 2.5em;
   display: flex;
   flex-wrap: nowrap;
 
-  > .button {
-    margin: 0;
+  .button, .input {
+    &:not(:first-child) {
+      margin-left: 0;
+    }
+
+    &:not(:last-child) {
+      margin-right: 0;
+    }
   }
 
   > .button:nth-child(1) {
@@ -17,7 +23,6 @@ $button-height: 2.5em;
   }
 
   > .input {
-    margin: 0;
     border-top-right-radius: 0;
     border-bottom-right-radius: 0;
     border-top-left-radius: 0;
@@ -48,7 +53,7 @@ $button-height: 2.5em;
   height: 2em;
   border: 0;
   border-radius: 10px;
-  margin: 0.5em;
+  margin: 0.25em;
   padding: 0 0.5em;
   height: $button-height;
   min-width: 3em;
@@ -87,6 +92,7 @@ $button-height: 2.5em;
   border: 0;
   border-radius: 2em / 4em;
   padding: 0.5em 1em;
+  margin: 0.25em;
 
   > img {
     height: 1.2em;

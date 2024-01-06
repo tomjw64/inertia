@@ -1,3 +1,4 @@
+use crate::solvers::difficulty::Difficulty;
 use crate::solvers::SolutionStep;
 use crate::state::data::PlayerId;
 use crate::state::data::PlayerName;
@@ -48,4 +49,6 @@ pub struct JoinMessage {
   pub player_id: PlayerId,
   pub player_reconnect_key: PlayerReconnectKey,
   pub room_id: RoomId,
+  pub min_difficulty: Option<Difficulty>,
+  pub max_difficulty: Option<Difficulty>,
 }

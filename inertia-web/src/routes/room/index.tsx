@@ -1,4 +1,5 @@
 import {
+  Difficulty,
   RoomState,
   RoundSolving as RoundSolvingState,
   SolutionStep,
@@ -143,6 +144,10 @@ export const Room = ({ roomId: roomIdString }: { roomId: string }) => {
   }, [solutionToApply, walledBoardPosition]);
 
   useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const minDifficulty = urlParams.get('minDifficulty');
+    const maxDifficulty = urlParams.get('maxDifficulty');
+
     websocket.current = new RoomWebSocket();
     const ws = websocket.current;
     ws.onOpen(() => {
@@ -153,6 +158,8 @@ export const Room = ({ roomId: roomIdString }: { roomId: string }) => {
           player_id: userPlayerId,
           player_reconnect_key: userPlayerReconnectKey,
           room_id: roomId,
+          min_difficulty: minDifficulty ? Difficulty[minDifficulty] : undefined,
+          max_difficulty: maxDifficulty ? Difficulty[maxDifficulty] : undefined,
         },
       });
     });
