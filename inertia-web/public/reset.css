@@ -53,6 +53,6 @@ picture {
 }
 
 /* Make buttons and links change the cursor */
-button, a {
+button, a, select {
   cursor: pointer;
 }

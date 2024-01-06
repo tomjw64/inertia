@@ -70,3 +70,19 @@ export const ThemedInput = ({
     />
   );
 };
+
+export const ThemedSelect = ({
+  children,
+  value,
+  onChange,
+}: {
+  children?: ComponentChildren;
+  value?: string;
+  onChange?: JSX.DOMAttributes<HTMLSelectElement>['onChange'];
+}) => {
+  return (
+    <select className={style.select} value={value} onChange={onChange}>
+      {children}
+    </select>
+  );
+};

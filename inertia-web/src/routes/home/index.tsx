@@ -11,6 +11,7 @@ import {
   ThemedButton,
   ThemedFormLine,
   ThemedInput,
+  ThemedSelect,
 } from '../../components/themed-form';
 import { Difficulty } from 'inertia-core';
 
@@ -28,6 +29,10 @@ export const Home = () => {
   const homeRef = useRef<HTMLDivElement | null>(null);
   const titleRef = useRef<HTMLDivElement | null>(null);
 
+  const [isStartOptionsExpanded, setIsStartOptionsExpanded] = useState(false);
+  const startOptionsIcon = isStartOptionsExpanded
+    ? '/contract-arrow.svg'
+    : '/expand-arrow.svg';
   const [minDifficulty, setMinDifficulty] = useState(Difficulty.Easiest);
   const [maxDifficulty, setMaxDifficulty] = useState(Difficulty.Hard);
 
@@ -78,69 +83,83 @@ export const Home = () => {
             <FlexCenter column>
               <div className={style.subtitle}>Inertia</div>
               <Divider />
-              <ThemedButton
-                onClick={() => {
-                  window.location.href = `/room/${Math.floor(
-                    Math.random() * 999_999
-                  )}?minDifficulty=${minDifficulty}&maxDifficulty=${maxDifficulty}`;
-                }}
+              <ThemedFormLine>
+                <ThemedButton
+                  onClick={() => {
+                    window.location.href = `/room/${Math.floor(
+                      Math.random() * 999_999
+                    )}?minDifficulty=${minDifficulty}&maxDifficulty=${maxDifficulty}`;
+                  }}
+                >
+                  Start Game
+                </ThemedButton>
+                <ThemedButton
+                  onClick={() => {
+                    setIsStartOptionsExpanded(!isStartOptionsExpanded);
+                  }}
+                >
+                  <img src={startOptionsIcon} />
+                </ThemedButton>
+              </ThemedFormLine>
+              <div
+                className={style.difficultySelectionContainer}
+                data-expanded={isStartOptionsExpanded}
               >
-                Start Game
-              </ThemedButton>
-              <FlexCenter column>
-                <div className={style.difficultySelection}>
-                  <FlexCenter>
-                    <span className={style.difficultySelectionLabel}>
-                      Min difficulty:
-                    </span>
-                    <select
-                      value={minDifficulty}
-                      onChange={(e) => {
-                        const selection = e.currentTarget.value as Difficulty;
-                        const other = maxDifficulty;
+                <FlexCenter column>
+                  <div className={style.difficultySelection}>
+                    <FlexCenter expand justify="space-between">
+                      <span className={style.difficultySelectionLabel}>
+                        Min difficulty:
+                      </span>
+                      <ThemedSelect
+                        value={minDifficulty}
+                        onChange={(e) => {
+                          const selection = e.currentTarget.value as Difficulty;
+                          const other = maxDifficulty;
 
-                        setMinDifficulty(selection);
-                        if (
-                          DIFFICULTY_TO_VALUE[selection] >
-                          DIFFICULTY_TO_VALUE[other]
-                        ) {
-                          setMaxDifficulty(selection);
-                        }
-                      }}
-                    >
-                      {Object.keys(DIFFICULTY_TO_VALUE).map((difficulty) => (
-                        <option>{difficulty}</option>
-                      ))}
-                    </select>
-                  </FlexCenter>
-                </div>
-                <div className={style.difficultySelection}>
-                  <FlexCenter>
-                    <span className={style.difficultySelectionLabel}>
-                      Max difficulty:
-                    </span>
-                    <select
-                      value={maxDifficulty}
-                      onChange={(e) => {
-                        const selection = e.currentTarget.value as Difficulty;
-                        const other = minDifficulty;
-
-                        setMaxDifficulty(selection);
-                        if (
-                          DIFFICULTY_TO_VALUE[selection] <
-                          DIFFICULTY_TO_VALUE[other]
-                        ) {
                           setMinDifficulty(selection);
-                        }
-                      }}
-                    >
-                      {Object.keys(DIFFICULTY_TO_VALUE).map((difficulty) => (
-                        <option>{difficulty}</option>
-                      ))}
-                    </select>
-                  </FlexCenter>
-                </div>
-              </FlexCenter>
+                          if (
+                            DIFFICULTY_TO_VALUE[selection] >
+                            DIFFICULTY_TO_VALUE[other]
+                          ) {
+                            setMaxDifficulty(selection);
+                          }
+                        }}
+                      >
+                        {Object.keys(DIFFICULTY_TO_VALUE).map((difficulty) => (
+                          <option>{difficulty}</option>
+                        ))}
+                      </ThemedSelect>
+                    </FlexCenter>
+                  </div>
+                  <div className={style.difficultySelection}>
+                    <FlexCenter expand justify="space-between">
+                      <span className={style.difficultySelectionLabel}>
+                        Max difficulty:
+                      </span>
+                      <ThemedSelect
+                        value={maxDifficulty}
+                        onChange={(e) => {
+                          const selection = e.currentTarget.value as Difficulty;
+                          const other = minDifficulty;
+
+                          setMaxDifficulty(selection);
+                          if (
+                            DIFFICULTY_TO_VALUE[selection] <
+                            DIFFICULTY_TO_VALUE[other]
+                          ) {
+                            setMinDifficulty(selection);
+                          }
+                        }}
+                      >
+                        {Object.keys(DIFFICULTY_TO_VALUE).map((difficulty) => (
+                          <option>{difficulty}</option>
+                        ))}
+                      </ThemedSelect>
+                    </FlexCenter>
+                  </div>
+                </FlexCenter>
+              </div>
               <Divider text={'or'} />
               <ThemedFormLine>
                 <ThemedButton

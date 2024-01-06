@@ -57,11 +57,25 @@ $button-height: 2.5em;
 }
 
 .difficultySelectionContainer {
-  padding-top: 0.5em;
+  transition: all 0.2s ease-out;
+  transform: scale(0);
+  transform-origin: top;
+  max-height: 0;
+  background: #cccccc;
+  width: 100%;
+
+  &[data-expanded="true"] {
+    padding: 0.5em;
+    transition: all 0.2s ease-out;
+    transform-origin: top;
+    max-height: 10em;
+    transform: scale(1);
+  }
 }
 
 .difficultySelection {
   padding: 0.25em;
+  width: 100%;
 }
 
 .difficultySelectionLabel {
@@ -75,7 +89,7 @@ $button-height: 2.5em;
 
 @mixin glow($color) {
   color: $color;
-  // color: white;
+  // Looks great, not performance friendly
   // text-shadow:
   //   0 0 0.1em white,
   //   0 0 0.2em white,

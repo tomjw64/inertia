@@ -5,11 +5,13 @@ export const FlexCenter = ({
   children,
   column,
   wrap,
+  justify,
   expand,
 }: {
   wrap?: boolean;
   column?: boolean;
   expand?: boolean;
+  justify?: string;
   children?: ComponentChildren;
 }) => {
   const classes = [style.wrapper];
@@ -20,5 +22,9 @@ export const FlexCenter = ({
     classes.push(style.expand);
   }
   classes.push(wrap ? style.wrap : style.nowrap);
-  return <div className={classes.join(' ')}>{children}</div>;
+  return (
+    <div className={classes.join(' ')} style={{ justifyContent: justify }}>
+      {children}
+    </div>
+  );
 };
