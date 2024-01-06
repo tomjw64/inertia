@@ -24,6 +24,7 @@ pub fn round_bidding_ready_bid(
   let RoundBidding {
     meta,
     board,
+    optimal_solution,
     mut player_bids,
   } = state;
   let ReadyBid { player_id } = event;
@@ -34,6 +35,7 @@ pub fn round_bidding_ready_bid(
         player_bids,
         meta,
         board,
+        optimal_solution,
       }),
       error,
     );
@@ -56,6 +58,7 @@ pub fn round_bidding_ready_bid(
         EventResult::ok(RoomState::RoundSolving(RoundSolving {
           meta,
           board,
+          optimal_solution,
           player_bids,
           solver: next_solver_id,
           solution: Vec::new(),
@@ -66,6 +69,7 @@ pub fn round_bidding_ready_bid(
         last_round_board: Some(board),
         last_round_solution: None,
         last_solver: None,
+        last_round_optimal_solution: Some(optimal_solution),
       })),
     };
   }
@@ -74,6 +78,7 @@ pub fn round_bidding_ready_bid(
     player_bids,
     meta,
     board,
+    optimal_solution,
   }))
 }
 
@@ -84,6 +89,7 @@ pub fn round_bidding_unready_bid(
   let RoundBidding {
     meta,
     board,
+    optimal_solution,
     mut player_bids,
   } = state;
   let UnreadyBid { player_id } = event;
@@ -94,6 +100,7 @@ pub fn round_bidding_unready_bid(
         player_bids,
         meta,
         board,
+        optimal_solution,
       }),
       error,
     )
@@ -102,6 +109,7 @@ pub fn round_bidding_unready_bid(
       player_bids,
       meta,
       board,
+      optimal_solution,
     }))
   }
 }

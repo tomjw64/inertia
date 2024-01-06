@@ -7,13 +7,19 @@ use crate::state::data::RoundSummary;
 use super::result::EventResult;
 
 pub fn round_start_finalize_bids(state: RoundStart) -> EventResult {
-  let RoundStart { meta, board, .. } = state;
+  let RoundStart {
+    meta,
+    board,
+    optimal_solution,
+    ..
+  } = state;
 
   EventResult::ok(RoomState::RoundSummary(RoundSummary {
     meta,
     last_round_board: Some(board),
     last_round_solution: None,
     last_solver: None,
+    last_round_optimal_solution: Some(optimal_solution),
   }))
 }
 
@@ -21,6 +27,7 @@ pub fn round_bidding_finalize_bids(state: RoundBidding) -> EventResult {
   let RoundBidding {
     meta,
     board,
+    optimal_solution,
     player_bids,
   } = state;
 
@@ -31,6 +38,7 @@ pub fn round_bidding_finalize_bids(state: RoundBidding) -> EventResult {
       EventResult::ok(RoomState::RoundSolving(RoundSolving {
         meta,
         board,
+        optimal_solution,
         player_bids,
         solver: next_solver_id,
         solution: Vec::new(),
@@ -41,6 +49,7 @@ pub fn round_bidding_finalize_bids(state: RoundBidding) -> EventResult {
       last_round_board: Some(board),
       last_round_solution: None,
       last_solver: None,
+      last_round_optimal_solution: Some(optimal_solution),
     })),
   }
 }

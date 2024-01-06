@@ -14,6 +14,7 @@ pub fn round_solving_yield_solve(state: RoundSolving) -> EventResult {
   let RoundSolving {
     meta,
     board,
+    optimal_solution,
     mut player_bids,
     solver,
     ..
@@ -28,6 +29,7 @@ pub fn round_solving_yield_solve(state: RoundSolving) -> EventResult {
       EventResult::ok(RoomState::RoundSolving(RoundSolving {
         meta,
         board,
+        optimal_solution,
         player_bids,
         solver: next_bidder_id,
         solution: Vec::new(),
@@ -36,6 +38,7 @@ pub fn round_solving_yield_solve(state: RoundSolving) -> EventResult {
     None => EventResult::ok(RoomState::RoundSummary(RoundSummary {
       meta,
       last_round_board: Some(board),
+      last_round_optimal_solution: Some(optimal_solution),
       last_round_solution: None,
       last_solver: None,
     })),

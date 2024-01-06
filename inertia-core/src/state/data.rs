@@ -9,6 +9,7 @@ use typeshare::typeshare;
 
 use crate::mechanics::Position;
 use crate::mechanics::PositionGenerator;
+use crate::mechanics::SolvedPositionGenerator;
 use crate::solvers::SolutionStep;
 
 #[typeshare(serialized_as = "number")]
@@ -144,7 +145,7 @@ pub struct PlayerInfo {
 pub struct RoomMeta {
   pub room_id: RoomId,
   #[serde(skip)]
-  pub generator: Box<dyn PositionGenerator>,
+  pub generator: Box<dyn SolvedPositionGenerator>,
   pub player_info: HashMap<PlayerId, PlayerInfo>,
   #[typeshare(typescript(type = "number"))]
   pub round_number: u32,
@@ -167,6 +168,7 @@ pub struct RoundSummary {
   pub last_round_board: Option<Position>,
   pub last_round_solution: Option<Vec<SolutionStep>>,
   pub last_solver: Option<PlayerId>,
+  pub last_round_optimal_solution: Option<Vec<SolutionStep>>,
 }
 
 #[typeshare]
@@ -174,6 +176,8 @@ pub struct RoundSummary {
 pub struct RoundStart {
   pub meta: RoomMeta,
   pub board: Position,
+  #[serde(skip)]
+  pub optimal_solution: Vec<SolutionStep>,
 }
 
 #[typeshare]
@@ -182,6 +186,8 @@ pub struct RoundBidding {
   pub meta: RoomMeta,
   pub board: Position,
   pub player_bids: PlayerBids,
+  #[serde(skip)]
+  pub optimal_solution: Vec<SolutionStep>,
 }
 
 #[typeshare]
@@ -192,6 +198,8 @@ pub struct RoundSolving {
   pub player_bids: PlayerBids,
   pub solver: PlayerId,
   pub solution: Vec<SolutionStep>,
+  #[serde(skip)]
+  pub optimal_solution: Vec<SolutionStep>,
 }
 
 #[typeshare]
@@ -313,7 +321,7 @@ pub enum RoomState {
 }
 
 impl RoomState {
-  pub fn initial<T: PositionGenerator + 'static>(
+  pub fn initial<T: SolvedPositionGenerator + 'static>(
     room_id: RoomId,
     generator: T,
   ) -> Self {
@@ -327,6 +335,7 @@ impl RoomState {
       last_round_board: None,
       last_round_solution: None,
       last_solver: None,
+      last_round_optimal_solution: None,
     })
   }
   pub fn get_meta(&self) -> Option<&RoomMeta> {

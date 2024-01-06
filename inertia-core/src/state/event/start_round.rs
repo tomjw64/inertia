@@ -14,8 +14,10 @@ pub fn round_summary_start_round(state: RoundSummary) -> EventResult {
     .for_each(|(_, player_info)| {
       player_info.player_last_seen = meta.round_number;
     });
+  let solved_position = meta.generator.generate_solved_position();
   EventResult::ok(RoomState::RoundStart(RoundStart {
-    board: meta.generator.generate_position(),
+    board: solved_position.position,
+    optimal_solution: solved_position.solution,
     meta,
   }))
 }

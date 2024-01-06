@@ -28,6 +28,7 @@ pub fn round_solving_update_solution(
     player_bids,
     solver,
     solution: current_solution,
+    optimal_solution,
   } = state;
   let UpdateSolution {
     solution: updated_solution,
@@ -40,6 +41,7 @@ pub fn round_solving_update_solution(
     return EventResult::err(
       RoomState::RoundSolving(RoundSolving {
         board,
+        optimal_solution,
         meta,
         player_bids,
         solver,
@@ -57,6 +59,7 @@ pub fn round_solving_update_solution(
     return EventResult::ok(RoomState::RoundSummary(RoundSummary {
       meta,
       last_round_board: Some(board),
+      last_round_optimal_solution: Some(optimal_solution),
       last_round_solution: Some(updated_solution),
       last_solver: Some(solver),
     }));
@@ -64,6 +67,7 @@ pub fn round_solving_update_solution(
 
   EventResult::ok(RoomState::RoundSolving(RoundSolving {
     board,
+    optimal_solution,
     meta,
     player_bids,
     solver,

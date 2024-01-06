@@ -10,6 +10,7 @@ mod test {
   use crate::mechanics::Direction;
   use crate::mechanics::Position;
   use crate::mechanics::PositionGenerator;
+  use crate::mechanics::SolvedPositionGenerator;
   use crate::solvers::SolutionStep;
   use crate::state::data::PlayerBids;
   use crate::state::data::PlayerId;
@@ -34,7 +35,13 @@ mod test {
     OneMoveSolutionBoardGenerator::new().generate_position()
   }
 
-  fn expected_generator() -> Box<dyn PositionGenerator> {
+  fn expected_optimal_solution() -> Vec<SolutionStep> {
+    OneMoveSolutionBoardGenerator::new()
+      .generate_solved_position()
+      .solution
+  }
+
+  fn expected_generator() -> Box<dyn SolvedPositionGenerator> {
     Box::new(OneMoveSolutionBoardGenerator::new())
   }
 
@@ -71,7 +78,8 @@ mod test {
         },
         last_round_board: None,
         last_round_solution: None,
-        last_solver: None
+        last_solver: None,
+        last_round_optimal_solution: None
       })
     );
   }
@@ -105,7 +113,8 @@ mod test {
         },
         last_round_board: None,
         last_round_solution: None,
-        last_solver: None
+        last_solver: None,
+        last_round_optimal_solution: None
       })
     );
   }
@@ -153,7 +162,8 @@ mod test {
         },
         last_round_board: None,
         last_round_solution: None,
-        last_solver: None
+        last_solver: None,
+        last_round_optimal_solution: None
       })
     );
   }
@@ -209,7 +219,8 @@ mod test {
           ]),
           round_number: 1
         },
-        board: expected_board()
+        board: expected_board(),
+        optimal_solution: expected_optimal_solution()
       })
     );
   }
@@ -260,7 +271,8 @@ mod test {
           )]),
           round_number: 1
         },
-        board: expected_board()
+        board: expected_board(),
+        optimal_solution: expected_optimal_solution()
       })
     );
   }
@@ -343,6 +355,7 @@ mod test {
     let mut expected = RoundSolving {
       meta: expected_meta.clone(),
       board: expected_board(),
+      optimal_solution: expected_optimal_solution(),
       player_bids: PlayerBids {
         bids: HashMap::from([
           (PlayerId(1), PlayerBid::Prospective { value: 5, order: 1 }),
@@ -379,8 +392,9 @@ mod test {
       RoomState::RoundSummary(RoundSummary {
         meta: expected_meta.clone(),
         last_round_board: Some(expected_board()),
+        last_round_optimal_solution: Some(expected_optimal_solution()),
         last_round_solution: None,
-        last_solver: None
+        last_solver: None,
       })
     );
   }
@@ -428,6 +442,7 @@ mod test {
           round_number: 1
         },
         last_round_board: Some(expected_board()),
+        last_round_optimal_solution: Some(expected_optimal_solution()),
         last_round_solution: Some(vec![SolutionStep {
           actor: 0,
           direction: Direction::Down,

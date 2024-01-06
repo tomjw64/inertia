@@ -13,7 +13,11 @@ pub struct MakeBid {
 }
 
 pub fn round_start_make_bid(state: RoundStart, event: MakeBid) -> EventResult {
-  let RoundStart { meta, board } = state;
+  let RoundStart {
+    meta,
+    board,
+    optimal_solution,
+  } = state;
   let MakeBid {
     player_id,
     bid_value,
@@ -25,6 +29,7 @@ pub fn round_start_make_bid(state: RoundStart, event: MakeBid) -> EventResult {
         player_bids,
         meta,
         board,
+        optimal_solution,
       }),
       error,
     )
@@ -33,6 +38,7 @@ pub fn round_start_make_bid(state: RoundStart, event: MakeBid) -> EventResult {
       player_bids,
       meta,
       board,
+      optimal_solution,
     }))
   }
 }
@@ -44,6 +50,7 @@ pub fn round_bidding_make_bid(
   let RoundBidding {
     meta,
     board,
+    optimal_solution,
     mut player_bids,
   } = state;
   let MakeBid {
@@ -56,6 +63,7 @@ pub fn round_bidding_make_bid(
         player_bids,
         meta,
         board,
+        optimal_solution,
       }),
       error,
     )
@@ -64,6 +72,7 @@ pub fn round_bidding_make_bid(
       player_bids,
       meta,
       board,
+      optimal_solution,
     }))
   }
 }
