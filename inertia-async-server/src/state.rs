@@ -297,7 +297,15 @@ impl AppState {
       error,
     } = working_state.apply(event);
     room.state = next_state;
-    error.map(Err).unwrap_or(Ok(()))?;
+    if let Some(err) = error {
+      tracing::debug!(
+        "Error applying event {} to room id {:?}: {:?}",
+        event_type,
+        room.utils.room_id,
+        err
+      );
+      return Err(err.into());
+    }
 
     let current_discriminant = mem::discriminant(&room.state);
     let state_transition_occurred =
