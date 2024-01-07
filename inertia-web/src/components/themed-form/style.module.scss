@@ -43,7 +43,7 @@ $button-height: 2.5em;
   font-weight: bold;
   border: 0;
   border-radius: 1em / 2em;
-  margin: 0.25em;
+  margin: max(4px, 0.25em);
   height: $button-height;
 }
 

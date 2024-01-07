@@ -61,10 +61,13 @@ $button-height: 2.5em;
   transform: scale(0);
   transform-origin: top;
   max-height: 0;
-  background: #cccccc;
+  background-color: #cccccc;
   width: 100%;
+  border-radius: 0.5em;
+  filter: drop-shadow(0px -2px 0px #aaaaaa);
 
   &[data-expanded="true"] {
+    margin-top: 2px;
     padding: 0.5em;
     transition: all 0.2s ease-out;
     transform-origin: top;
