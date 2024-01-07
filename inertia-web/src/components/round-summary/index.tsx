@@ -56,22 +56,22 @@ export const RoundSummary = ({
             <PanelTitle>{roundPanelTitle}</PanelTitle>
             <RenderWhen when={!isGameStart}>
               <Divider />
-            </RenderWhen>
-            <RenderWhen when={wasLastRoundSolved}>
-              <BlockText>
-                {`${lastRoundSolverName} found a solution with ${lastRoundSolutionMoves} ${
-                  lastRoundSolutionMoves === 1 ? ' move' : ' moves'
-                }!`}
-              </BlockText>
+              <RenderWhen when={wasLastRoundSolved}>
+                <BlockText>
+                  {`${lastRoundSolverName} found a solution with ${lastRoundSolutionMoves} ${
+                    lastRoundSolutionMoves === 1 ? ' move' : ' moves'
+                  }!`}
+                </BlockText>
+              </RenderWhen>
+              <RenderWhen when={!wasLastRoundSolved}>
+                <BlockText>Nobody found a solution last round.</BlockText>
+              </RenderWhen>
               <BlockText>
                 {`Optimal solution: ${lastRoundOptimalSolutionMoves} ${
                   lastRoundOptimalSolutionMoves === 1 ? ' move' : ' moves'
                 }`}
               </BlockText>
               <BlockText>{`Difficulty: ${lastRoundDifficulty}`}</BlockText>
-            </RenderWhen>
-            <RenderWhen when={!isGameStart && !wasLastRoundSolved}>
-              <BlockText>Nobody found a solution last round.</BlockText>
             </RenderWhen>
             <Divider />
             <ThemedButton onClick={onStartRound}>
