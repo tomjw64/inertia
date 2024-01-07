@@ -16,7 +16,6 @@ use axum::response::Response;
 use axum::routing::get;
 use axum::Json;
 use axum::Router;
-use axum::Server;
 use futures::SinkExt;
 use futures::StreamExt;
 use inertia_core::message::FromClientMessage;
@@ -26,6 +25,7 @@ use inertia_core::state::event::disconnect::Disconnect;
 use serde_json::json;
 use serde_json::Value;
 use sqlx::sqlite::SqlitePoolOptions;
+use tokio::net::TcpListener;
 use tokio::sync::broadcast;
 use tokio::sync::mpsc;
 use tokio::sync::RwLock;
@@ -66,14 +66,13 @@ async fn main() -> anyhow::Result<()> {
     .route("/status", get(status))
     .layer(CorsLayer::permissive())
     .route("/ws", get(ws_handler))
-    .with_state(app_state);
+    .with_state(app_state)
+    .into_make_service_with_connect_info::<SocketAddr>();
 
   let address = SocketAddr::from(([0, 0, 0, 0], 8001));
+  let listener = TcpListener::bind(&address).await?;
   tracing::info!("Listening on {}", address);
-  Server::bind(&address)
-    .serve(app.into_make_service_with_connect_info::<SocketAddr>())
-    .await
-    .unwrap();
+  axum::serve(listener, app).await?;
   Ok(())
 }
 
