@@ -14,6 +14,8 @@ use inertia_core::mechanics::Square;
 use inertia_core::mechanics::WalledBoard;
 
 use inertia_core::mechanics::Position;
+use inertia_core::solvers::difficulty::get_solution_difficulty;
+use inertia_core::solvers::difficulty::Difficulty;
 use inertia_core::solvers::SolutionStep;
 use inertia_core::state::data::PlayerBids;
 use serde::Deserialize;
@@ -59,6 +61,10 @@ pub struct PlayerBidsWrapper(PlayerBids);
 #[derive(Debug, Serialize, Deserialize, Tsify)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
 pub struct SolutionWrapper(Vec<SolutionStep>);
+
+#[derive(Debug, Serialize, Deserialize, Tsify)]
+#[tsify(into_wasm_abi, from_wasm_abi)]
+pub struct DifficultyWrapper(Difficulty);
 
 #[wasm_bindgen]
 pub fn math() {
@@ -126,6 +132,11 @@ pub fn apply_solution(
   solution: SolutionWrapper,
 ) -> ActorSquaresWrapper {
   ActorSquaresWrapper(board_position.0.apply_solution(&solution.0))
+}
+
+#[wasm_bindgen]
+pub fn get_difficulty(solution: SolutionWrapper) -> DifficultyWrapper {
+  DifficultyWrapper(get_solution_difficulty(&solution.0))
 }
 
 #[wasm_bindgen]

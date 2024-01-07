@@ -8,7 +8,6 @@ use thiserror::Error;
 use typeshare::typeshare;
 
 use crate::mechanics::Position;
-use crate::mechanics::PositionGenerator;
 use crate::mechanics::SolvedPositionGenerator;
 use crate::solvers::SolutionStep;
 

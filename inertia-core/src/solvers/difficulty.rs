@@ -1,12 +1,22 @@
 use super::SolutionStep;
 use itertools::Itertools;
 use serde::Deserialize;
+use serde::Serialize;
 use typeshare::typeshare;
 
 #[typeshare]
 #[repr(u8)]
 #[derive(
-  Debug, PartialEq, Eq, Hash, Copy, Clone, PartialOrd, Ord, Deserialize,
+  Debug,
+  PartialEq,
+  Eq,
+  Hash,
+  Copy,
+  Clone,
+  PartialOrd,
+  Ord,
+  Deserialize,
+  Serialize,
 )]
 pub enum Difficulty {
   Easiest = 0,

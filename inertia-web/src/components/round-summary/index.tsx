@@ -13,6 +13,7 @@ import { PanelTitle } from '../panel-title';
 import { Divider } from '../divider';
 import { RenderWhen } from '../utils/RenderWhen';
 import { BlockText } from '../block-text';
+import { get_difficulty } from 'inertia-wasm';
 
 export const RoundSummary = ({
   state,
@@ -37,6 +38,11 @@ export const RoundSummary = ({
     state.last_solver != null
       ? state.meta.player_info[state.last_solver].player_name ?? 'unknown'
       : 'unknown';
+  const lastRoundOptimalSolutionMoves =
+    state.last_round_optimal_solution?.length ?? -1;
+  const lastRoundDifficulty = state.last_round_optimal_solution
+    ? get_difficulty(state.last_round_optimal_solution)
+    : 'unknown';
 
   return (
     <FlexCenter wrap>
@@ -48,13 +54,26 @@ export const RoundSummary = ({
         <ThemedPanel>
           <FlexCenter column>
             <PanelTitle>{roundPanelTitle}</PanelTitle>
-            <Divider />
+            <RenderWhen when={!isGameStart}>
+              <Divider />
+            </RenderWhen>
             <RenderWhen when={wasLastRoundSolved}>
-              <BlockText>{`${lastRoundSolverName} found a solution with ${lastRoundSolutionMoves} moves!`}</BlockText>
+              <BlockText>
+                {`${lastRoundSolverName} found a solution with ${lastRoundSolutionMoves} ${
+                  lastRoundSolutionMoves === 1 ? ' move' : ' moves'
+                }!`}
+              </BlockText>
+              <BlockText>
+                {`Optimal solution: ${lastRoundOptimalSolutionMoves} ${
+                  lastRoundOptimalSolutionMoves === 1 ? ' move' : ' moves'
+                }`}
+              </BlockText>
+              <BlockText>{`Difficulty: ${lastRoundDifficulty}`}</BlockText>
             </RenderWhen>
             <RenderWhen when={!isGameStart && !wasLastRoundSolved}>
               <BlockText>Nobody found a solution last round.</BlockText>
             </RenderWhen>
+            <Divider />
             <ThemedButton onClick={onStartRound}>
               {roundStartButtonText}
             </ThemedButton>

@@ -1,7 +1,6 @@
 use crate::mechanics::ActorSquares;
 use crate::mechanics::Direction;
 use crate::mechanics::Position;
-use crate::mechanics::PositionGenerator;
 use crate::mechanics::SolvedPosition;
 use crate::mechanics::SolvedPositionGenerator;
 use crate::mechanics::Square;
