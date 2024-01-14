@@ -15,7 +15,9 @@ use inertia_core::mechanics::WalledBoard;
 
 use inertia_core::mechanics::Position;
 use inertia_core::solvers::difficulty::get_solution_difficulty;
-use inertia_core::solvers::difficulty::Difficulty;
+use inertia_core::solvers::solution_from_bytes;
+use inertia_core::solvers::solution_to_bytes;
+use inertia_core::solvers::Difficulty;
 use inertia_core::solvers::SolutionStep;
 use inertia_core::state::data::PlayerBids;
 use serde::Deserialize;
@@ -155,4 +157,15 @@ pub fn decode_position(bytes: String) -> Option<PositionWrapper> {
 #[wasm_bindgen]
 pub fn encode_position(position: PositionWrapper) -> String {
   general_purpose::URL_SAFE_NO_PAD.encode(position.0.to_compressed_byte_array())
+}
+
+#[wasm_bindgen]
+pub fn decode_solution(bytes: String) -> Option<SolutionWrapper> {
+  let bytes = general_purpose::URL_SAFE_NO_PAD.decode(bytes).ok()?;
+  Some(SolutionWrapper(solution_from_bytes(&bytes).ok()?))
+}
+
+#[wasm_bindgen]
+pub fn encode_solution(solution: SolutionWrapper) -> String {
+  general_purpose::URL_SAFE_NO_PAD.encode(solution_to_bytes(&solution.0))
 }

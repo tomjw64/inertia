@@ -1,0 +1,26 @@
+.wrapper {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.2s ease-out;
+
+  &.expanded {
+    grid-template-rows: 1fr;
+
+    .inner {
+      margin-top: 2px;
+      padding: 0.5em;
+      transform: scale(1);
+    }
+  }
+}
+
+.inner {
+  overflow: hidden;
+  background-color: #cccccc;
+  border-radius: 0.5em;
+  filter: drop-shadow(0px -2px 0px #aaaaaa);
+  transition: transform 0.2s ease-out;
+  transform: scale(0);
+  transform-origin: top;
+}
+

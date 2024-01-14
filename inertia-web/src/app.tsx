@@ -26,7 +26,7 @@ const App = () => (
     <Router>
       <Route path="/" component={Home} />
       <Route path="/room/:roomId" component={Room} />
-      <Route path="/board" component={BoardExplorer} />
+      <Route path="/explore" component={BoardExplorer} />
       <Route path="/sandbox" component={Sandbox} />
       <Route path="/starfield-sandbox" component={StarfieldSandbox} />
       <Route default component={NotFound} />

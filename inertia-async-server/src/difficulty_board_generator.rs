@@ -1,7 +1,7 @@
 use inertia_core::mechanics::Position;
 use inertia_core::mechanics::SolvedPosition;
 use inertia_core::mechanics::SolvedPositionGenerator;
-use inertia_core::solvers::difficulty::Difficulty;
+use inertia_core::solvers::Difficulty;
 use sqlx::Pool;
 use sqlx::Sqlite;
 

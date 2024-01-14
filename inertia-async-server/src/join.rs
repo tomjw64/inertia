@@ -7,7 +7,7 @@ use futures::StreamExt;
 use inertia_core::message::FromClientMessage;
 use inertia_core::message::JoinMessage;
 use inertia_core::message::ToClientMessage;
-use inertia_core::solvers::difficulty::Difficulty;
+use inertia_core::solvers::Difficulty;
 use inertia_core::state::data::PlayerId;
 use inertia_core::state::data::PlayerName;
 use inertia_core::state::data::RoomId;

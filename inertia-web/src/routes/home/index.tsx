@@ -14,6 +14,9 @@ import {
   ThemedSelect,
 } from '../../components/themed-form';
 import { Difficulty } from 'inertia-core';
+import { Tray } from '../../components/tray';
+import { FullWidth } from '../../components/full-width';
+import { JSX } from 'preact/jsx-runtime';
 
 const DIFFICULTY_TO_VALUE = {
   [Difficulty.Easiest]: 0,
@@ -21,6 +24,16 @@ const DIFFICULTY_TO_VALUE = {
   [Difficulty.Medium]: 2,
   [Difficulty.Hard]: 3,
   [Difficulty.Hardest]: 4,
+};
+
+const DifficultyOptions = () => {
+  return (
+    <>
+      {Object.keys(DIFFICULTY_TO_VALUE).map((difficulty) => (
+        <option>{difficulty}</option>
+      ))}
+    </>
+  );
 };
 
 const debouncedSavePlayerName = debounce(savePlayerName, 200);
@@ -41,6 +54,40 @@ export const Home = () => {
   const [nameInput, setNameInput] = useState(initialSavedPlayerName);
 
   const [joinGameInput, setJoinGameInput] = useState('');
+
+  const onChangeMinDifficulty: JSX.DOMAttributes<HTMLSelectElement>['onChange'] =
+    (e) => {
+      const selection = e.currentTarget.value as Difficulty;
+      const other = maxDifficulty;
+
+      setMinDifficulty(selection);
+      if (DIFFICULTY_TO_VALUE[selection] > DIFFICULTY_TO_VALUE[other]) {
+        setMaxDifficulty(selection);
+      }
+    };
+
+  const onChangeMaxDifficulty: JSX.DOMAttributes<HTMLSelectElement>['onChange'] =
+    (e) => {
+      const selection = e.currentTarget.value as Difficulty;
+      const other = minDifficulty;
+
+      setMaxDifficulty(selection);
+      if (DIFFICULTY_TO_VALUE[selection] < DIFFICULTY_TO_VALUE[other]) {
+        setMinDifficulty(selection);
+      }
+    };
+
+  const generateNewName = () => {
+    const generatedName = generatePlayerName();
+    setNameInput(generatedName);
+    debouncedSavePlayerName(generatedName);
+  };
+
+  const startGame = () => {
+    window.location.href = `/room/${Math.floor(
+      Math.random() * 999_999
+    )}?minDifficulty=${minDifficulty}&maxDifficulty=${maxDifficulty}`;
+  };
 
   useEffect(() => {
     const setAnimationVars = () => {
@@ -84,15 +131,7 @@ export const Home = () => {
               <div className={style.subtitle}>Inertia</div>
               <Divider />
               <ThemedFormLine>
-                <ThemedButton
-                  onClick={() => {
-                    window.location.href = `/room/${Math.floor(
-                      Math.random() * 999_999
-                    )}?minDifficulty=${minDifficulty}&maxDifficulty=${maxDifficulty}`;
-                  }}
-                >
-                  Start Game
-                </ThemedButton>
+                <ThemedButton onClick={startGame}>Start Game</ThemedButton>
                 <ThemedButton
                   onClick={() => {
                     setIsStartOptionsExpanded(!isStartOptionsExpanded);
@@ -101,65 +140,32 @@ export const Home = () => {
                   <img src={startOptionsIcon} />
                 </ThemedButton>
               </ThemedFormLine>
-              <div
-                className={style.difficultySelectionContainer}
-                data-expanded={isStartOptionsExpanded}
-              >
-                <FlexCenter column>
+              <FullWidth>
+                <Tray expanded={isStartOptionsExpanded}>
                   <div className={style.difficultySelection}>
                     <FlexCenter expand justify="space-between">
-                      <span className={style.difficultySelectionLabel}>
-                        Min difficulty:
-                      </span>
+                      <span>Min difficulty:</span>
                       <ThemedSelect
                         value={minDifficulty}
-                        onChange={(e) => {
-                          const selection = e.currentTarget.value as Difficulty;
-                          const other = maxDifficulty;
-
-                          setMinDifficulty(selection);
-                          if (
-                            DIFFICULTY_TO_VALUE[selection] >
-                            DIFFICULTY_TO_VALUE[other]
-                          ) {
-                            setMaxDifficulty(selection);
-                          }
-                        }}
+                        onChange={onChangeMinDifficulty}
                       >
-                        {Object.keys(DIFFICULTY_TO_VALUE).map((difficulty) => (
-                          <option>{difficulty}</option>
-                        ))}
+                        <DifficultyOptions />
                       </ThemedSelect>
                     </FlexCenter>
                   </div>
                   <div className={style.difficultySelection}>
                     <FlexCenter expand justify="space-between">
-                      <span className={style.difficultySelectionLabel}>
-                        Max difficulty:
-                      </span>
+                      <span>Max difficulty:</span>
                       <ThemedSelect
                         value={maxDifficulty}
-                        onChange={(e) => {
-                          const selection = e.currentTarget.value as Difficulty;
-                          const other = minDifficulty;
-
-                          setMaxDifficulty(selection);
-                          if (
-                            DIFFICULTY_TO_VALUE[selection] <
-                            DIFFICULTY_TO_VALUE[other]
-                          ) {
-                            setMinDifficulty(selection);
-                          }
-                        }}
+                        onChange={onChangeMaxDifficulty}
                       >
-                        {Object.keys(DIFFICULTY_TO_VALUE).map((difficulty) => (
-                          <option>{difficulty}</option>
-                        ))}
+                        <DifficultyOptions />
                       </ThemedSelect>
                     </FlexCenter>
                   </div>
-                </FlexCenter>
-              </div>
+                </Tray>
+              </FullWidth>
               <Divider text={'or'} />
               <ThemedFormLine>
                 <ThemedButton
@@ -189,13 +195,7 @@ export const Home = () => {
                       debouncedSavePlayerName(e.currentTarget.value);
                     }}
                   />
-                  <ThemedButton
-                    onClick={() => {
-                      const generatedName = generatePlayerName();
-                      setNameInput(generatedName);
-                      debouncedSavePlayerName(generatedName);
-                    }}
-                  >
+                  <ThemedButton onClick={generateNewName}>
                     <img src="/refresh.svg" />
                   </ThemedButton>
                 </ThemedFormLine>

@@ -20,6 +20,7 @@ import {
   get_movement_for_actor,
   get_movement_ray_for_actor,
 } from 'inertia-wasm';
+import { getActorColor } from '../../utils/actor-colors';
 
 export const ACTOR_FLIP_ANIMATE_DURATION = 0.2;
 export const MOVE_INDICATOR_ANIMATE_DELAY = ACTOR_FLIP_ANIMATE_DURATION;
@@ -28,11 +29,6 @@ export const MOVE_INDICATOR_ANIMATE_DURATION = 0.2;
 const BOARD_FLIP_ATTR = 'data-flip-board';
 const ACTOR_FLIP_ATTR = 'data-animate-actor-flip-key';
 const MOVE_INDICATOR_ATTR = 'data-animate-move-indicator';
-
-const ACTOR_COLORS = ['red', 'blue', 'green', 'yellow'];
-const getActorColor = (actorIndex: number) => {
-  return ACTOR_COLORS[actorIndex];
-};
 
 const KEY_SELECTION_MAP = {
   r: 0,
