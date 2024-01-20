@@ -14,5 +14,3 @@ inertia-async-server/target
 !inertia-web
 inertia-web/node_modules
 inertia-web/dist
-
-
