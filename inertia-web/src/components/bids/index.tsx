@@ -7,6 +7,9 @@ import { PanelTitle } from '../panel-title';
 import { get_next_solver } from 'inertia-wasm';
 import { RenderWhen } from '../utils/RenderWhen';
 import { PlayerListItem } from '../player-status';
+import { Tray } from '../tray';
+import { useState } from 'preact/hooks';
+import { BlockText } from '../block-text';
 
 export const Bids = ({
   players,
@@ -19,28 +22,39 @@ export const Bids = ({
   userPlayerId: PlayerId;
   solving?: boolean;
 }) => {
+  const [isTrayExpanded, setIsTrayExpanded] = useState(
+    Object.keys(players).length <= 4
+  );
   const leader = playerBids == null ? undefined : get_next_solver(playerBids);
 
   return (
-    <ThemedPanel>
-      <FlexCenter column>
-        <PanelTitle>Bids</PanelTitle>
-        <Divider />
-        <div className={style.playerList}>
-          {Object.entries(players).map(([playerId, playerInfo]) => {
-            return (
-              <PlayerItem
-                userPlayerId={userPlayerId}
-                playerInfo={playerInfo}
-                playerBid={playerBids?.bids?.[playerId] ?? { type: 'None' }}
-                isLeader={leader?.toString() === playerId}
-                solving={solving}
-              />
-            );
-          })}
-        </div>
-      </FlexCenter>
-    </ThemedPanel>
+    <div onClick={() => setIsTrayExpanded(!isTrayExpanded)}>
+      <ThemedPanel>
+        <FlexCenter column>
+          <PanelTitle>Bids</PanelTitle>
+          <Divider />
+          {/* TODO: Show Leader even if not expanded. Adjust icon sizes (inline svg at 1em?) */}
+          <RenderWhen when={!isTrayExpanded}>
+            <BlockText>Click to expand</BlockText>
+          </RenderWhen>
+          <Tray expanded={isTrayExpanded}>
+            <div className={style.playerList}>
+              {Object.entries(players).map(([playerId, playerInfo]) => {
+                return (
+                  <PlayerItem
+                    userPlayerId={userPlayerId}
+                    playerInfo={playerInfo}
+                    playerBid={playerBids?.bids?.[playerId] ?? { type: 'None' }}
+                    isLeader={leader?.toString() === playerId}
+                    solving={solving}
+                  />
+                );
+              })}
+            </div>
+          </Tray>
+        </FlexCenter>
+      </ThemedPanel>
+    </div>
   );
 };
 

@@ -20,8 +20,9 @@ import { defaultPosition } from '../../utils/board';
 import { apply_solution } from 'inertia-wasm';
 import { ACTOR_FLIP_ANIMATE_DURATION } from '../../components/board';
 import { Starfield } from '../../components/starfield';
-import { RoomControls } from '../../components/room-controls';
+import { AppControls } from '../../components/room-controls';
 import { ErrorPage } from '../../components/error-page';
+import { useThrottledQueue } from '../../utils/throttled-queue';
 
 const RoomStateType = {
   NONE: 'None',
@@ -56,15 +57,12 @@ export const Room = ({ roomId: roomIdString }: { roomId: string }) => {
     } else {
       return roomState.content.board;
     }
-    // Fine because we know the board never changes except when the type changes
-    // And we don't want to put the board data here because useMemo uses shallow equality.
+    // Fine because we know the board only ever changes when the state type
+    // changes and we don't want to put the board data here because useMemo uses
+    // shallow equality.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roomState.type]);
 
-  const nextServerSolutionAnimation = useRef<ReturnType<
-    typeof setTimeout
-  > | null>(null);
-  const serverSolutionAnimationQueue = useRef<SolutionStep[]>([]);
   const serverSolution: SolutionStep[] = useMemo(() => {
     if (roomState.type === 'RoundSolving') {
       return roomState.content.solution;
@@ -86,54 +84,38 @@ export const Room = ({ roomId: roomIdString }: { roomId: string }) => {
     ? localSolution
     : appliedServerSolution;
 
+  const {
+    clearQueue: clearAnimationQueue,
+    processQueue: processAnimationQueue,
+    setQueue: setAnimationQueue,
+  } = useThrottledQueue<SolutionStep>({
+    throttleMs: (ACTOR_FLIP_ANIMATE_DURATION + 0.1) * 1000,
+    onData: (data) => {
+      setAppliedServerSolution((previous) => [...previous, data]);
+    },
+  });
+
   useEffect(() => {
-    const startOrContinueServerSolutionAnimation = () => {
-      if (nextServerSolutionAnimation.current) {
-        return;
-      }
-      const triggerAnimation = () => {
-        const solutionStepToAnimate =
-          serverSolutionAnimationQueue.current.shift();
-        if (solutionStepToAnimate) {
-          nextServerSolutionAnimation.current = setTimeout(() => {
-            triggerAnimation();
-          }, (ACTOR_FLIP_ANIMATE_DURATION + 0.1) * 1000);
-          setAppliedServerSolution((current) => [
-            ...current,
-            solutionStepToAnimate,
-          ]);
-        } else {
-          nextServerSolutionAnimation.current = null;
-        }
-      };
-      triggerAnimation();
-    };
-
-    const cancelServerSolutionAnimation = () => {
-      if (!nextServerSolutionAnimation.current) {
-        return;
-      }
-      clearTimeout(nextServerSolutionAnimation.current);
-      nextServerSolutionAnimation.current = null;
-      serverSolutionAnimationQueue.current = [];
-    };
-
     // If the solution lengths are equal, nothing to do.
     if (serverSolution.length === appliedServerSolution.length) {
       return;
     }
     // If the solution to apply is smaller, apply it immediately
     if (serverSolution.length < appliedServerSolution.length) {
-      cancelServerSolutionAnimation();
+      clearAnimationQueue();
       setAppliedServerSolution(serverSolution);
       return;
     }
     // Otherwise, there are steps we haven't displayed yet. Queue them for animation
-    serverSolutionAnimationQueue.current = serverSolution.slice(
-      appliedServerSolution.length
-    );
-    startOrContinueServerSolutionAnimation();
-  }, [appliedServerSolution, serverSolution]);
+    setAnimationQueue(serverSolution.slice(appliedServerSolution.length));
+    processAnimationQueue();
+  }, [
+    appliedServerSolution,
+    serverSolution,
+    clearAnimationQueue,
+    processAnimationQueue,
+    setAnimationQueue,
+  ]);
 
   useEffect(() => {
     setLocalSolution([]);
@@ -303,7 +285,7 @@ export const Room = ({ roomId: roomIdString }: { roomId: string }) => {
   return (
     <>
       <Starfield numStars={500} speed={0.5} />
-      <RoomControls />
+      <AppControls />
       {roundState}
     </>
   );

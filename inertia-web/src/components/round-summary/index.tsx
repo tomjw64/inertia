@@ -13,7 +13,7 @@ import { PanelTitle } from '../panel-title';
 import { Divider } from '../divider';
 import { RenderWhen } from '../utils/RenderWhen';
 import { BlockText } from '../block-text';
-import { get_difficulty } from 'inertia-wasm';
+import { encode_position, encode_solution, get_difficulty } from 'inertia-wasm';
 
 export const RoundSummary = ({
   state,
@@ -43,6 +43,32 @@ export const RoundSummary = ({
   const lastRoundDifficulty = state.last_round_optimal_solution
     ? get_difficulty(state.last_round_optimal_solution)
     : 'unknown';
+
+  const openBoardExplorer = () => {
+    const boardExplorerParams = new URLSearchParams();
+    if (state.last_round_board) {
+      boardExplorerParams.append(
+        'position',
+        encode_position(state.last_round_board)
+      );
+    }
+    if (state.last_round_optimal_solution) {
+      boardExplorerParams.append(
+        'solution',
+        `Optimal solution:${encode_solution(state.last_round_optimal_solution)}`
+      );
+    }
+    if (state.last_round_solution) {
+      boardExplorerParams.append(
+        'solution',
+        `${lastRoundSolverName}'s solution:${encode_solution(
+          state.last_round_solution
+        )}`
+      );
+    }
+    const boardExplorerUrl = `/explore?${boardExplorerParams.toString()}`;
+    window.open(boardExplorerUrl, '_blank');
+  };
 
   return (
     <FlexCenter wrap>
@@ -74,9 +100,16 @@ export const RoundSummary = ({
               <BlockText>{`Difficulty: ${lastRoundDifficulty}`}</BlockText>
             </RenderWhen>
             <Divider />
-            <ThemedButton onClick={onStartRound}>
-              {roundStartButtonText}
-            </ThemedButton>
+            <FlexCenter>
+              <RenderWhen when={!isGameStart}>
+                <ThemedButton onClick={openBoardExplorer}>
+                  View in Board Explorer
+                </ThemedButton>
+              </RenderWhen>
+              <ThemedButton onClick={onStartRound}>
+                {roundStartButtonText}
+              </ThemedButton>
+            </FlexCenter>
           </FlexCenter>
         </ThemedPanel>
       </FlexCenter>

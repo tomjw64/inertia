@@ -2,7 +2,7 @@ import { useRef } from 'preact/hooks';
 import style from './style.module.scss';
 import { animate } from 'motion';
 
-export const RoomControls = () => {
+export const AppControls = () => {
   const linkPopupElement = useRef<HTMLDivElement>(null);
   const linkPreventClose = useRef<boolean>(false);
   const linkPopupTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -71,7 +71,7 @@ export const RoomControls = () => {
               className={style.controlPopup}
               data-animate-link-popup
             >
-              Room link copied to clipboard!
+              Shareable link copied to clipboard!
             </div>
           </a>
         </div>

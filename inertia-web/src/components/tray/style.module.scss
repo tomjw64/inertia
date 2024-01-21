@@ -16,11 +16,14 @@
 
 .inner {
   overflow: hidden;
-  background-color: #cccccc;
-  border-radius: 0.5em;
-  filter: drop-shadow(0px -2px 0px #aaaaaa);
   transition: transform 0.2s ease-out;
   transform: scale(0);
   transform-origin: top;
+
+  &.inset {
+    filter: drop-shadow(0px -2px 0px #aaaaaa);
+    background-color: #cccccc;
+    border-radius: 0.5em;
+  }
 }
 

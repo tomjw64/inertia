@@ -141,7 +141,7 @@ export const Home = () => {
                 </ThemedButton>
               </ThemedFormLine>
               <FullWidth>
-                <Tray expanded={isStartOptionsExpanded}>
+                <Tray inset expanded={isStartOptionsExpanded}>
                   <div className={style.difficultySelection}>
                     <FlexCenter expand justify="space-between">
                       <span>Min difficulty:</span>

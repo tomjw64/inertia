@@ -92,16 +92,22 @@ export const RoundBidding = ({
           <FlexCenter column>
             <PanelTitle>Round {state.meta.round_number}</PanelTitle>
             <Divider />
-            <div>First bid</div>
-            <Countdown
-              timeLeft={countdownTimeLeft}
-              paused={firstBidSubmitted}
-            />
-            <div>All bids</div>
-            <Countdown
-              timeLeft={firstBidSubmitted ? countdownTimeLeft : 60000}
-              paused={!firstBidSubmitted}
-            />
+            <FlexCenter wrap>
+              <FlexCenter column>
+                <BlockText>First bid</BlockText>
+                <Countdown
+                  timeLeft={countdownTimeLeft}
+                  paused={firstBidSubmitted}
+                />
+              </FlexCenter>
+              <FlexCenter column>
+                <BlockText>All bids</BlockText>
+                <Countdown
+                  timeLeft={firstBidSubmitted ? countdownTimeLeft : 60000}
+                  paused={!firstBidSubmitted}
+                />
+              </FlexCenter>
+            </FlexCenter>
             <Divider />
             <RenderWhen when={showInvalidBid}>
               <BlockText>You can't raise your bid!</BlockText>

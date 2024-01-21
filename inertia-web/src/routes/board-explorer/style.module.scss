@@ -1,0 +1,26 @@
+@use "sass:color";
+@use "../../styles/common.scss";
+
+.solutionTrayContainer {
+  font-size: 2em;
+  max-width: 11em;
+}
+
+.stepIcon {
+  display: flex;
+  cursor: pointer;
+
+  &.selected {
+    border-bottom: 2px solid #333333;
+  }
+
+  &.neutral {
+    color: #333333;
+  }
+
+  @each $color-name, $value in common.$canonical-colors {
+    &.#{$color-name} {
+      color: color.scale($value, $lightness: -25%);
+    }
+  }
+}
