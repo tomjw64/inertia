@@ -122,9 +122,9 @@ export const Home = () => {
     <>
       <Starfield numStars={500} speed={0.5} />
       <div className={style.home} ref={homeRef}>
-        <div className={[style.title, style.titleX].join(' ')} ref={titleRef}>
+        {/* <div className={[style.title, style.titleX].join(' ')} ref={titleRef}>
           <div className={style.titleY}>INERTIA</div>
-        </div>
+        </div> */}
         <FlexCenter expand>
           <ThemedPanel>
             <FlexCenter column>

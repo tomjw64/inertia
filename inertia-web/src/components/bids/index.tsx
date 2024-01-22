@@ -10,6 +10,7 @@ import { PlayerListItem } from '../player-status';
 import { Tray } from '../tray';
 import { useState } from 'preact/hooks';
 import { BlockText } from '../block-text';
+import { FullWidth } from '../full-width';
 
 export const Bids = ({
   players,
@@ -22,36 +23,44 @@ export const Bids = ({
   userPlayerId: PlayerId;
   solving?: boolean;
 }) => {
-  const [isTrayExpanded, setIsTrayExpanded] = useState(
-    Object.keys(players).length <= 4
-  );
+  const [isCompact, setIsCompact] = useState(Object.keys(players).length > 4);
   const leader = playerBids == null ? undefined : get_next_solver(playerBids);
 
+  const allPlayers = Object.entries(players);
+  const compactPlayers = allPlayers.filter(([playerId, _]) => {
+    const isLeader = playerId === leader?.toString();
+    const isUserPlayer = playerId === userPlayerId.toString();
+    return !isCompact || isLeader || isUserPlayer;
+  });
+
+  const numOmittedPlayers = Object.keys(players).length - compactPlayers.length;
+  const useCompactPlayers = numOmittedPlayers > 1;
+
+  const displayedPlayers = useCompactPlayers ? compactPlayers : allPlayers;
+
   return (
-    <div onClick={() => setIsTrayExpanded(!isTrayExpanded)}>
+    <div onClick={() => setIsCompact(!isCompact)}>
       <ThemedPanel>
         <FlexCenter column>
           <PanelTitle>Bids</PanelTitle>
           <Divider />
-          {/* TODO: Show Leader even if not expanded. Adjust icon sizes (inline svg at 1em?) */}
-          <RenderWhen when={!isTrayExpanded}>
-            <BlockText>Click to expand</BlockText>
-          </RenderWhen>
-          <Tray expanded={isTrayExpanded}>
-            <div className={style.playerList}>
-              {Object.entries(players).map(([playerId, playerInfo]) => {
-                return (
-                  <PlayerItem
-                    userPlayerId={userPlayerId}
-                    playerInfo={playerInfo}
-                    playerBid={playerBids?.bids?.[playerId] ?? { type: 'None' }}
-                    isLeader={leader?.toString() === playerId}
-                    solving={solving}
-                  />
-                );
-              })}
-            </div>
-          </Tray>
+          <FullWidth>
+            {displayedPlayers.map(([playerId, playerInfo]) => {
+              return (
+                <PlayerItem
+                  key={playerId}
+                  userPlayerId={userPlayerId}
+                  playerInfo={playerInfo}
+                  playerBid={playerBids?.bids?.[playerId] ?? { type: 'None' }}
+                  isLeader={leader?.toString() === playerId}
+                  solving={solving}
+                />
+              );
+            })}
+            <RenderWhen when={useCompactPlayers}>
+              <BlockText>{numOmittedPlayers} more players</BlockText>
+            </RenderWhen>
+          </FullWidth>
         </FlexCenter>
       </ThemedPanel>
     </div>
