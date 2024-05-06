@@ -1,5 +1,7 @@
 import { useCallback, useRef, useState } from 'preact/hooks';
 
+// TODO: Is it better to write a (tested?) throttled queue utility and just have
+// useThrottledQueue delegate to that?
 export const useThrottledQueue = <T extends NonNullable<unknown>>({
   throttleMs,
   onData,
@@ -13,6 +15,7 @@ export const useThrottledQueue = <T extends NonNullable<unknown>>({
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
 
   const throttleMsRef = useRef<number>(throttleMs);
+  // TODO: Consumer cannot be changed :(
   const onDataRef = useRef<(data: T) => void>(onData);
 
   const processQueue = useCallback(() => {
