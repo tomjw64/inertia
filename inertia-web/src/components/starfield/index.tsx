@@ -177,6 +177,10 @@ export const Starfield = ({ numStars, speed }: StarfieldProps) => {
       context.fillStyle = '#373b55';
       context.fillRect(0, 0, canvas.width, canvas.height);
 
+      if (numStars == 0) {
+        return;
+      }
+
       const starPaths: [Path2D, number][] = stars.current
         .map((star) => starToPathAndOpacity(canvas, star, speed, 1))
         .filter((path): path is [Path2D, number] => path != null);
@@ -205,7 +209,7 @@ export const Starfield = ({ numStars, speed }: StarfieldProps) => {
         window.cancelAnimationFrame(animationFrame.current);
       }
     };
-  }, [speed]);
+  }, [numStars, speed]);
   return (
     <div className={style.background}>
       <canvas className={style.canvas} ref={canvasRef} />;
