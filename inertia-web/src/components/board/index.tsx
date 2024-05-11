@@ -74,7 +74,7 @@ export const Board = ({
             // delay,
             duration: MOVE_INDICATOR_ANIMATE_DURATION,
             easing: 'ease-out',
-          }
+          },
         );
         animation.pause();
         setTimeout(animation.play, delay * 1000);
@@ -159,7 +159,7 @@ export const Board = ({
               'translate(0px, 0px)',
             ],
           },
-          { duration: ACTOR_FLIP_ANIMATE_DURATION, easing: 'ease-in-out' }
+          { duration: ACTOR_FLIP_ANIMATE_DURATION, easing: 'ease-in-out' },
         );
       });
   }, [actorFlipRects, actorSquaresForHookDependency]);
@@ -201,7 +201,7 @@ export const Board = ({
               goal,
             },
             selectedActor,
-            direction
+            direction,
           ),
         } as Record<Direction, ExpandedBitBoard>;
       })
@@ -219,7 +219,7 @@ export const Board = ({
               goal,
             },
             selectedActor,
-            direction
+            direction,
           ),
         } as Record<Direction, Square>;
       })

@@ -32,7 +32,7 @@ import { useThrottledQueue } from '../../utils/throttled-queue';
 import range from 'lodash/range';
 import classnames from 'classnames';
 
-// defaultBoard =AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAgP_
+// defaultBoard = AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAgP_
 
 // testUrl = http://inertia.localhost:8080/explore?position=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAgP_&solution=Optimal%20Solution:DAABAQEBAQE
 // shufflePuzzleUrl = http://inertia.localhost:8080/explore?position=_38AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA_3__fwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD_fxESISKI&solution=Optimal%20Solution:RgA0JdHL6vV0gJ_eJjm4TFMS6vV0gJ_eJjm4TFMS6vV0gJ_exg
@@ -106,7 +106,7 @@ const ExpandableSolution = ({
                     style[getActorColor(step.actor)],
                     {
                       [style.selected]: selectedStep === idx,
-                    }
+                    },
                   )}
                   key={idx}
                   onClick={() => {
@@ -126,11 +126,11 @@ const ExpandableSolution = ({
 
 export const BoardExplorer = () => {
   const originalUrlParams = useRef<URLSearchParams>(
-    new URLSearchParams(window.location.search)
+    new URLSearchParams(window.location.search),
   );
   const originalUrlPositionBytes = useMemo(
     () => originalUrlParams.current.get('position'),
-    []
+    [],
   );
   const originalUrlSolutions = useMemo(
     () =>
@@ -141,14 +141,14 @@ export const BoardExplorer = () => {
         const solution = decode_solution(solutionBytes);
         return solution ? [{ name, solution }] : [];
       }),
-    []
+    [],
   );
   const originalUrlHasEmptyLastSolution = useMemo(
     () =>
       originalUrlSolutions.length > 0 &&
       originalUrlSolutions[originalUrlSolutions.length - 1].solution.length ===
         0,
-    [originalUrlSolutions]
+    [originalUrlSolutions],
   );
 
   const [solutions, setSolutions] = useState([
@@ -156,7 +156,7 @@ export const BoardExplorer = () => {
     ...(originalUrlHasEmptyLastSolution ? [] : [DEFAULT_EMPTY_SOLUTION]),
   ]);
   const [activeSolutionIndex, setActiveSolutionIndex] = useState(
-    solutions.length - 1
+    solutions.length - 1,
   );
   const [solutionStepIndex, setSolutionStepIndex] = useState(-1);
 
@@ -179,7 +179,7 @@ export const BoardExplorer = () => {
     for (const solution of solutions) {
       urlParams.append(
         'solution',
-        `${solution.name}:${encode_solution(solution.solution)}`
+        `${solution.name}:${encode_solution(solution.solution)}`,
       );
     }
     debouncedSetUrlParams(urlParams);
@@ -207,7 +207,7 @@ export const BoardExplorer = () => {
   const activeSolution = solutions[activeSolutionIndex];
   const appliedSolution = activeSolution.solution.slice(
     0,
-    solutionStepIndex + 1
+    solutionStepIndex + 1,
   );
 
   const actorSquares = apply_solution(position, appliedSolution);
@@ -218,7 +218,7 @@ export const BoardExplorer = () => {
       solutions.toSpliced(activeSolutionIndex, 1, {
         name: activeSolution.name,
         solution: [...appliedSolution, step],
-      })
+      }),
     );
   };
 
@@ -244,7 +244,7 @@ export const BoardExplorer = () => {
                         solutions.toSpliced(idx, 1, {
                           name,
                           solution: solution.solution,
-                        })
+                        }),
                       );
                     }}
                     onDelete={() => {
@@ -252,7 +252,7 @@ export const BoardExplorer = () => {
                       setSolutions(
                         remainingSolutions.length > 0
                           ? remainingSolutions
-                          : [DEFAULT_EMPTY_SOLUTION]
+                          : [DEFAULT_EMPTY_SOLUTION],
                       );
                       const adjustedIndex =
                         activeSolutionIndex < idx
@@ -291,7 +291,7 @@ export const BoardExplorer = () => {
                 <ThemedButton
                   onClick={() => {
                     setSolutionStepIndex((last) =>
-                      Math.min(activeSolution.solution.length - 1, last + 1)
+                      Math.min(activeSolution.solution.length - 1, last + 1),
                     );
                   }}
                 >

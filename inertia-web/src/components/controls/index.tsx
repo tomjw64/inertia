@@ -40,7 +40,7 @@ export const Controls = ({
   };
 
   const handleSimulateChange = async (
-    e: JSX.TargetedEvent<HTMLInputElement>
+    e: JSX.TargetedEvent<HTMLInputElement>,
   ) => {
     setSimulate(e.currentTarget.value);
   };
