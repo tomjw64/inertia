@@ -4,20 +4,21 @@ import {
   WalledBoard,
   Position,
 } from 'inertia-core';
-import { StateUpdater, useState } from 'preact/hooks';
+import { useState } from 'preact/hooks';
 import { JSX } from 'preact/jsx-runtime';
+import { StateSetter } from '../../utils/types';
 
 type ControlsProps = {
-  setWalledBoard: StateUpdater<WalledBoard>;
-  setGoal: StateUpdater<number>;
-  setInitialActorSquares: StateUpdater<ActorSquares>;
+  setWalledBoard: StateSetter<WalledBoard>;
+  setGoal: StateSetter<number>;
+  setInitialActorSquares: StateSetter<ActorSquares>;
   initialActorSquares: ActorSquares;
-  setActorSquares: StateUpdater<ActorSquares>;
+  setActorSquares: StateSetter<ActorSquares>;
   simulateMoveSequence: (sequence: SolutionStep[]) => Promise<void>;
   numStars: number;
-  setNumStars: StateUpdater<number>;
+  setNumStars: StateSetter<number>;
   starSpeed: number;
-  setStarSpeed: StateUpdater<number>;
+  setStarSpeed: StateSetter<number>;
 };
 
 export const Controls = ({

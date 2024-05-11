@@ -1,5 +1,4 @@
 import {
-  StateUpdater,
   useEffect,
   useMemo,
   useState,
@@ -21,6 +20,7 @@ import {
   get_movement_ray_for_actor,
 } from 'inertia-wasm';
 import { getActorColor } from '../../utils/actor-colors';
+import { StateSetter } from '../../utils/types';
 
 export const ACTOR_FLIP_ANIMATE_DURATION = 0.2;
 export const MOVE_INDICATOR_ANIMATE_DELAY = ACTOR_FLIP_ANIMATE_DURATION;
@@ -259,7 +259,7 @@ type BoardRowProps = {
   goal: number;
   actorSquares: ActorSquares;
   selectedActor: number;
-  setSelectedActor: StateUpdater<number>;
+  setSelectedActor: StateSetter<number>;
   movementRaySquares: Record<Direction, ExpandedBitBoard>;
   movementSquares: Record<Direction, Square>;
   interactive: boolean;
@@ -308,7 +308,7 @@ type BoardSquareProps = {
   goal: number;
   actorSquares: ActorSquares;
   selectedActor: number;
-  setSelectedActor: StateUpdater<number>;
+  setSelectedActor: StateSetter<number>;
   movementRaySquares: Record<Direction, ExpandedBitBoard>;
   movementSquares: Record<Direction, Square>;
   interactive?: boolean;

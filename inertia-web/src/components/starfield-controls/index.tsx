@@ -1,11 +1,11 @@
-import { StateUpdater } from 'preact/hooks';
 import { JSX } from 'preact/jsx-runtime';
+import { StateSetter } from '../../utils/types';
 
 type StarfieldControlsProps = {
   numStars: number;
-  setNumStars: StateUpdater<number>;
+  setNumStars: StateSetter<number>;
   starSpeed: number;
-  setStarSpeed: StateUpdater<number>;
+  setStarSpeed: StateSetter<number>;
 };
 
 export const StarfieldControls = ({

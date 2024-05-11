@@ -1,5 +1,5 @@
 import { animate } from 'motion';
-import { Nullable } from '../utils/nullable';
+import { Nullable } from '../utils/types';
 
 export const shake = (element: Nullable<Element>) => {
   if (element == null) {
