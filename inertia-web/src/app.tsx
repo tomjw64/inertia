@@ -7,6 +7,7 @@ import { FlexCenter } from './components/flex-center';
 import { ThemedPanel } from './components/themed-panel';
 import { Starfield } from './components/starfield';
 import { BoardExplorer } from './routes/board-explorer';
+import { BoardEditor } from './routes/board-editor';
 
 const NotFound = () => {
   return (
@@ -27,6 +28,7 @@ const App = () => (
       <Route path="/" component={Home} />
       <Route path="/room/:roomId" component={Room} />
       <Route path="/explore" component={BoardExplorer} />
+      <Route path="/edit" component={BoardEditor} />
       <Route path="/sandbox" component={Sandbox} />
       <Route path="/starfield-sandbox" component={StarfieldSandbox} />
       <Route default component={NotFound} />
