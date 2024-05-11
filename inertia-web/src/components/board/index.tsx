@@ -23,7 +23,6 @@ import { getActorColor } from '../../utils/actor-colors';
 import { StateSetter } from '../../utils/types';
 
 export const ACTOR_FLIP_ANIMATE_DURATION = 0.2;
-export const MOVE_INDICATOR_ANIMATE_DELAY = ACTOR_FLIP_ANIMATE_DURATION;
 export const MOVE_INDICATOR_ANIMATE_DURATION = 0.2;
 
 const BOARD_FLIP_ATTR = 'data-flip-board';
@@ -56,29 +55,26 @@ export const Board = ({
 }: BoardProps) => {
   const [selectedActor, setSelectedActor] = useState(-1);
 
-  const actorSquaresForHookDependency = JSON.stringify(actorSquares);
-
   const boardElement = useRef<HTMLDivElement>(null);
 
   const boardFlipRect = useRef<DOMRect | null>(null);
-  const actorFlipRects = useRef(new Map()).current;
+  const actorFlipRects = useRef(new Map());
 
-  const animateMoveIndicators = (delay: number = 0) => {
-    document
-      .querySelectorAll(`[${MOVE_INDICATOR_ATTR}]`)
-      .forEach((moveIndicator) => {
-        const animation = animate(
-          moveIndicator,
-          { opacity: [0, 1], scale: [0.1, 1] },
-          {
-            // delay,
-            duration: MOVE_INDICATOR_ANIMATE_DURATION,
-            easing: 'ease-out',
-          },
-        );
-        animation.pause();
-        setTimeout(animation.play, delay * 1000);
-      });
+  const initMoveIndicatorAnimations = () => {
+    return Array.from(
+      document.querySelectorAll(`[${MOVE_INDICATOR_ATTR}]`),
+    ).map((moveIndicator) => {
+      const animation = animate(
+        moveIndicator,
+        { opacity: [0, 1], scale: [0.1, 1] },
+        {
+          duration: MOVE_INDICATOR_ANIMATE_DURATION,
+          easing: 'ease-out',
+        },
+      );
+      animation.pause();
+      return animation;
+    });
   };
 
   const resetFlipRects = () => {
@@ -91,10 +87,12 @@ export const Board = ({
       .querySelectorAll(`[${ACTOR_FLIP_ATTR}]`)
       .forEach((flippedActor) => {
         const flipKey = flippedActor.getAttribute(ACTOR_FLIP_ATTR);
-        actorFlipRects.set(flipKey, flippedActor.getBoundingClientRect());
+        actorFlipRects.current.set(
+          flipKey,
+          flippedActor.getBoundingClientRect(),
+        );
       });
   };
-
   resetFlipRects();
 
   useEffect(() => {
@@ -115,54 +113,55 @@ export const Board = ({
   });
 
   useLayoutEffect(() => {
-    animateMoveIndicators();
-  }, [selectedActor]);
-
-  useLayoutEffect(() => {
-    animateMoveIndicators(MOVE_INDICATOR_ANIMATE_DELAY);
-  }, [actorSquares]);
-
-  useLayoutEffect(() => {
-    let baordDeltaX = 0;
-    let baordDeltaY = 0;
+    let boardDeltaX = 0;
+    let boardDeltaY = 0;
     const originalBoardRect = boardFlipRect.current;
     const board = document.querySelector(`[${BOARD_FLIP_ATTR}]`);
     if (originalBoardRect && board) {
       const currentBoardRect = board.getBoundingClientRect();
-      baordDeltaX = originalBoardRect.x - currentBoardRect.x;
-      baordDeltaY = originalBoardRect.y - currentBoardRect.y;
+      boardDeltaX = originalBoardRect.x - currentBoardRect.x;
+      boardDeltaY = originalBoardRect.y - currentBoardRect.y;
       boardFlipRect.current = currentBoardRect;
     }
 
-    document
-      .querySelectorAll(`[${ACTOR_FLIP_ATTR}]`)
-      .forEach((flippedActor) => {
-        const flipKey = flippedActor.getAttribute(ACTOR_FLIP_ATTR);
-        const firstRect = actorFlipRects.get(flipKey);
-        if (!firstRect) {
-          return;
-        }
-        const lastRect = flippedActor.getBoundingClientRect();
-        const deltaX = firstRect.x - lastRect.x - baordDeltaX;
-        const deltaY = firstRect.y - lastRect.y - baordDeltaY;
+    const indicatorAnimations = initMoveIndicatorAnimations();
+    const actorFlipAnimations = Promise.allSettled(
+      Array.from(document.querySelectorAll(`[${ACTOR_FLIP_ATTR}]`)).map(
+        (flippedActor) => {
+          const flipKey = flippedActor.getAttribute(ACTOR_FLIP_ATTR);
+          const firstRect = actorFlipRects.current.get(flipKey);
+          if (!firstRect) {
+            return Promise.resolve();
+          }
+          const lastRect = flippedActor.getBoundingClientRect();
+          const deltaX = firstRect.x - lastRect.x - boardDeltaX;
+          const deltaY = firstRect.y - lastRect.y - boardDeltaY;
 
-        actorFlipRects.set(flipKey, flippedActor.getBoundingClientRect());
+          actorFlipRects.current.set(
+            flipKey,
+            flippedActor.getBoundingClientRect(),
+          );
 
-        if (Math.abs(deltaX) < 1 && Math.abs(deltaY) < 1) {
-          return;
-        }
-        animate(
-          flippedActor,
-          {
-            transform: [
-              `translate(${deltaX}px, ${deltaY}px)`,
-              'translate(0px, 0px)',
-            ],
-          },
-          { duration: ACTOR_FLIP_ANIMATE_DURATION, easing: 'ease-in-out' },
-        );
-      });
-  }, [actorFlipRects, actorSquaresForHookDependency]);
+          if (Math.abs(deltaX) < 1 && Math.abs(deltaY) < 1) {
+            return Promise.resolve();
+          }
+          return animate(
+            flippedActor,
+            {
+              transform: [
+                `translate(${deltaX}px, ${deltaY}px)`,
+                'translate(0px, 0px)',
+              ],
+            },
+            { duration: ACTOR_FLIP_ANIMATE_DURATION, easing: 'ease-in-out' },
+          ).finished;
+        },
+      ),
+    );
+    actorFlipAnimations.then(() => {
+      indicatorAnimations.forEach((animation) => animation.play());
+    });
+  }, [actorSquares, selectedActor]);
 
   useLayoutEffect(() => {
     const boardElementCurrent = boardElement.current;
