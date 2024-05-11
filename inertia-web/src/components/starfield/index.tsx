@@ -41,7 +41,7 @@ const getStarAsNStepsAgo = (star: Star, speed: number, n: number): Star => {
 
 const getStarInfo = (
   canvas: HTMLCanvasElement,
-  star: Star
+  star: Star,
 ): {
   x: number;
   y: number;
@@ -70,7 +70,7 @@ const getStarInfoNStepsAgo = (
   canvas: HTMLCanvasElement,
   star: Star,
   speed: number,
-  n: number
+  n: number,
 ) => {
   const {
     x: lastX,
@@ -88,14 +88,14 @@ const starToPathAndOpacity = (
   canvas: HTMLCanvasElement,
   star: Star,
   speed: number,
-  blurNSteps: number
+  blurNSteps: number,
 ): [Path2D, number] | null => {
   const { x, y, radius, opacity } = getStarInfo(canvas, star);
   const { lastX, lastY, lastRadius } = getStarInfoNStepsAgo(
     canvas,
     star,
     speed,
-    blurNSteps
+    blurNSteps,
   );
 
   const deltaY = y - lastY;
@@ -181,7 +181,7 @@ export const Starfield = ({ numStars, speed }: StarfieldProps) => {
         .map((star) => starToPathAndOpacity(canvas, star, speed, 1))
         .filter((path): path is [Path2D, number] => path != null);
       const pathsByApproxOpacity = groupBy(starPaths, ([_path, opacity]) =>
-        opacity.toFixed(1)
+        opacity.toFixed(1),
       );
 
       Object.entries(pathsByApproxOpacity).forEach(([opacity, paths]) => {

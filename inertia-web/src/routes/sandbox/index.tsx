@@ -41,7 +41,7 @@ export const Sandbox = () => {
         goal,
       },
       actor,
-      direction
+      direction,
     );
     const newActorSquares = [...actorSquares] as ActorSquares;
     newActorSquares[actor] = destinationSquareIndex;
@@ -56,7 +56,7 @@ export const Sandbox = () => {
         goal,
       },
       step.actor,
-      step.direction
+      step.direction,
     );
     const newActorSquares = [...actorSquares] as ActorSquares;
     newActorSquares[step.actor] = destinationSquareIndex;

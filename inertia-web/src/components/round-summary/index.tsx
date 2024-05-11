@@ -49,21 +49,21 @@ export const RoundSummary = ({
     if (state.last_round_board) {
       boardExplorerParams.append(
         'position',
-        encode_position(state.last_round_board)
+        encode_position(state.last_round_board),
       );
     }
     if (state.last_round_optimal_solution) {
       boardExplorerParams.append(
         'solution',
-        `Optimal solution:${encode_solution(state.last_round_optimal_solution)}`
+        `Optimal solution:${encode_solution(state.last_round_optimal_solution)}`,
       );
     }
     if (state.last_round_solution) {
       boardExplorerParams.append(
         'solution',
         `${lastRoundSolverName}'s solution:${encode_solution(
-          state.last_round_solution
-        )}`
+          state.last_round_solution,
+        )}`,
       );
     }
     const boardExplorerUrl = `/explore?${boardExplorerParams.toString()}`;

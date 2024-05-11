@@ -85,7 +85,7 @@ export const Home = () => {
 
   const startGame = () => {
     window.location.href = `/room/${Math.floor(
-      Math.random() * 999_999
+      Math.random() * 999_999,
     )}?minDifficulty=${minDifficulty}&maxDifficulty=${maxDifficulty}`;
   };
 
@@ -100,11 +100,11 @@ export const Home = () => {
 
       homeElement.style.setProperty(
         '--bounce-width',
-        titleElement.clientWidth.toString() + 'px'
+        titleElement.clientWidth.toString() + 'px',
       );
       homeElement.style.setProperty(
         '--bounce-height',
-        titleElement.clientHeight.toString() + 'px'
+        titleElement.clientHeight.toString() + 'px',
       );
     };
     setAnimationVars();

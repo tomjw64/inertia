@@ -3,7 +3,7 @@ import { useEffect } from 'preact/hooks';
 
 export const useCountdown = (
   timeLeftMillis: number,
-  paused?: boolean
+  paused?: boolean,
 ): Signal<number> => {
   const stopTime = Date.now() + timeLeftMillis;
   const timeLeft = useSignal(timeLeftMillis);

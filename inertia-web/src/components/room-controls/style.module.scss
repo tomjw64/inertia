@@ -45,6 +45,7 @@
     border-bottom: 0.5em solid #ddd;
     left: 1em;
     top: -0.5em;
-    filter: drop-shadow(1px 0px 0px black) drop-shadow(-1px 0px 0px black) drop-shadow(0px -2px 0px black)
- }
+    filter: drop-shadow(1px 0px 0px black) drop-shadow(-1px 0px 0px black)
+      drop-shadow(0px -2px 0px black);
+  }
 }

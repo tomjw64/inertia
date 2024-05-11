@@ -14,7 +14,8 @@
   color: rgba(50, 50, 50, 0.5);
 }
 
-.dividerText::before, .dividerText::after {
+.dividerText::before,
+.dividerText::after {
   flex: 1;
   content: '';
   height: 2px;

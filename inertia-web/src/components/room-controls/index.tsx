@@ -24,7 +24,7 @@ export const AppControls = () => {
       {
         duration: 0.2,
         easing: 'ease-in-out',
-      }
+      },
     ).finished.then(() => {
       linkPopupTimeout.current = setTimeout(() => {
         linkPreventClose.current = false;
@@ -34,7 +34,7 @@ export const AppControls = () => {
           {
             duration: 0.2,
             easing: 'ease-in-out',
-          }
+          },
         ).finished.then(() => {
           if (!linkPreventClose.current) {
             linkPopup.classList.remove(style.visible);

@@ -46,7 +46,7 @@ export const Room = ({ roomId: roomIdString }: { roomId: string }) => {
   });
 
   const [countdownTimeLeft, setCountdownTimeLeft] = useState<number | null>(
-    null
+    null,
   );
 
   const position: Position = useMemo(() => {

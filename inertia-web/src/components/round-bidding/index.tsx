@@ -70,7 +70,7 @@ export const RoundBidding = ({
         handleSubmitBid();
       }
     },
-    [handleSubmitBid]
+    [handleSubmitBid],
   );
 
   useEffect(() => {

@@ -1,5 +1,5 @@
-@use "sass:color";
-@use "../../styles/common.scss";
+@use 'sass:color';
+@use '../../styles/common.scss';
 
 :root {
   --border-size: 2px;
@@ -31,15 +31,15 @@
   &.block-right {
     border-right: var(--border-size) solid #222;
   }
-  
+
   &.block-left {
     border-left: var(--border-size) solid #222;
   }
-  
+
   &.block-up {
     border-top: var(--border-size) solid #222;
   }
-  
+
   &.block-down {
     border-bottom: var(--border-size) solid #222;
   }
@@ -53,7 +53,7 @@
       .move-ray-#{$color-name} {
         background: color.scale($value, $lightness: 75%);
       }
-    
+
       .move-#{$color-name} {
         background: color.scale($value, $lightness: 50%);
       }
@@ -64,17 +64,20 @@
       height: 100%;
       cursor: pointer;
     }
-  
+
     .move-#{$color-name} {
       width: 100%;
       height: 100%;
       cursor: pointer;
     }
   }
-  
+
   &.goal {
-    background:
-      linear-gradient(45deg, common.$canonical-red, common.$transparent 50%),
+    background: linear-gradient(
+        45deg,
+        common.$canonical-red,
+        common.$transparent 50%
+      ),
       linear-gradient(135deg, common.$canonical-green, common.$transparent 50%),
       linear-gradient(225deg, common.$canonical-yellow, common.$transparent 50%),
       linear-gradient(315deg, common.$canonical-blue, common.$transparent 50%),
@@ -102,7 +105,7 @@
 
   @each $color-name, $value in common.$canonical-colors {
     &.actor-#{$color-name} {
-      background: $value
+      background: $value;
     }
   }
 }

@@ -46,7 +46,7 @@ export const getPlayerId = (): number => {
 
 export const getPlayerReconnectKey = (): number => {
   const storedPlayerReconnectKey = localStorage.getItem(
-    KEY_PLAYER_RECONNECT_KEY
+    KEY_PLAYER_RECONNECT_KEY,
   );
   if (storedPlayerReconnectKey) {
     return parseInt(storedPlayerReconnectKey, 10);
