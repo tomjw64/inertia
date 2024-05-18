@@ -150,6 +150,9 @@ export const Starfield = ({ numStars, speed }: StarfieldProps) => {
       const pixelRatio = window.devicePixelRatio;
       canvas.height = Math.floor(window.innerHeight * pixelRatio);
       canvas.width = Math.floor(window.innerWidth * pixelRatio);
+
+      context.fillStyle = '#373b55';
+      context.fillRect(0, 0, canvas.width, canvas.height);
     };
 
     setup();
