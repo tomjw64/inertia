@@ -1,0 +1,192 @@
+@use 'sass:color';
+@use 'sass:math';
+@use '../../styles/common.scss';
+
+:root {
+  --square-border-size: 1px;
+  --actor-border-size: 1px;
+
+  @media (min-width: 400px) and (min-height: 400px) {
+    --square-border-size: 2px;
+    --actor-border-size: 2px;
+  }
+
+  @media (min-width: 800px) and (min-height: 800px) {
+    --square-border-size: 3px;
+    --actor-border-size: 3px;
+  }
+}
+
+.board {
+  border: 2px solid common.$board-border-color;
+  width: 94svmin;
+  height: 94svmin;
+  display: grid;
+  grid-template-rows: repeat(16, 1fr);
+  grid-template-columns: repeat(16, 1fr);
+  box-sizing: border-box;
+  margin: 3svmin;
+}
+
+.square {
+  background: common.$square-color;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+
+  @each $color-name, $value in common.$canonical-colors {
+    .indicator-#{$color-name} {
+      background: color.scale($value, $lightness: 75%);
+    }
+
+    .indicator-#{$color-name}-emphasized {
+      background: color.scale($value, $lightness: 50%);
+    }
+  }
+}
+
+.border {
+  border: 1px solid common.$board-border-color;
+
+  @each $direction in ('top', 'bottom', 'left', 'right') {
+    &.wall-#{$direction}-indicator {
+      border-#{$direction}: var(--square-border-size) solid #555;
+    }
+    
+    &.wall-#{$direction} {
+      border-#{$direction}: var(--square-border-size) solid #222;
+    }
+  }
+}
+
+$actor-width: 80%;
+$region-depth: 25%;
+$region-depth-complement: 100% - $region-depth;
+$region-depth-actor-adjusted: math.div(100% - $actor-width, 2);
+$region-depth-actor-adjusted-complement: 100% - $region-depth-actor-adjusted;
+
+$top-left: 0% 0%;
+$top-left-inner: var(--region-depth) var(--region-depth);
+$top-right: 100% 0%;
+$top-right-inner: var(--region-depth-complement) var(--region-depth);
+$bottom-left: 0% 100%;
+$bottom-left-inner: var(--region-depth) var(--region-depth-complement);
+$bottom-right: 100% 100%;
+$bottom-right-inner: var(--region-depth-complement) var(--region-depth-complement);
+:root {
+  --region-depth: #{$region-depth};
+  --region-depth-complement: #{$region-depth-complement};
+}
+.region {
+  z-index: 10;
+  &.actor-adjusted {
+    --region-depth: #{$region-depth-actor-adjusted};
+    --region-depth-complement: #{$region-depth-actor-adjusted-complement};
+  }
+}
+.region-top {
+  clip-path: polygon(
+    $top-left,
+    $top-right,
+    $top-right-inner,
+    $top-left-inner
+  );
+}
+.region-bottom {
+  clip-path: polygon(
+    $bottom-left-inner,
+    $bottom-right-inner,
+    $bottom-right,
+    $bottom-left
+  );
+}
+.region-left {
+  clip-path: polygon(
+    $top-left,
+    $top-left-inner,
+    $bottom-left-inner,
+    $bottom-left
+  );
+}
+.region-right {
+  clip-path: polygon(
+    $top-right,
+    $bottom-right,
+    $bottom-right-inner,
+    $top-right-inner
+  );
+}
+.region-center {
+  clip-path: polygon(
+    $top-left-inner,
+    $top-right-inner,
+    $bottom-right-inner,
+    $bottom-left-inner
+  );
+}
+
+// DEBUGGING
+$region-debug: false;
+@if ($region-debug) {
+  .region {
+    opacity: 0.5;
+  }
+  .region-top {
+    background: green;
+  }
+  .region-bottom {
+    background: red;
+  }
+  .region-left {
+    background: yellow;
+  }
+  .region-right {
+    background: blue;
+  }
+  .region-center {
+    background: purple;
+  }
+}
+
+.goal {
+  background: linear-gradient(
+      45deg,
+      common.$canonical-red,
+      common.$transparent 50%
+    ),
+    linear-gradient(135deg, common.$canonical-green, common.$transparent 50%),
+    linear-gradient(225deg, common.$canonical-yellow, common.$transparent 50%),
+    linear-gradient(315deg, common.$canonical-blue, common.$transparent 50%),
+    common.$square-color;
+  
+  &.selected {
+    border: calc(var(--actor-border-size) * 2) solid #eee;
+  }
+}
+
+.slot {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+}
+
+.actor {
+  box-sizing: border-box;
+  border-radius: 35%;
+  border: var(--actor-border-size) solid #222;
+  z-index: 2;
+
+  width: $actor-width;
+  height: $actor-width;
+
+  &.selected {
+    border: var(--actor-border-size) solid #eee;
+  }
+
+  @each $color-name, $value in common.$canonical-colors {
+    &.actor-#{$color-name} {
+      background: $value;
+    }
+  }
+}
