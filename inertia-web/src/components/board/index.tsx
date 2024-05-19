@@ -25,6 +25,7 @@ import { StateSetter } from '../../utils/types';
 export const ACTOR_FLIP_ANIMATE_DURATION = 0.2;
 export const MOVE_INDICATOR_ANIMATE_DURATION = 0.2;
 
+const BOARD_FLIP_ATTR = 'data-flip-board';
 const ACTOR_FLIP_ATTR = 'data-animate-actor-flip-key';
 const MOVE_INDICATOR_ATTR = 'data-animate-move-indicator';
 
@@ -56,6 +57,7 @@ export const Board = ({
 
   const boardElement = useRef<HTMLDivElement>(null);
 
+  const boardFlipRect = useRef<DOMRect | null>(null);
   const actorFlipRects = useRef(new Map());
 
   const initMoveIndicatorAnimations = () => {
@@ -76,6 +78,11 @@ export const Board = ({
   };
 
   const resetFlipRects = () => {
+    const board = document.querySelector(`[${BOARD_FLIP_ATTR}]`);
+    if (board) {
+      boardFlipRect.current = board.getBoundingClientRect();
+    }
+
     document
       .querySelectorAll(`[${ACTOR_FLIP_ATTR}]`)
       .forEach((flippedActor) => {
@@ -106,6 +113,17 @@ export const Board = ({
   });
 
   useLayoutEffect(() => {
+    let boardDeltaX = 0;
+    let boardDeltaY = 0;
+    const originalBoardRect = boardFlipRect.current;
+    const board = document.querySelector(`[${BOARD_FLIP_ATTR}]`);
+    if (originalBoardRect && board) {
+      const currentBoardRect = board.getBoundingClientRect();
+      boardDeltaX = originalBoardRect.x - currentBoardRect.x;
+      boardDeltaY = originalBoardRect.y - currentBoardRect.y;
+      boardFlipRect.current = currentBoardRect;
+    }
+
     const indicatorAnimations = initMoveIndicatorAnimations();
     const actorFlipAnimations = Promise.allSettled(
       Array.from(document.querySelectorAll(`[${ACTOR_FLIP_ATTR}]`)).map(
@@ -116,8 +134,8 @@ export const Board = ({
             return Promise.resolve();
           }
           const lastRect = flippedActor.getBoundingClientRect();
-          const deltaX = firstRect.x - lastRect.x;
-          const deltaY = firstRect.y - lastRect.y;
+          const deltaX = firstRect.x - lastRect.x - boardDeltaX;
+          const deltaY = firstRect.y - lastRect.y - boardDeltaY;
 
           actorFlipRects.current.set(
             flipKey,
