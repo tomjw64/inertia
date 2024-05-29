@@ -25,20 +25,18 @@ impl fmt::Debug for ImprovedHeuristicBoard {
 }
 
 impl ImprovedHeuristicBoard {
-  // This is an admissible heuristic (but ONLY if any actor can reach the goal)
+  // This is an admissible heuristic (but less useful if a actor can reach the goal)
   // because it is constructed such that if the heuristic of a given actor
   // arrangement is N, then it is impossible to make a move where the heuristic
   // of the new arrangement is less than N-1. In other words, an arrangement
   // giving heuristic M is unreachable without first creating an arrangement
-  // giving heuristic M+1. If only a single actor can reach the goal, an
-  // admissible heuristic would be given by
+  // giving heuristic M+1. If only a single actor can reach the goal, a
+  // better heuristic would be given by
   // max(improved_heuristic_board.get(squares), heuristic_board[i]), with i
   // being the square of the relevant actor. This is because
   // ImprovedHeuristicBoard provides an admissible heuristic for ANY actor to
-  // reach the goal, but is not admissible if considering only a single actor
-  // square in isolation. HeuristicBoard, however, can provide an admissible
-  // heuristic for any actor on any square in isolation (but it is always
-  // smaller). max(improved_heuristic_board.get(squares), heuristic_board[i]),
+  // reach the goal, but it poorly estimates if using only a single actor
+  // square in isolation. max(improved_heuristic_board.get(squares), heuristic_board[i]),
   // in plain terms: "The target actor cannot reach the goal in fewer moves than
   // it would take for ANY actor to reach the goal, nor can it reach the goal in
   // fewer moves than an actor at its square could if it could stop at any point."
