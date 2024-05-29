@@ -1,100 +1,132 @@
+use hashbrown::hash_map::Entry;
+use hashbrown::HashMap;
+
 use crate::mechanics::ActorSquares;
 use crate::mechanics::Direction;
 use crate::mechanics::MoveBoard;
 use crate::mechanics::Square;
+use crate::solvers::BucketingMonotonicPriorityQueue;
 use crate::solvers::HeuristicBoard;
+use crate::solvers::ImprovedHeuristicBoard;
 use crate::solvers::SolutionStep;
 
-pub fn deepening_search_to_depth(
+struct VisitedData {
+  parent: ActorSquares,
+  depth: u8,
+}
+
+struct QueueData {
+  actor_squares: ActorSquares,
+  depth: u8,
+}
+
+pub fn solve(
   board: &MoveBoard,
   goal: Square,
   actor_squares: ActorSquares,
   max_depth: usize,
 ) -> Option<Vec<SolutionStep>> {
-  let heuristic_board = HeuristicBoard::from_move_board(board, goal);
+  let heuristic_board = ImprovedHeuristicBoard::from_move_board(board, goal);
+  let mut queue = BucketingMonotonicPriorityQueue::with_capacities(256, 1024);
+  let mut visited: HashMap<u32, VisitedData> = HashMap::with_capacity(1024);
 
-  let mut current_depth = 0;
-
-  let mut visited = vec![0; u32::MAX as usize];
-
-  loop {
-    let mut solution = Vec::with_capacity(current_depth);
-    let depth_search_result = search_at_depth(
-      board,
-      goal,
-      &heuristic_board,
+  queue.push(
+    QueueData {
       actor_squares,
-      current_depth,
-      &mut solution,
-      &mut visited,
-    );
-    if current_depth == max_depth || depth_search_result.is_some() {
-      return depth_search_result;
+      depth: 0,
+    },
+    heuristic_board.get(actor_squares),
+  );
+
+  while let Some(queue_data) = queue.pop() {
+    let QueueData {
+      actor_squares,
+      depth,
+    } = queue_data;
+
+    if depth as usize > max_depth {
+      return None;
     }
-    // println!("No solution found for depth {}", current_depth);
-    current_depth += 1;
-  }
-}
 
-fn search_at_depth(
-  board: &MoveBoard,
-  goal: Square,
-  heuristic_board: &HeuristicBoard,
-  actor_squares: ActorSquares,
-  search_depth: usize,
-  solution: &mut Vec<SolutionStep>,
-  visited: &mut Vec<u8>,
-) -> Option<Vec<SolutionStep>> {
-  let depth = solution.len();
-  if depth == search_depth {
-    return if actor_squares.0.contains(&goal) {
-      Some(solution.clone())
-    } else {
-      None
-    };
-  }
-
-  let depth_allowance = search_depth - depth;
-
-  if heuristic_board.can_prune(actor_squares, depth_allowance) {
-    return None;
-  }
-
-  let visited_key = actor_squares.as_sorted_u32() as usize;
-  if visited[visited_key] >= depth_allowance as u8 {
-    return None;
-  }
-  visited[visited_key] = depth_allowance as u8;
-
-  // TODO: iterator for all moves from a position?
-  for actor_index in 0..actor_squares.0.len() {
-    let actor_square = actor_squares.0[actor_index];
-    for direction in Direction::VARIANTS {
-      let move_destination =
-        board.get_move_destination(actor_square, actor_squares, direction);
-      if move_destination == actor_square {
-        continue;
+    if actor_squares.0.contains(&goal) {
+      let mut solution = Vec::with_capacity(depth as usize);
+      let mut current_actor_squares = actor_squares;
+      for _ in 0..depth {
+        let visited_key = current_actor_squares.as_sorted_u32();
+        let parent = visited
+          .get(&visited_key)
+          .expect("parent must be visited")
+          .parent;
+        for idx in 0..4 {
+          if current_actor_squares.0[idx] != parent.0[idx] {
+            solution.push(SolutionStep {
+              actor: idx as u8,
+              direction: match current_actor_squares.0[idx].0 as i16
+                - parent.0[idx].0 as i16
+              {
+                -255..=-16 => Direction::Up,
+                -15..=-1 => Direction::Left,
+                1..=15 => Direction::Right,
+                16..=255 => Direction::Down,
+                _ => unreachable!(),
+              },
+            })
+          }
+        }
+        current_actor_squares = parent;
       }
-      let mut new_actor_squares = actor_squares;
-      new_actor_squares.0[actor_index] = move_destination;
+      solution.reverse();
+      return Some(solution);
+    }
 
-      solution.push(SolutionStep {
-        actor: actor_index as u8,
-        direction,
-      });
-      let result = search_at_depth(
-        board,
-        goal,
-        heuristic_board,
-        new_actor_squares,
-        search_depth,
-        solution,
-        visited,
-      );
-      if result.is_some() {
-        return result;
+    for actor_index in 0..actor_squares.0.len() {
+      let actor_square = actor_squares.0[actor_index];
+      for direction in Direction::VARIANTS {
+        let move_destination =
+          board.get_move_destination(actor_square, actor_squares, direction);
+        if move_destination == actor_square {
+          continue;
+        }
+
+        let new_depth = depth + 1;
+
+        let mut new_actor_squares = actor_squares;
+        new_actor_squares.0[actor_index] = move_destination;
+
+        let visited_key = new_actor_squares.as_sorted_u32();
+        let prospective_value = VisitedData {
+          depth: new_depth,
+          parent: actor_squares,
+        };
+        let visited_entry = visited.entry(visited_key);
+        let skippable = match visited_entry {
+          Entry::Occupied(mut entry) => {
+            let existing: &mut VisitedData = entry.get_mut();
+            if existing.depth <= prospective_value.depth {
+              true
+            } else {
+              *existing = prospective_value;
+              false
+            }
+          }
+          Entry::Vacant(entry) => {
+            entry.insert(prospective_value);
+            false
+          }
+        };
+
+        if skippable {
+          continue;
+        }
+
+        queue.push(
+          QueueData {
+            actor_squares: new_actor_squares,
+            depth: new_depth,
+          },
+          new_depth as usize + heuristic_board.get(actor_squares),
+        );
       }
-      solution.pop();
     }
   }
 
@@ -128,7 +160,7 @@ mod benchmarks {
     let start = Instant::now();
 
     let solution: Option<Vec<SolutionStep>> =
-      deepening_search_to_depth(&board, goal, actor_squares, 45);
+      solve(&board, goal, actor_squares, 45);
 
     let elapsed = start.elapsed();
     println!("Elapsed: {:.2?}", elapsed);
@@ -158,13 +190,12 @@ mod benchmarks {
     let actor_squares =
       ActorSquares([Square(17), Square(18), Square(33), Square(34)]);
     let goal = Square::from_row_col(8, 8);
-
     let board = MoveBoard::from(&walled_board);
 
     let start = Instant::now();
 
     let solution: Option<Vec<SolutionStep>> =
-      deepening_search_to_depth(&board, goal, actor_squares, 80);
+      solve(&board, goal, actor_squares, 80);
 
     let elapsed = start.elapsed();
     println!("Elapsed: {:.2?}", elapsed);
@@ -192,7 +223,7 @@ mod benchmarks {
     let start = Instant::now();
 
     let solution: Option<Vec<SolutionStep>> =
-      deepening_search_to_depth(&board, goal, actor_squares, 45);
+      solve(&board, goal, actor_squares, 45);
 
     let elapsed = start.elapsed();
     println!("Elapsed: {:.2?}", elapsed);
@@ -213,7 +244,7 @@ mod test {
 
   #[test]
   fn test_already_solved() {
-    let solution = deepening_search_to_depth(
+    let solution = solve(
       &MoveBoard::EMPTY,
       Square(0),
       ActorSquares([Square(0), Square(1), Square(2), Square(3)]),
@@ -224,7 +255,7 @@ mod test {
 
   #[test]
   fn test_empty_solve_in_one() {
-    let solution = deepening_search_to_depth(
+    let solution = solve(
       &MoveBoard::EMPTY,
       Square(0),
       ActorSquares([Square(1), Square(2), Square(3), Square(4)]),
@@ -235,7 +266,7 @@ mod test {
 
   #[test]
   fn test_empty_solve_in_one_reverse() {
-    let solution = deepening_search_to_depth(
+    let solution = solve(
       &MoveBoard::EMPTY,
       Square(0),
       ActorSquares([Square(4), Square(3), Square(2), Square(1)]),
@@ -246,7 +277,7 @@ mod test {
 
   #[test]
   fn test_empty_solve_in_one_below_max() {
-    let solution = deepening_search_to_depth(
+    let solution = solve(
       &MoveBoard::EMPTY,
       Square(0),
       ActorSquares([Square(4), Square(3), Square(2), Square(1)]),
@@ -257,7 +288,7 @@ mod test {
 
   #[test]
   fn test_empty_no_solve_in_one() {
-    let solution = deepening_search_to_depth(
+    let solution = solve(
       &MoveBoard::EMPTY,
       Square(0),
       ActorSquares([Square(17), Square(18), Square(19), Square(20)]),
@@ -268,7 +299,7 @@ mod test {
 
   #[test]
   fn test_empty_solve_in_two() {
-    let solution = deepening_search_to_depth(
+    let solution = solve(
       &MoveBoard::EMPTY,
       Square(0),
       ActorSquares([Square(17), Square(18), Square(19), Square(20)]),
@@ -276,13 +307,13 @@ mod test {
     );
     assert_eq!(
       solution,
-      Some(vec![(0, Direction::Up).into(), (0, Direction::Left).into()])
+      Some(vec![(3, Direction::Up).into(), (3, Direction::Left).into()])
     );
   }
 
   #[test]
   fn test_empty_solve_in_three() {
-    let solution = deepening_search_to_depth(
+    let solution = solve(
       &MoveBoard::EMPTY,
       Square(17),
       ActorSquares([Square(14), Square(15), Square(49), Square(255)]),

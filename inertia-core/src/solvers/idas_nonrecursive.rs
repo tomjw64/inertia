@@ -2,9 +2,8 @@ use crate::mechanics::ActorSquares;
 use crate::mechanics::Direction;
 use crate::mechanics::MoveBoard;
 use crate::mechanics::Square;
-use crate::solvers::SolutionStep;
-
 use crate::solvers::HeuristicBoard;
+use crate::solvers::SolutionStep;
 
 pub fn deepening_search_to_depth(
   board: &MoveBoard,
@@ -120,147 +119,14 @@ mod benchmarks {
   use crate::mechanics::Position;
   use crate::mechanics::PositionGenerator;
   use crate::mechanics::WalledBoard;
+  use crate::solvers::fixtures::GENERATED_WALLED_BOARD_15;
 
   use super::*;
 
   #[bench]
   fn bench_solve_generated_15(_b: &mut Bencher) {
-    let walled_board = WalledBoard {
-      vertical: [
-        [
-          false, false, false, false, false, false, true, false, false, false,
-          false, false, true, false, false,
-        ],
-        [
-          false, false, false, true, false, false, false, false, true, false,
-          false, false, false, false, false,
-        ],
-        [
-          false, false, false, false, false, false, false, false, false, false,
-          false, false, false, false, false,
-        ],
-        [
-          false, false, false, false, false, false, false, false, false, false,
-          false, false, false, false, false,
-        ],
-        [
-          false, false, false, false, true, false, true, false, false, false,
-          false, false, false, false, false,
-        ],
-        [
-          false, false, false, false, false, false, false, false, false, false,
-          false, false, false, false, false,
-        ],
-        [
-          false, false, false, false, false, false, false, false, false, false,
-          false, false, true, true, false,
-        ],
-        [
-          false, false, false, false, false, false, true, false, true, false,
-          false, false, false, false, false,
-        ],
-        [
-          false, false, false, false, false, false, true, false, true, false,
-          false, false, false, false, false,
-        ],
-        [
-          false, true, false, false, false, false, false, false, false, false,
-          false, false, false, false, true,
-        ],
-        [
-          false, false, false, false, false, false, true, false, false, false,
-          true, false, false, false, false,
-        ],
-        [
-          false, false, false, false, false, false, false, false, false, false,
-          false, false, false, false, false,
-        ],
-        [
-          false, false, false, false, false, false, true, false, false, false,
-          false, false, false, false, false,
-        ],
-        [
-          false, false, false, false, false, false, false, false, false, false,
-          false, false, false, false, false,
-        ],
-        [
-          false, false, false, false, false, false, false, false, false, false,
-          false, false, false, true, false,
-        ],
-        [
-          false, false, true, false, false, false, false, false, false, false,
-          false, false, true, false, false,
-        ],
-      ],
-      horizontal: [
-        [
-          false, true, false, false, false, false, false, false, true, false,
-          false, false, false, false, false,
-        ],
-        [
-          false, false, false, false, false, false, false, false, false, true,
-          false, false, false, false, false,
-        ],
-        [
-          false, false, false, false, false, false, false, false, false, false,
-          false, false, false, false, false,
-        ],
-        [
-          false, false, false, false, false, false, false, false, false, false,
-          false, false, false, false, false,
-        ],
-        [
-          true, false, false, false, false, false, false, false, false, false,
-          false, false, false, false, false,
-        ],
-        [
-          false, false, false, false, true, false, false, false, false, false,
-          false, false, false, false, false,
-        ],
-        [
-          false, false, false, true, false, false, false, false, false, false,
-          true, true, false, false, false,
-        ],
-        [
-          false, false, false, false, false, false, true, false, true, false,
-          false, false, false, false, false,
-        ],
-        [
-          false, true, false, false, false, false, true, false, true, false,
-          false, false, false, false, false,
-        ],
-        [
-          false, false, false, false, false, false, false, false, false, false,
-          false, false, false, false, false,
-        ],
-        [
-          false, false, false, false, false, false, false, false, false, true,
-          false, false, false, false, false,
-        ],
-        [
-          false, false, false, false, false, false, false, false, false, false,
-          false, false, false, false, false,
-        ],
-        [
-          false, false, false, false, false, true, false, false, false, false,
-          false, false, false, false, false,
-        ],
-        [
-          false, false, false, false, false, false, false, false, false, false,
-          false, false, false, true, false,
-        ],
-        [
-          false, false, false, false, false, false, true, false, true, false,
-          false, false, false, false, false,
-        ],
-        [
-          false, false, false, false, true, false, false, false, false, false,
-          true, false, false, false, false,
-        ],
-      ],
-    };
+    let walled_board = GENERATED_WALLED_BOARD_15;
     let actor_squares = ActorSquares([37, 108, 57, 50].map(Square));
-
     let board = MoveBoard::from(&walled_board);
 
     let start = Instant::now();

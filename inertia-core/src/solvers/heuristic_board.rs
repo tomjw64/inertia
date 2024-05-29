@@ -37,13 +37,31 @@ impl HeuristicBoard {
       .unwrap()
   }
 
+  pub fn get_augmented(&self, actor_squares: ActorSquares) -> usize {
+    let base = self.get(actor_squares);
+    let actors_bitboard = actor_squares.as_bitboard();
+    for (augmentation, bitboard) in self
+      .heuristic_augment_unoccupied_bitboards
+      .iter()
+      .enumerate()
+      .rev()
+    {
+      if let Some(bitboard) = bitboard {
+        if (actors_bitboard & bitboard).0.is_zero() {
+          return base + augmentation;
+        }
+      }
+    }
+    return base;
+  }
+
   pub fn can_prune(
     &self,
     actor_squares: ActorSquares,
     depth_allowance: usize,
   ) -> bool {
     let base_heuristic = self.get(actor_squares);
-    // Since the heuristic is admissable (and cost per move is constant), if the
+    // Since the heuristic is admissible (and cost per move is constant), if the
     // heuristic is greater than the cost/depth allowance remaining for this
     // search depth, we know with certainty we will not reach the goal in this
     // iteration and so we can prune this branch.
@@ -100,7 +118,7 @@ impl HeuristicBoard {
       let square_set_adj = current_square_set
         .iter()
         .cloned()
-        .map(Square::get_adjacent_and_self)
+        .map(Square::get_all_adjacent_and_self)
         .collect::<Vec<_>>();
       let square_set_not_on_edge =
         square_set_adj.iter().all(|adj| adj.len() == 5);
@@ -111,7 +129,7 @@ impl HeuristicBoard {
       current_square_set = current_square_set
         .iter()
         .cloned()
-        .flat_map(Square::get_adjacent_and_self)
+        .flat_map(Square::get_all_adjacent_and_self)
         .collect::<BTreeSet<_>>();
       let unoccupied_augment_bitboard = current_square_set
         .iter()

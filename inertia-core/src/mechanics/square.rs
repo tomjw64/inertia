@@ -4,6 +4,8 @@ use serde::Deserialize;
 use serde::Serialize;
 use typeshare::typeshare;
 
+use super::Direction;
+
 #[typeshare]
 #[derive(
   Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize,
@@ -39,39 +41,53 @@ impl Square {
     ((self.0 / 16) as usize, (self.0 % 16) as usize)
   }
 
-  pub fn get_adjacent_and_self(self) -> Vec<Square> {
-    let index = self.0;
-    let mut adj = vec![self];
-    if index > 15 {
-      adj.push(Square(index - 16))
-    }
-    if index < 240 {
-      adj.push(Square(index + 16))
-    }
-    if index % 16 != 0 {
-      adj.push(Square(index - 1))
-    }
-    if index % 16 != 15 {
-      adj.push(Square(index + 1))
+  pub fn get_all_adjacent_and_self(self) -> Vec<Square> {
+    let mut adj = self.get_all_adjacent();
+    adj.push(self);
+    adj
+  }
+
+  pub fn get_all_adjacent(self) -> Vec<Square> {
+    let mut adj = vec![];
+    for direction in Direction::VARIANTS {
+      if let Some(square) = self.get_adjacent(direction) {
+        adj.push(square);
+      }
     }
     adj
   }
 
-  pub fn get_adjacent(self) -> Vec<Square> {
+  pub fn get_adjacent(self, direction: Direction) -> Option<Self> {
     let index = self.0;
-    let mut adj = vec![];
-    if index > 15 {
-      adj.push(Square(index - 16))
+    match direction {
+      Direction::Up => {
+        if index > 15 {
+          Some(Square(index - 16))
+        } else {
+          None
+        }
+      }
+      Direction::Down => {
+        if index < 240 {
+          Some(Square(index + 16))
+        } else {
+          None
+        }
+      }
+      Direction::Left => {
+        if index % 16 != 0 {
+          Some(Square(index - 1))
+        } else {
+          None
+        }
+      }
+      Direction::Right => {
+        if index % 16 != 15 {
+          Some(Square(index + 1))
+        } else {
+          None
+        }
+      }
     }
-    if index < 240 {
-      adj.push(Square(index + 16))
-    }
-    if index % 16 != 0 {
-      adj.push(Square(index - 1))
-    }
-    if index % 16 != 15 {
-      adj.push(Square(index + 1))
-    }
-    adj
   }
 }

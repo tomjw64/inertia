@@ -145,6 +145,39 @@ impl MoveBoard {
     ray
   }
 
+  pub fn get_unimpeded_movement_ray_squares(
+    &self,
+    actor_square: Square,
+    direction: Direction,
+  ) -> Vec<Square> {
+    let mut result = Vec::with_capacity(16);
+    let move_destination =
+      self.get_unimpeded_move_destination(actor_square, direction);
+    match direction {
+      Direction::Up => {
+        for index in (move_destination.0..=actor_square.0).step_by(16).rev() {
+          result.push(Square(index));
+        }
+      }
+      Direction::Down => {
+        for index in (actor_square.0..=move_destination.0).step_by(16) {
+          result.push(Square(index));
+        }
+      }
+      Direction::Left => {
+        for index in (move_destination.0..=actor_square.0).rev() {
+          result.push(Square(index));
+        }
+      }
+      Direction::Right => {
+        for index in actor_square.0..=move_destination.0 {
+          result.push(Square(index));
+        }
+      }
+    }
+    result
+  }
+
   pub fn get_unimpeded_move_destination(
     &self,
     actor_square: Square,
