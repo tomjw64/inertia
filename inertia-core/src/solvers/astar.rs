@@ -6,7 +6,6 @@ use crate::mechanics::Direction;
 use crate::mechanics::MoveBoard;
 use crate::mechanics::Square;
 use crate::solvers::BucketingMonotonicPriorityQueue;
-use crate::solvers::HeuristicBoard;
 use crate::solvers::ImprovedHeuristicBoard;
 use crate::solvers::SolutionStep;
 

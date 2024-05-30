@@ -52,7 +52,7 @@ impl HeuristicBoard {
         }
       }
     }
-    return base;
+    base
   }
 
   pub fn can_prune(

@@ -1,5 +1,4 @@
 use core::fmt;
-use std::mem;
 
 use crate::mechanics::ActorSquares;
 use crate::mechanics::Direction;
@@ -25,21 +24,21 @@ impl fmt::Debug for ImprovedHeuristicBoard {
 }
 
 impl ImprovedHeuristicBoard {
-  // This is an admissible heuristic (but less useful if a actor can reach the goal)
-  // because it is constructed such that if the heuristic of a given actor
+  // This is an admissible heuristic (but less useful if a actor can reach the
+  // goal) because it is constructed such that if the heuristic of a given actor
   // arrangement is N, then it is impossible to make a move where the heuristic
   // of the new arrangement is less than N-1. In other words, an arrangement
   // giving heuristic M is unreachable without first creating an arrangement
-  // giving heuristic M+1. If only a single actor can reach the goal, a
-  // better heuristic would be given by
-  // max(improved_heuristic_board.get(squares), heuristic_board[i]), with i
-  // being the square of the relevant actor. This is because
-  // ImprovedHeuristicBoard provides an admissible heuristic for ANY actor to
-  // reach the goal, but it poorly estimates if using only a single actor
-  // square in isolation. max(improved_heuristic_board.get(squares), heuristic_board[i]),
-  // in plain terms: "The target actor cannot reach the goal in fewer moves than
-  // it would take for ANY actor to reach the goal, nor can it reach the goal in
-  // fewer moves than an actor at its square could if it could stop at any point."
+  // giving heuristic M+1. If only a single actor can reach the goal, a better
+  // heuristic would be given by max(improved_heuristic_board.get(squares),
+  // heuristic_board[i]), with i being the square of the relevant actor. This is
+  // because ImprovedHeuristicBoard provides an admissible heuristic for ANY
+  // actor to reach the goal, but it poorly estimates if using only a single
+  // actor square in isolation. max(improved_heuristic_board.get(squares),
+  // heuristic_board[i]), in plain terms: "The target actor cannot reach the
+  // goal in fewer moves than it would take for ANY actor to reach the goal, nor
+  // can it reach the goal in fewer moves than an actor at its square could if
+  // it could stop at any point."
   pub fn get(&self, actor_squares: ActorSquares) -> usize {
     actor_squares
       .0
@@ -64,7 +63,7 @@ impl ImprovedHeuristicBoard {
     let mut current_square_set = vec![Square(goal.0)];
     let mut next_square_set = Vec::new();
 
-    while current_square_set.len() > 0 {
+    while !current_square_set.is_empty() {
       for &square in current_square_set.iter() {
         let square_index = square.0 as usize;
         if visited[square_index] {
