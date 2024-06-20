@@ -1,8 +1,20 @@
 import { ActorSquares, Position, WalledBoard } from 'inertia-core';
-import { decode_position, encode_position } from 'inertia-wasm';
+import {
+  decode_position,
+  encode_position,
+  encode_solution,
+  get_min_assists_board,
+  get_group_min_moves_board,
+  get_min_moves_board,
+  solve,
+} from 'inertia-wasm';
 import debounce from 'lodash/debounce';
 import { useEffect, useMemo, useState } from 'preact/hooks';
 import { Divider } from '../../components/divider';
+import { ErrorPage } from '../../components/error-page';
+import { FlexCenter } from '../../components/flex-center';
+import { PanelTitle } from '../../components/panel-title';
+import { AppControls } from '../../components/room-controls';
 import {
   BoardSelection,
   SimpleBoard,
@@ -10,12 +22,8 @@ import {
   SquareRegionType,
   isActorSelection,
 } from '../../components/simple-board';
-import { ErrorPage } from '../../components/error-page';
-import { FlexCenter } from '../../components/flex-center';
-import { PanelTitle } from '../../components/panel-title';
-import { AppControls } from '../../components/room-controls';
 import { Starfield } from '../../components/starfield';
-import { ThemedButton } from '../../components/themed-form';
+import { ThemedButton, ThemedFormLine } from '../../components/themed-form';
 import { ThemedPanel } from '../../components/themed-panel';
 import { defaultPositionBytes, emptyBoard } from '../../utils/board';
 
@@ -48,12 +56,17 @@ const toggleWall = (
 };
 
 export const BoardEditor = () => {
+  const originalParams = useMemo(
+    () => new URLSearchParams(window.location.search),
+    [],
+  );
+
+  const [metaBoardType, setMetaBoardType] = useState('');
+
   const originalOrDefaultPosition = useMemo(() => {
-    const originalPositionBytes = new URLSearchParams(
-      window.location.search,
-    ).get('position');
+    const originalPositionBytes = originalParams.get('position');
     return decode_position(originalPositionBytes ?? defaultPositionBytes);
-  }, []);
+  }, [originalParams]);
 
   const [selection, setSelection] = useState<BoardSelection>(
     BoardSelection.NONE,
@@ -93,6 +106,25 @@ export const BoardEditor = () => {
   const openBoardExplorer = () => {
     const boardExplorerParams = new URLSearchParams();
     boardExplorerParams.append('position', encode_position(position));
+    const boardExplorerUrl = `/explore?${boardExplorerParams.toString()}`;
+    window.open(boardExplorerUrl, '_blank');
+  };
+
+  const openSolvedInBoardExplorer = () => {
+    const boardExplorerParams = new URLSearchParams();
+    boardExplorerParams.append('position', encode_position(position));
+    const start = Date.now();
+    const solution = solve(position);
+    const end = Date.now();
+    if (solution) {
+      console.log(
+        `Solution of length ${solution?.length} solved in ${(end - start) / 1000} seconds.`,
+      );
+      boardExplorerParams.append(
+        'solution',
+        `Optimal:${encode_solution(solution)}`,
+      );
+    }
     const boardExplorerUrl = `/explore?${boardExplorerParams.toString()}`;
     window.open(boardExplorerUrl, '_blank');
   };
@@ -168,6 +200,15 @@ export const BoardEditor = () => {
     setMouseOverIndicatorWall(emptyBoard());
   };
 
+  let metaBoard;
+  if (metaBoardType === 'min_moves') {
+    metaBoard = get_min_moves_board(position);
+  } else if (metaBoardType === 'group_min_moves') {
+    metaBoard = get_group_min_moves_board(position);
+  } else if (metaBoardType === 'min_assists') {
+    metaBoard = get_min_assists_board(position);
+  }
+
   return (
     <>
       <Starfield numStars={500} speed={0.5} />
@@ -180,9 +221,29 @@ export const BoardEditor = () => {
             <ThemedButton onClick={openBoardExplorer}>
               View in Board Explorer
             </ThemedButton>
+            <ThemedButton onClick={openSolvedInBoardExplorer}>
+              Solve in Board Explorer
+            </ThemedButton>
+            <Divider />
+            MetaBoard Options
+            <ThemedFormLine>
+              <ThemedButton onClick={() => setMetaBoardType('')}>
+                None
+              </ThemedButton>
+              <ThemedButton onClick={() => setMetaBoardType('min_assists')}>
+                Min Assists
+              </ThemedButton>
+              <ThemedButton onClick={() => setMetaBoardType('min_moves')}>
+                Min Moves
+              </ThemedButton>
+              <ThemedButton onClick={() => setMetaBoardType('group_min_moves')}>
+                Group Min Moves
+              </ThemedButton>
+            </ThemedFormLine>
           </FlexCenter>
         </ThemedPanel>
         <SimpleBoard
+          metaBoard={metaBoard}
           walledBoard={position.walled_board}
           goal={position.goal}
           actorSquares={position.actor_squares}

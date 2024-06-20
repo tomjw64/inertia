@@ -4,6 +4,7 @@ import { animate } from 'motion';
 import { useLayoutEffect, useRef } from 'preact/hooks';
 import { getActorColor, getActorIndex } from '../../utils/actor-colors';
 import style from './style.module.scss';
+import { FlexCenter } from '../flex-center';
 
 export const ACTOR_FLIP_ANIMATE_DURATION = 0.2;
 export const MOVE_INDICATOR_ANIMATE_DURATION = 0.2;
@@ -53,6 +54,7 @@ type BoardCommonProps = {
   onClickRegion?: (event: SquareMouseEvent) => void;
   onMouseEnterRegion?: (event: SquareMouseEvent) => void;
   onMouseLeaveBoard?: () => void;
+  metaBoard?: { squares: (string | number)[] };
 };
 
 type BoardProps = BoardCommonProps;
@@ -89,6 +91,8 @@ type IndicatorSlotProps = Pick<
   | 'emphasizedIndicatorSquares'
 >;
 
+type MetaDebugSlotProps = Pick<BoardSquareProps, 'squareIndex' | 'metaBoard'>;
+
 type SquareRegionProps = Pick<
   BoardSquareProps,
   | 'row'
@@ -113,6 +117,7 @@ export const SimpleBoard = ({
   onClickRegion,
   onMouseEnterRegion,
   onMouseLeaveBoard,
+  metaBoard,
 }: BoardProps) => {
   const boardElement = useRef<HTMLDivElement>(null);
 
@@ -226,6 +231,7 @@ export const SimpleBoard = ({
             indicatorWalls,
             onClickRegion,
             onMouseEnterRegion,
+            metaBoard,
           }}
         />
       ))}
@@ -244,6 +250,7 @@ const BoardRow = ({
   indicatorWalls,
   onClickRegion,
   onMouseEnterRegion,
+  metaBoard,
 }: BoardRowProps) => {
   return (
     <>
@@ -262,6 +269,7 @@ const BoardRow = ({
             onClickRegion,
             onMouseEnterRegion,
             squareIndex: row * 16 + column,
+            metaBoard,
           }}
         />
       ))}
@@ -282,6 +290,7 @@ const BoardSquare = ({
   indicatorWalls,
   onClickRegion,
   onMouseEnterRegion,
+  metaBoard,
 }: BoardSquareProps) => {
   return (
     <div className={style.square}>
@@ -295,6 +304,7 @@ const BoardSquare = ({
       />
       <GoalSlot {...{ squareIndex, goal, selection }} />
       <ActorSlot {...{ squareIndex, actorSquares, selection }} />
+      <MetaDebugSlot {...{ squareIndex, metaBoard }} />
       <BorderSlot {...{ row, column, walledBoard, indicatorWalls }} />
       {Object.values(SquareRegionType).map((type) => {
         return (
@@ -367,6 +377,20 @@ const BorderSlot = ({
   };
 
   return <div className={classNames(style.slot, style.border, wallClasses)} />;
+};
+
+const MetaDebugSlot = ({ squareIndex, metaBoard }: MetaDebugSlotProps) => {
+  const meta = metaBoard?.squares?.[squareIndex];
+  if (meta == null) {
+    return <></>;
+  }
+  return (
+    <div className={classNames(style.slot)}>
+      <FlexCenter expand>
+        <span>{meta}</span>
+      </FlexCenter>
+    </div>
+  );
 };
 
 const IndicatorSlot = ({

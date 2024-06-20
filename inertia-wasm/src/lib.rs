@@ -1,6 +1,5 @@
 mod js_ffi;
 mod log;
-mod utils;
 
 use std::convert::TryInto;
 
@@ -14,10 +13,15 @@ use inertia_core::mechanics::Square;
 use inertia_core::mechanics::WalledBoard;
 
 use inertia_core::mechanics::Position;
+use inertia_core::solvers::astar;
 use inertia_core::solvers::difficulty::get_solution_difficulty;
 use inertia_core::solvers::solution_from_bytes;
 use inertia_core::solvers::solution_to_bytes;
 use inertia_core::solvers::Difficulty;
+use inertia_core::solvers::GroupMinMovesBoard;
+use inertia_core::solvers::HeuristicValue;
+use inertia_core::solvers::MinAssistsBoard;
+use inertia_core::solvers::MinMovesBoard;
 use inertia_core::solvers::SolutionStep;
 use inertia_core::state::data::PlayerBids;
 use serde::Deserialize;
@@ -43,6 +47,14 @@ pub struct PositionWrapper(Position);
 pub struct ExpandedBitBoardWrapper(
   #[serde_as(as = "[_; 256]")] ExpandedBitBoard,
 );
+
+#[serde_as]
+#[derive(Debug, Serialize, Deserialize, Tsify)]
+#[tsify(into_wasm_abi, from_wasm_abi)]
+pub struct MetaBoardWrapper {
+  #[serde_as(as = "[_; 256]")]
+  squares: [HeuristicValue; 256],
+}
 
 #[derive(Debug, Serialize, Deserialize, Tsify)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
@@ -76,6 +88,12 @@ pub fn math() {
 #[wasm_bindgen]
 pub fn greet() {
   console_log!("Hello there, inertia-wasm!");
+}
+
+#[wasm_bindgen]
+pub fn set_panic_hook() {
+  #[cfg(feature = "console_error_panic_hook")]
+  console_error_panic_hook::set_once();
 }
 
 #[wasm_bindgen]
@@ -168,4 +186,54 @@ pub fn decode_solution(bytes: String) -> Option<SolutionWrapper> {
 #[wasm_bindgen]
 pub fn encode_solution(solution: SolutionWrapper) -> String {
   general_purpose::URL_SAFE_NO_PAD.encode(solution_to_bytes(&solution.0))
+}
+
+#[wasm_bindgen]
+pub fn get_group_min_moves_board(
+  board_position: PositionWrapper,
+) -> MetaBoardWrapper {
+  let PositionWrapper(Position {
+    walled_board, goal, ..
+  }) = board_position;
+  let board = MoveBoard::from(&walled_board);
+  let GroupMinMovesBoard { squares } =
+    GroupMinMovesBoard::from_move_board(&board, goal);
+  MetaBoardWrapper { squares }
+}
+
+#[wasm_bindgen]
+pub fn get_min_moves_board(
+  board_position: PositionWrapper,
+) -> MetaBoardWrapper {
+  let PositionWrapper(Position {
+    walled_board, goal, ..
+  }) = board_position;
+  let board = MoveBoard::from(&walled_board);
+  let MinMovesBoard { squares } = MinMovesBoard::from_move_board(&board, goal);
+  MetaBoardWrapper { squares }
+}
+
+#[wasm_bindgen]
+pub fn get_min_assists_board(
+  board_position: PositionWrapper,
+) -> MetaBoardWrapper {
+  let PositionWrapper(Position {
+    walled_board, goal, ..
+  }) = board_position;
+  let board = MoveBoard::from(&walled_board);
+  let MinAssistsBoard { squares } =
+    MinAssistsBoard::from_move_board(&board, goal);
+  MetaBoardWrapper { squares }
+}
+
+#[wasm_bindgen]
+pub fn solve(board_position: PositionWrapper) -> Option<SolutionWrapper> {
+  let PositionWrapper(Position {
+    walled_board,
+    actor_squares,
+    goal,
+  }) = board_position;
+  let board = MoveBoard::from(&walled_board);
+
+  astar::solve(&board, goal, actor_squares, 255).map(SolutionWrapper)
 }

@@ -1,15 +1,17 @@
 use core::fmt;
+use std::cmp::min;
 
 use crate::mechanics::ActorSquares;
 use crate::mechanics::Direction;
 use crate::mechanics::MoveBoard;
 use crate::mechanics::Square;
 
-pub struct ImprovedHeuristicBoard {
+pub struct CrawlAwareImprovedHeuristicBoard {
   pub heuristics: [usize; 256],
+  pub crawls: [usize; 256],
 }
 
-impl fmt::Debug for ImprovedHeuristicBoard {
+impl fmt::Debug for CrawlAwareImprovedHeuristicBoard {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     let strings = self.heuristics.map(|x| format!("{:03}", x));
     let rows = strings.chunks(16).collect::<Vec<_>>();
@@ -23,7 +25,7 @@ impl fmt::Debug for ImprovedHeuristicBoard {
   }
 }
 
-impl ImprovedHeuristicBoard {
+impl CrawlAwareImprovedHeuristicBoard {
   // This is an admissible heuristic (but less useful if a actor can reach the
   // goal) because it is constructed such that if the heuristic of a given actor
   // arrangement is N, then it is impossible to make a move where the heuristic
@@ -57,34 +59,44 @@ impl ImprovedHeuristicBoard {
   }
 
   pub fn from_move_board(board: &MoveBoard, goal: Square) -> Self {
-    let mut visited = [false; 256];
+    let mut square_crawls = [255; 256];
     let mut square_heuristics = [255; 256];
     let mut current_iteration = 0;
-    let mut current_square_set = vec![Square(goal.0)];
+    let mut current_square_set = vec![(Square(goal.0), 0)];
     let mut next_square_set = Vec::new();
 
     while !current_square_set.is_empty() {
-      for &square in current_square_set.iter() {
+      for &(square, crawls) in current_square_set.iter() {
         let square_index = square.0 as usize;
-        if visited[square_index] {
+
+        if square_heuristics[square_index] <= current_iteration
+          && square_crawls[square_index] <= crawls
+        {
           continue;
         }
-        visited[square_index] = true;
-        square_heuristics[square_index] = current_iteration;
+        square_heuristics[square_index] =
+          min(square_heuristics[square_index], current_iteration);
+        square_crawls[square_index] = min(square_crawls[square_index], crawls);
         for direction in Direction::VARIANTS {
           let move_destination =
             board.get_unimpeded_move_destination(square, direction);
           if move_destination == square {
-            next_square_set.extend(board.get_unimpeded_movement_ray_squares(
-              square,
-              direction.opposite(),
-            ));
+            next_square_set.extend(
+              board
+                .get_unimpeded_movement_ray_squares(
+                  square,
+                  direction.opposite(),
+                )
+                .into_iter()
+                .map(|s| (s, crawls)),
+            );
           } else {
-            next_square_set.push(
+            next_square_set.push((
               square
                 .get_adjacent(direction)
                 .expect("Adjacent must exist if movement is unimpeded"),
-            )
+              crawls + 1,
+            ))
           }
         }
       }
@@ -95,6 +107,7 @@ impl ImprovedHeuristicBoard {
 
     Self {
       heuristics: square_heuristics,
+      crawls: square_crawls,
     }
   }
 }

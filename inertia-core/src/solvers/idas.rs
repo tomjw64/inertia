@@ -1,9 +1,25 @@
+use std::borrow::Borrow;
+
 use crate::mechanics::ActorSquares;
 use crate::mechanics::Direction;
 use crate::mechanics::MoveBoard;
+use crate::mechanics::Position;
 use crate::mechanics::Square;
 use crate::solvers::HeuristicBoard;
 use crate::solvers::SolutionStep;
+
+pub fn solve_position<P: Borrow<Position>>(
+  position: P,
+  max_depth: usize,
+) -> Option<Vec<SolutionStep>> {
+  let Position {
+    walled_board,
+    actor_squares,
+    goal,
+  } = position.borrow();
+  let board = MoveBoard::from(walled_board);
+  deepening_search_to_depth(&board, *goal, *actor_squares, max_depth)
+}
 
 pub fn deepening_search_to_depth(
   board: &MoveBoard,

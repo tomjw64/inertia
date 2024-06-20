@@ -37,6 +37,8 @@ import classnames from 'classnames';
 // testUrl = http://inertia.localhost:8080/explore?position=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAgP_&solution=Optimal%20Solution:DAABAQEBAQE
 // shufflePuzzleUrl = http://inertia.localhost:8080/explore?position=_38AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA_3__fwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD_fxESISKI&solution=Optimal%20Solution:RgA0JdHL6vV0gJ_eJjm4TFMS6vV0gJ_eJjm4TFMS6vV0gJ_exg
 // benchUrl = http://inertia.localhost:8080/explore?position=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAgOI&solution=Optimal%20Solution:KQC9NyxW8-Si8S1wNWF0JTBhdPU87Qk
+// gauntletUrl = http://inertia.localhost:8080/explore?position=AAAAAAAAAQABAAUABQAVABUAVQBVAFUBVQFVBVUFVRUAAAAAAAABAAEABQAFABUAFQBVAFUAVQFVAVUFVQVVFQEAEBHu&solution=Solution%3ASQAfDryp0QPPE5KbGgPfzxOSmxoD388TkpsaD5OKG9Kf2jvp_RoD&solution=My+solution%3AAAA
+// 30 seconds!?!? ^^^
 
 type ExplorerSolution = { name: string; solution: SolutionStep[] };
 

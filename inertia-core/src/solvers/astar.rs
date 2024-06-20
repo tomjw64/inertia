@@ -1,13 +1,18 @@
+use std::borrow::Borrow;
+
 use hashbrown::hash_map::Entry;
 use hashbrown::HashMap;
 
 use crate::mechanics::ActorSquares;
 use crate::mechanics::Direction;
 use crate::mechanics::MoveBoard;
+use crate::mechanics::Position;
 use crate::mechanics::Square;
 use crate::solvers::BucketingMonotonicPriorityQueue;
-use crate::solvers::ImprovedHeuristicBoard;
 use crate::solvers::SolutionStep;
+
+use super::CombinedHeuristic;
+use super::Heuristic;
 
 struct VisitedData {
   parent: ActorSquares,
@@ -19,13 +24,26 @@ struct QueueData {
   depth: u8,
 }
 
+pub fn solve_position<P: Borrow<Position>>(
+  position: P,
+  max_depth: usize,
+) -> Option<Vec<SolutionStep>> {
+  let Position {
+    walled_board,
+    actor_squares,
+    goal,
+  } = position.borrow();
+  let board = MoveBoard::from(walled_board);
+  solve(&board, *goal, *actor_squares, max_depth)
+}
+
 pub fn solve(
   board: &MoveBoard,
   goal: Square,
   actor_squares: ActorSquares,
   max_depth: usize,
 ) -> Option<Vec<SolutionStep>> {
-  let heuristic_board = ImprovedHeuristicBoard::from_move_board(board, goal);
+  let heuristic_board = CombinedHeuristic::from_move_board(board, goal);
   let mut queue = BucketingMonotonicPriorityQueue::with_capacities(256, 1024);
   let mut visited: HashMap<u32, VisitedData> = HashMap::with_capacity(1024);
 
@@ -34,7 +52,7 @@ pub fn solve(
       actor_squares,
       depth: 0,
     },
-    heuristic_board.get(actor_squares),
+    heuristic_board.get_heuristic(actor_squares) as usize,
   );
 
   while let Some(queue_data) = queue.pop() {
@@ -84,6 +102,7 @@ pub fn solve(
         let move_destination =
           board.get_move_destination(actor_square, actor_squares, direction);
         if move_destination == actor_square {
+          // No change in position, skip
           continue;
         }
 
@@ -123,7 +142,8 @@ pub fn solve(
             actor_squares: new_actor_squares,
             depth: new_depth,
           },
-          new_depth as usize + heuristic_board.get(actor_squares),
+          new_depth as usize
+            + heuristic_board.get_heuristic(actor_squares) as usize,
         );
       }
     }

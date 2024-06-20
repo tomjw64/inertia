@@ -5,3 +5,4 @@ edition = "2021"
 
 [dependencies]
 inertia-core = { path = "../inertia-core/" }
+base64 = "0.21.5"

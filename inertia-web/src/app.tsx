@@ -8,6 +8,9 @@ import { ThemedPanel } from './components/themed-panel';
 import { Starfield } from './components/starfield';
 import { BoardExplorer } from './routes/board-explorer';
 import { BoardEditor } from './routes/board-editor';
+import { set_panic_hook } from 'inertia-wasm';
+
+set_panic_hook();
 
 const NotFound = () => {
   return (
