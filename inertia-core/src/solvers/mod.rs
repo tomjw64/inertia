@@ -23,6 +23,9 @@ pub use group_min_moves_board::*;
 mod min_assists_board;
 pub use min_assists_board::*;
 
+mod expensive_crawls_board;
+pub use expensive_crawls_board::*;
+
 mod queue;
 pub use queue::*;
 

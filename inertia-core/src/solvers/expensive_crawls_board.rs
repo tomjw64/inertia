@@ -6,14 +6,15 @@ use crate::mechanics::Direction;
 use crate::mechanics::MoveBoard;
 use crate::mechanics::Square;
 
-pub struct CrawlAwareImprovedHeuristicBoard {
-  pub heuristics: [usize; 256],
-  pub crawls: [usize; 256],
+use super::HeuristicValue;
+
+pub struct ExpensiveCrawlsBoard {
+  pub squares: [HeuristicValue; 256],
 }
 
-impl fmt::Debug for CrawlAwareImprovedHeuristicBoard {
+impl fmt::Debug for ExpensiveCrawlsBoard {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    let strings = self.heuristics.map(|x| format!("{:03}", x));
+    let strings = self.squares.map(|x| format!("{:03}", x));
     let rows = strings.chunks(16).collect::<Vec<_>>();
     f.write_str("\n")?;
     for row in rows {
@@ -25,19 +26,19 @@ impl fmt::Debug for CrawlAwareImprovedHeuristicBoard {
   }
 }
 
-impl CrawlAwareImprovedHeuristicBoard {
-  pub fn get_heuristic(&self, actor_squares: ActorSquares) -> usize {
+impl ExpensiveCrawlsBoard {
+  pub fn get_heuristic(&self, actor_squares: ActorSquares) -> HeuristicValue {
     actor_squares
       .0
       .iter()
-      .map(|square| self.heuristics[square.0 as usize])
+      .map(|square| self.squares[square.0 as usize])
       .min()
       .unwrap()
   }
 
   pub fn from_move_board(board: &MoveBoard, goal: Square) -> Self {
-    let mut square_crawls = [255; 256];
-    let mut square_heuristics = [255; 256];
+    let mut square_crawls = [HeuristicValue::MAX; 256];
+    let mut square_heuristics = [HeuristicValue::MAX; 256];
     let mut current_iteration = 0;
     let mut current_square_set = vec![(Square(goal.0), 0)];
     let mut next_square_set = Vec::new();
@@ -82,9 +83,11 @@ impl CrawlAwareImprovedHeuristicBoard {
       next_square_set = Vec::new();
     }
 
-    Self {
-      heuristics: square_heuristics,
-      crawls: square_crawls,
+    let mut squares = [HeuristicValue::MAX; 256];
+    for i in 0..=255 {
+      squares[i] = square_heuristics[i] + square_crawls[i] * 2
     }
+
+    Self { squares }
   }
 }
