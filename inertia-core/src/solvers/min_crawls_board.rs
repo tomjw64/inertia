@@ -1,5 +1,4 @@
 use core::fmt;
-use std::cmp::max;
 use std::cmp::min;
 
 use crate::mechanics::ActorSquares;
@@ -9,11 +8,11 @@ use crate::mechanics::Square;
 
 use super::HeuristicValue;
 
-pub struct ExpensiveCrawlsBoard {
+pub struct MinCrawlsBoard {
   pub squares: [HeuristicValue; 256],
 }
 
-impl fmt::Debug for ExpensiveCrawlsBoard {
+impl fmt::Debug for MinCrawlsBoard {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     let strings = self.squares.map(|x| format!("{:03}", x));
     let rows = strings.chunks(16).collect::<Vec<_>>();
@@ -27,20 +26,13 @@ impl fmt::Debug for ExpensiveCrawlsBoard {
   }
 }
 
-impl ExpensiveCrawlsBoard {
-  pub fn get_heuristic(&self, actor_squares: ActorSquares) -> HeuristicValue {
-    actor_squares
-      .0
-      .iter()
-      .map(|square| self.squares[square.0 as usize])
-      .min()
-      .unwrap()
+impl MinCrawlsBoard {
+  pub fn get(&self, square: Square) -> HeuristicValue {
+    self.squares[square.0 as usize]
   }
 
   pub fn from_move_board(board: &MoveBoard, goal: Square) -> Self {
     let mut square_crawls = [HeuristicValue::MAX; 256];
-    let mut square_heuristics = [HeuristicValue::MAX; 256];
-    let mut current_iteration = 0;
     let mut current_square_set = vec![(Square(goal.0), 0)];
     let mut next_square_set = Vec::new();
 
@@ -48,14 +40,11 @@ impl ExpensiveCrawlsBoard {
       for &(square, crawls) in current_square_set.iter() {
         let square_index = square.0 as usize;
 
-        if square_heuristics[square_index] <= current_iteration
-          && square_crawls[square_index] <= crawls
-        {
+        if square_crawls[square_index] <= crawls {
           continue;
         }
-        square_heuristics[square_index] =
-          min(square_heuristics[square_index], current_iteration);
         square_crawls[square_index] = min(square_crawls[square_index], crawls);
+
         for direction in Direction::VARIANTS {
           let move_destination =
             board.get_unimpeded_move_destination(square, direction);
@@ -79,16 +68,12 @@ impl ExpensiveCrawlsBoard {
           }
         }
       }
-      current_iteration += 1;
       current_square_set = next_square_set;
       next_square_set = Vec::new();
     }
 
-    let mut squares = [HeuristicValue::MAX; 256];
-    for i in 0..=255 {
-      squares[i] = square_heuristics[i] + max(0, square_crawls[i] - 3) // NOT ADMISSABLE - FAILS generated 15 bench
+    Self {
+      squares: square_crawls,
     }
-
-    Self { squares }
   }
 }

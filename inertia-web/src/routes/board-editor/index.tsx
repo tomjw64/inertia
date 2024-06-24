@@ -7,6 +7,7 @@ import {
   get_group_min_moves_board,
   get_min_moves_board,
   solve,
+  get_min_crawls_board,
 } from 'inertia-wasm';
 import debounce from 'lodash/debounce';
 import { useEffect, useMemo, useState } from 'preact/hooks';
@@ -56,12 +57,12 @@ const toggleWall = (
 };
 
 export const BoardEditor = () => {
+  const [metaBoardType, setMetaBoardType] = useState('');
+
   const originalParams = useMemo(
     () => new URLSearchParams(window.location.search),
     [],
   );
-
-  const [metaBoardType, setMetaBoardType] = useState('');
 
   const originalOrDefaultPosition = useMemo(() => {
     const originalPositionBytes = originalParams.get('position');
@@ -207,6 +208,8 @@ export const BoardEditor = () => {
     metaBoard = get_group_min_moves_board(position);
   } else if (metaBoardType === 'min_assists') {
     metaBoard = get_min_assists_board(position);
+  } else if (metaBoardType === 'min_crawls') {
+    metaBoard = get_min_crawls_board(position);
   }
 
   return (
@@ -238,6 +241,9 @@ export const BoardEditor = () => {
               </ThemedButton>
               <ThemedButton onClick={() => setMetaBoardType('group_min_moves')}>
                 Group Min Moves
+              </ThemedButton>
+              <ThemedButton onClick={() => setMetaBoardType('min_crawls')}>
+                Min Crawls
               </ThemedButton>
             </ThemedFormLine>
           </FlexCenter>

@@ -21,6 +21,7 @@ use inertia_core::solvers::Difficulty;
 use inertia_core::solvers::GroupMinMovesBoard;
 use inertia_core::solvers::HeuristicValue;
 use inertia_core::solvers::MinAssistsBoard;
+use inertia_core::solvers::MinCrawlsBoard;
 use inertia_core::solvers::MinMovesBoard;
 use inertia_core::solvers::SolutionStep;
 use inertia_core::state::data::PlayerBids;
@@ -223,6 +224,19 @@ pub fn get_min_assists_board(
   let board = MoveBoard::from(&walled_board);
   let MinAssistsBoard { squares } =
     MinAssistsBoard::from_move_board(&board, goal);
+  MetaBoardWrapper { squares }
+}
+
+#[wasm_bindgen]
+pub fn get_min_crawls_board(
+  board_position: PositionWrapper,
+) -> MetaBoardWrapper {
+  let PositionWrapper(Position {
+    walled_board, goal, ..
+  }) = board_position;
+  let board = MoveBoard::from(&walled_board);
+  let MinCrawlsBoard { squares } =
+    MinCrawlsBoard::from_move_board(&board, goal);
   MetaBoardWrapper { squares }
 }
 

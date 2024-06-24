@@ -47,10 +47,9 @@ pub fn solve(
   actor_squares: ActorSquares,
   max_depth: usize,
 ) -> Option<Vec<SolutionStep>> {
-  // let heuristic_board = CombinedHeuristic::from_move_board(board, goal);
+  let heuristic_board = CombinedHeuristic::from_move_board(board, goal);
   // let heuristic_board = ExpensiveCrawlsBoard::from_move_board(board, goal);
-  let heuristic_board = MinAssistsBoard::from_move_board(board, goal);
-  dbg!(&heuristic_board);
+  // let heuristic_board = MinAssistsBoard::from_move_board(board, goal);
 
   // let mut queue = BucketingMonotonicPriorityQueue::with_capacities(256, 1024);
   let mut queue = BucketingPriorityQueue::with_capacities(256, 1024);
