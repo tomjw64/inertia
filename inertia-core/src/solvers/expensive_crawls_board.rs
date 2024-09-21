@@ -86,7 +86,7 @@ impl ExpensiveCrawlsBoard {
 
     let mut squares = [HeuristicValue::MAX; 256];
     for i in 0..=255 {
-      squares[i] = square_heuristics[i] + max(0, square_crawls[i] - 3) // NOT ADMISSABLE - FAILS generated 15 bench
+      squares[i] = square_heuristics[i] + 3 * square_crawls[i].saturating_sub(3)
     }
 
     Self { squares }

@@ -41,4 +41,4 @@ pub use heuristic::*;
 pub mod combined_heuristic;
 pub use combined_heuristic::*;
 
-mod fixtures;
+pub mod fixtures;
