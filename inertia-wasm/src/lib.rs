@@ -10,7 +10,6 @@ use inertia_core::mechanics::Direction;
 use inertia_core::mechanics::ExpandedBitBoard;
 use inertia_core::mechanics::MoveBoard;
 use inertia_core::mechanics::Square;
-use inertia_core::mechanics::WalledBoard;
 
 use inertia_core::mechanics::Position;
 use inertia_core::solvers::astar;
@@ -33,10 +32,6 @@ use wasm_bindgen::prelude::wasm_bindgen;
 
 use crate::log::console_debug;
 use crate::log::console_log;
-
-#[derive(Debug, Serialize, Deserialize, Tsify)]
-#[tsify(into_wasm_abi, from_wasm_abi)]
-pub struct WalledBoardWrapper(WalledBoard);
 
 #[derive(Debug, Serialize, Deserialize, Tsify)]
 #[tsify(into_wasm_abi, from_wasm_abi)]

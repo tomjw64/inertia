@@ -11,10 +11,7 @@ rand = "0.8.5"
 serde = { version = "1.0.195", features = ["derive"] }
 strum = { version = "0.25.0", features = ["derive"] }
 thiserror = "1.0.56"
-typeshare = "1.0.1"
-
-[features]
-benchmarks = []
+typeshare = { git = "https://github.com/1password/typeshare", rev = "357540884d47a840aab6705e1508f3573056b29a" }
 
 [dev-dependencies]
 pretty_assertions = "1.4.0"

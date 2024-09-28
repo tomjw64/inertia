@@ -1,6 +1,5 @@
-import { ActorSquares, Position, WalledBoard } from 'inertia-core';
+import { ActorSquares, WalledBoard } from 'inertia-core';
 import {
-  decode_position,
   encode_position,
   encode_solution,
   get_min_assists_board,
@@ -9,8 +8,7 @@ import {
   solve,
   get_min_crawls_board,
 } from 'inertia-wasm';
-import debounce from 'lodash/debounce';
-import { useEffect, useMemo, useState } from 'preact/hooks';
+import { useEffect, useState } from 'preact/hooks';
 import { Divider } from '../../components/divider';
 import { ErrorPage } from '../../components/error-page';
 import { FlexCenter } from '../../components/flex-center';
@@ -26,14 +24,8 @@ import {
 import { Starfield } from '../../components/starfield';
 import { ThemedButton, ThemedFormLine } from '../../components/themed-form';
 import { ThemedPanel } from '../../components/themed-panel';
-import { defaultPositionBytes, emptyBoard } from '../../utils/board';
-
-const debouncedSetUrlParams = debounce((params: URLSearchParams) => {
-  const currentState = window.history.state;
-  const currentUrl = window.location.href;
-  const newUrl = currentUrl.split('?')[0] + '?' + params.toString();
-  window.history.replaceState(currentState, '', newUrl);
-}, 200);
+import { emptyBoard } from '../../utils/board';
+import { useUrlSyncedPositionState } from '../../utils/url-params';
 
 // TODO: use wasm and reuse logic from walled_board.rs (requires internet)?
 const toggleWall = (
@@ -59,22 +51,12 @@ const toggleWall = (
 export const BoardEditor = () => {
   const [metaBoardType, setMetaBoardType] = useState('');
 
-  const originalParams = useMemo(
-    () => new URLSearchParams(window.location.search),
-    [],
-  );
+  const [selection, setSelection] = useState(BoardSelection.NONE);
 
-  const originalOrDefaultPosition = useMemo(() => {
-    const originalPositionBytes = originalParams.get('position');
-    return decode_position(originalPositionBytes ?? defaultPositionBytes);
-  }, [originalParams]);
+  const [position, setPosition] = useUrlSyncedPositionState();
 
-  const [selection, setSelection] = useState<BoardSelection>(
-    BoardSelection.NONE,
-  );
-  const [position, setPosition] = useState<Position>(originalOrDefaultPosition);
   const [mouseOverIndicatorWall, setMouseOverIndicatorWall] =
-    useState<WalledBoard>(emptyBoard());
+    useState(emptyBoard());
 
   useEffect(() => {
     const listener = () => {
@@ -86,14 +68,6 @@ export const BoardEditor = () => {
       document.removeEventListener('click', listener);
     };
   });
-
-  useEffect(() => {
-    const urlParams = new URLSearchParams();
-    if (position) {
-      urlParams.append('position', encode_position(position));
-    }
-    debouncedSetUrlParams(urlParams);
-  }, [position]);
 
   if (!position) {
     return (
