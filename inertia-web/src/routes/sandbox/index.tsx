@@ -3,7 +3,7 @@ import { Board } from '../../components/board';
 import { Controls } from '../../components/controls';
 import { ActorSquares, SolutionStep, Square, WalledBoard } from 'inertia-core';
 import { useEffect, useState } from 'preact/hooks';
-import { get_movement_for_actor } from 'inertia-wasm';
+import { get_movement_for_actor } from 'inertia-core';
 import { Starfield } from '../../components/starfield';
 import { emptyBoard } from '../../utils/board';
 

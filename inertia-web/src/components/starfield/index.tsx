@@ -1,7 +1,7 @@
 import { useRef, useEffect } from 'preact/hooks';
 import style from './style.module.scss';
-import debounce from 'lodash/debounce';
-import groupBy from 'lodash/groupBy';
+import { debounce } from 'lodash';
+import { groupBy } from 'lodash';
 
 // Heavily inspired by: https://codepen.io/ksenia-k/pen/gOPboQg
 

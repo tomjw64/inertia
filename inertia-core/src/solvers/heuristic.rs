@@ -1,6 +1,10 @@
 use crate::mechanics::ActorSquares;
 
+#[cfg(feature = "web")]
+use tsify::declare;
+
 // Change if you need values > 255
+#[cfg_attr(feature = "web", declare)]
 pub type HeuristicValue = u8;
 
 pub trait Heuristic {

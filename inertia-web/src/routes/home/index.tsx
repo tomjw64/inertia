@@ -1,4 +1,4 @@
-import debounce from 'lodash/debounce';
+import { debounce } from 'lodash';
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import style from './style.module.scss';
 import { Starfield } from '../../components/starfield';
@@ -17,14 +17,7 @@ import { Difficulty } from 'inertia-core';
 import { Tray } from '../../components/tray';
 import { FullWidth } from '../../components/full-width';
 import { JSX } from 'preact/jsx-runtime';
-
-const DIFFICULTY_TO_VALUE = {
-  [Difficulty.Easiest]: 0,
-  [Difficulty.Easy]: 1,
-  [Difficulty.Medium]: 2,
-  [Difficulty.Hard]: 3,
-  [Difficulty.Hardest]: 4,
-};
+import { DIFFICULTIES, DIFFICULTY_TO_VALUE } from '../../constants/difficulty';
 
 const DifficultyOptions = () => {
   return (
@@ -46,8 +39,8 @@ export const Home = () => {
   const startOptionsIcon = isStartOptionsExpanded
     ? '/contract-arrow.svg'
     : '/expand-arrow.svg';
-  const [minDifficulty, setMinDifficulty] = useState(Difficulty.Easiest);
-  const [maxDifficulty, setMaxDifficulty] = useState(Difficulty.Hard);
+  const [minDifficulty, setMinDifficulty] = useState(DIFFICULTIES.Easiest);
+  const [maxDifficulty, setMaxDifficulty] = useState(DIFFICULTIES.Hard);
 
   const initialSavedPlayerName = useMemo(() => getPlayerName(), []);
 

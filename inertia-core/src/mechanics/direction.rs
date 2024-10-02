@@ -1,9 +1,11 @@
 use serde::Deserialize;
 use serde::Serialize;
-use typeshare::typeshare;
 
-#[typeshare]
+#[cfg(feature = "web")]
+use {tsify::Tsify, wasm_bindgen::prelude::wasm_bindgen};
+
 #[derive(Copy, Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
+#[cfg_attr(feature = "web", derive(Tsify), tsify(into_wasm_abi, from_wasm_abi))]
 #[repr(u8)]
 pub enum Direction {
   Up = 0,

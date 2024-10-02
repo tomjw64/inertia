@@ -1,10 +1,16 @@
 import classNames from 'classnames';
-import { ActorSquares, ExpandedBitBoard, WalledBoard } from 'inertia-core';
+import {
+  ActorSquares,
+  ExpandedBitBoard,
+  MetaBoardWrapper,
+  WalledBoard,
+} from 'inertia-core';
 import { animate } from 'motion';
 import { useLayoutEffect, useRef } from 'preact/hooks';
-import { getActorColor, getActorIndex } from '../../utils/actor-colors';
+import { getActorColor } from '../../utils/actor-colors';
 import style from './style.module.scss';
 import { FlexCenter } from '../flex-center';
+import { BoardSelection, isActorSelection } from '../../utils/selection';
 
 export const ACTOR_FLIP_ANIMATE_DURATION = 0.2;
 export const MOVE_INDICATOR_ANIMATE_DURATION = 0.2;
@@ -28,21 +34,6 @@ export type SquareMouseEvent = {
   region: SquareRegionType;
 };
 
-export enum BoardSelection {
-  GOAL = -2,
-  NONE = -1,
-  RED = getActorIndex('red'),
-  BLUE = getActorIndex('blue'),
-  GREEN = getActorIndex('green'),
-  YELLOW = getActorIndex('yellow'),
-}
-
-export const isActorSelection = (
-  selection: BoardSelection,
-): selection is 0 | 1 | 2 | 3 => {
-  return selection >= 0;
-};
-
 type BoardCommonProps = {
   walledBoard: WalledBoard;
   goal: number;
@@ -54,7 +45,7 @@ type BoardCommonProps = {
   onClickRegion?: (event: SquareMouseEvent) => void;
   onMouseEnterRegion?: (event: SquareMouseEvent) => void;
   onMouseLeaveBoard?: () => void;
-  metaBoard?: { squares: (string | number)[] };
+  metaBoard?: MetaBoardWrapper;
 };
 
 type BoardProps = BoardCommonProps;
@@ -366,10 +357,10 @@ const BorderSlot = ({
   const { horizontal: indicatorHorizontal, vertical: indicatorVertical } =
     indicatorWalls ?? {};
   const wallClasses = {
-    [style['wall-bottom']]: horizontal[column][row],
-    [style['wall-top']]: horizontal[column][row - 1],
-    [style['wall-right']]: vertical[row][column],
-    [style['wall-left']]: vertical[row][column - 1],
+    [style['wall-bottom']]: horizontal[column]![row],
+    [style['wall-top']]: horizontal[column]![row - 1],
+    [style['wall-right']]: vertical[row]![column],
+    [style['wall-left']]: vertical[row]![column - 1],
     [style['wall-bottom-indicator']]: indicatorHorizontal?.[column]?.[row],
     [style['wall-top-indicator']]: indicatorHorizontal?.[column]?.[row - 1],
     [style['wall-right-indicator']]: indicatorVertical?.[row]?.[column],

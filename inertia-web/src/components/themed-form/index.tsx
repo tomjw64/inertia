@@ -51,7 +51,7 @@ export const ThemedInput = ({
         type: 'number',
         pattern: '[0-9]*',
         inputmode: 'numeric',
-        onKeyPress: (event) => {
+        onKeyPress: (event: KeyboardEvent) => {
           if (!/[0-9]/.test(event.key)) {
             event.preventDefault();
           }

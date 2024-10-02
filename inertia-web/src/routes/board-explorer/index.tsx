@@ -1,16 +1,23 @@
-import { apply_solution, decode_position } from 'inertia-wasm';
+import {
+  apply_solution,
+  Direction,
+  ExpandedBitBoard,
+  get_movement_for_actor,
+  get_movement_ray_for_actor,
+  Position,
+  Square,
+} from 'inertia-core';
 import style from './style.module.scss';
-import { ACTOR_FLIP_ANIMATE_DURATION, Board } from '../../components/board';
+import { ACTOR_FLIP_ANIMATE_DURATION } from '../../components/board';
 import { FlexCenter } from '../../components/flex-center';
 import { AppControls } from '../../components/room-controls';
 import { Starfield } from '../../components/starfield';
 import { ErrorPage } from '../../components/error-page';
-import { Direction, SolutionStep } from 'inertia-core';
 import { ThemedPanel } from '../../components/themed-panel';
 import { Tray } from '../../components/tray';
 import { PanelTitle } from '../../components/panel-title';
 import { Divider } from '../../components/divider';
-import { useState } from 'preact/hooks';
+import { useMemo, useState } from 'preact/hooks';
 import { ArrowCircleUp } from '../../components/svg/arrow-circle-up';
 import { ArrowCircleDown } from '../../components/svg/arrow-circle-down';
 import { ArrowCircleLeft } from '../../components/svg/arrow-circle-left';
@@ -23,14 +30,22 @@ import {
   ThemedInput,
 } from '../../components/themed-form';
 import { useThrottledQueue } from '../../utils/throttled-queue';
-import range from 'lodash/range';
+import { range } from 'lodash';
 import classnames from 'classnames';
-import { SimpleBoard } from '../../components/simple-board';
 import {
-  useInitialUrlPosition,
+  SimpleBoard,
+  SquareMouseEvent,
+  SquareRegionType,
+} from '../../components/simple-board';
+import {
+  useInitialUrlPositions,
   useUrlSyncedSolutionsState,
 } from '../../utils/url-params';
 import { NamedSolution } from '../../types';
+import { DIRECTIONS } from '../../constants/direction';
+import { RenderWhen } from '../../components/utils/RenderWhen';
+import { BoardSelection, useClickAwayDeselect } from '../../utils/selection';
+import { fromSquares, union } from '../../utils/bitboard';
 
 // defaultBoard = AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAgP_
 
@@ -45,13 +60,14 @@ import { NamedSolution } from '../../types';
 // gauntletButWorseWithGuardrailsUrl = http://inertia.localhost:8080/explore?position=CAAgACAAgQCBAAUCBQIVCBUIVSBVIFUBVQFVBVUFVRUIACAAIACBAIEABQIFAhUIFQhVIFUgVQFVAVUFVQVVFd8A_RHu&solution=Optimal%3AJgAhx1bWz05H385W1s9O31doSptX
 
 const DIRECTION_TO_COMPONENT = {
-  [Direction.Up]: <ArrowCircleUp />,
-  [Direction.Down]: <ArrowCircleDown />,
-  [Direction.Left]: <ArrowCircleLeft />,
-  [Direction.Right]: <ArrowCircleRight />,
+  [DIRECTIONS.Up]: <ArrowCircleUp />,
+  [DIRECTIONS.Down]: <ArrowCircleDown />,
+  [DIRECTIONS.Left]: <ArrowCircleLeft />,
+  [DIRECTIONS.Right]: <ArrowCircleRight />,
 };
 
-const DEFAULT_EMPTY_SOLUTION = { name: 'My solution', solution: [] };
+const NEW_SOLUTION_NAME = 'New solution';
+const NEW_SOLUTION = { name: NEW_SOLUTION_NAME, solution: [] };
 
 const ExpandableSolution = ({
   solution,
@@ -59,6 +75,7 @@ const ExpandableSolution = ({
   selectedStep,
   onDelete,
   onSelect,
+  onHide,
   onSelectStep,
   onChangeName,
 }: {
@@ -67,6 +84,7 @@ const ExpandableSolution = ({
   selectedStep: number;
   onDelete: () => void;
   onSelect: () => void;
+  onHide: () => void;
   onSelectStep: (idx: number) => void;
   onChangeName: (name: string) => void;
 }) => {
@@ -79,7 +97,12 @@ const ExpandableSolution = ({
           }}
           value={solution.name}
         />
-        <ThemedButton onClick={onSelect}>View</ThemedButton>
+        <RenderWhen when={expanded}>
+          <ThemedButton onClick={onHide}>Hide</ThemedButton>
+        </RenderWhen>
+        <RenderWhen when={!expanded}>
+          <ThemedButton onClick={onSelect}>View</ThemedButton>
+        </RenderWhen>
         <ThemedButton onClick={onDelete}>Delete</ThemedButton>
       </ThemedFormLine>
       <div className={style.solutionTrayContainer}>
@@ -122,13 +145,28 @@ const ExpandableSolution = ({
 };
 
 export const BoardExplorer = () => {
-  const initialUrlPositionBytes = useInitialUrlPosition();
+  const positions = useInitialUrlPositions();
+  const position = positions[0]?.position;
 
+  if (!position) {
+    return (
+      <>
+        <Starfield numStars={500} speed={0.5} />
+        <ErrorPage>Could not parse position from url.</ErrorPage>
+      </>
+    );
+  }
+
+  return <NonEmptyBoardExplorer position={position} />;
+};
+
+const NonEmptyBoardExplorer = ({ position }: { position: Position }) => {
   const [solutions, setSolutions] = useUrlSyncedSolutionsState();
-  const [activeSolutionIndex, setActiveSolutionIndex] = useState(
-    solutions.length - 1,
-  );
+  const [activeSolutionIndex, setActiveSolutionIndex] = useState(-1);
   const [solutionStepIndex, setSolutionStepIndex] = useState(-1);
+
+  const [selection, setSelection] = useState(BoardSelection.NONE);
+  useClickAwayDeselect(setSelection);
 
   const {
     processQueue: processAnimationQueue,
@@ -141,41 +179,90 @@ export const BoardExplorer = () => {
     },
   });
 
-  if (!initialUrlPositionBytes) {
-    return (
-      <>
-        <Starfield numStars={500} speed={0.5} />
-        <ErrorPage>No board to show.</ErrorPage>
-      </>
-    );
-  }
-
-  const position = decode_position(initialUrlPositionBytes);
-  if (!position) {
-    return (
-      <>
-        <Starfield numStars={500} speed={0.5} />
-        <ErrorPage>Could not parse position from url.</ErrorPage>
-      </>
-    );
-  }
-
   const activeSolution = solutions[activeSolutionIndex];
-  const appliedSolution = activeSolution.solution.slice(
+  const appliedSolution = activeSolution?.solution?.slice(
     0,
     solutionStepIndex + 1,
   );
 
-  const actorSquares = apply_solution(position, appliedSolution);
+  const actorSquares = appliedSolution
+    ? apply_solution(position, appliedSolution)
+    : position.actor_squares;
 
-  const onMoveActor = (step: SolutionStep) => {
-    setSolutionStepIndex((prev) => prev + 1);
-    setSolutions(
-      solutions.toSpliced(activeSolutionIndex, 1, {
-        name: activeSolution.name,
-        solution: [...appliedSolution, step],
-      }),
-    );
+  const movementRaySquares = useMemo(() => {
+    return Object.values(DIRECTIONS)
+      .map((direction) => {
+        return {
+          [direction]: get_movement_ray_for_actor(
+            {
+              ...position,
+              actor_squares: actorSquares,
+            },
+            selection,
+            direction,
+          ),
+        } as Record<Direction, ExpandedBitBoard>;
+      })
+      .reduce((prev, acc) => ({ ...acc, ...prev }));
+  }, [position, actorSquares, selection]);
+  const indicatorSquares = useMemo(
+    () => union(Object.values(movementRaySquares)),
+    [movementRaySquares],
+  );
+
+  const movementSquares = useMemo(() => {
+    return Object.values(DIRECTIONS)
+      .map((direction) => {
+        return {
+          [direction]: get_movement_for_actor(
+            {
+              ...position,
+              actor_squares: actorSquares,
+            },
+            selection,
+            direction,
+          ),
+        } as Record<Direction, Square>;
+      })
+      .reduce((prev, acc) => ({ ...acc, ...prev }));
+  }, [position, actorSquares, selection]);
+  const emphasizedIndicatorSquares = useMemo(
+    () => fromSquares(Object.values(movementSquares)),
+    [movementSquares],
+  );
+
+  const handleClickRegion = (event: SquareMouseEvent) => {
+    const { squareIndex, region } = event;
+
+    const selectingActorIndex = position.actor_squares.indexOf(squareIndex);
+    if (region === SquareRegionType.CENTER && selectingActorIndex !== -1) {
+      setSelection(
+        selection === selectingActorIndex
+          ? BoardSelection.NONE
+          : selectingActorIndex,
+      );
+      return;
+    }
+
+    for (const direction of Object.values(DIRECTIONS)) {
+      if (movementRaySquares[direction][squareIndex]) {
+        const step = {
+          actor: selection,
+          direction: direction,
+        };
+        setSolutionStepIndex((prev) => prev + 1);
+        setSolutions((solutions) => {
+          if (!activeSolution) {
+            return [...solutions, { name: 'New solution', solution: [step] }];
+          }
+          solutions.toSpliced(activeSolutionIndex, 1, {
+            name: activeSolution.name,
+            solution: appliedSolution ? [...appliedSolution, step] : [step],
+          });
+          return solutions;
+        });
+      }
+    }
   };
 
   return (
@@ -186,58 +273,62 @@ export const BoardExplorer = () => {
         <ThemedPanel>
           <FlexCenter column>
             <PanelTitle>Board Explorer</PanelTitle>
-            <Divider />
-            <FlexCenter column align="flex-start">
-              {solutions.map((solution, idx) => {
-                return (
-                  <ExpandableSolution
-                    key={idx}
-                    solution={solution}
-                    expanded={activeSolutionIndex === idx}
-                    selectedStep={solutionStepIndex}
-                    onChangeName={(name) => {
-                      setSolutions(
-                        solutions.toSpliced(idx, 1, {
-                          name,
-                          solution: solution.solution,
-                        }),
-                      );
-                    }}
-                    onDelete={() => {
-                      const remainingSolutions = solutions.toSpliced(idx, 1);
-                      setSolutions(
-                        remainingSolutions.length > 0
-                          ? remainingSolutions
-                          : [DEFAULT_EMPTY_SOLUTION],
-                      );
-                      const adjustedIndex =
-                        activeSolutionIndex < idx
-                          ? activeSolutionIndex
-                          : activeSolutionIndex - 1;
-                      setActiveSolutionIndex(Math.max(0, adjustedIndex));
-                    }}
-                    onSelectStep={(idx) => {
-                      setSolutionStepIndex(idx);
-                    }}
-                    onSelect={() => {
-                      setActiveSolutionIndex(idx);
-                      setSolutionStepIndex(-1);
-                    }}
-                  />
-                );
-              })}
-            </FlexCenter>
+            <RenderWhen when={solutions.length > 0}>
+              <Divider />
+
+              <FlexCenter column align="flex-start">
+                {solutions.map((solution, idx) => {
+                  return (
+                    <ExpandableSolution
+                      key={idx}
+                      solution={solution}
+                      expanded={activeSolutionIndex === idx}
+                      selectedStep={solutionStepIndex}
+                      onChangeName={(name) => {
+                        setSolutions(
+                          solutions.toSpliced(idx, 1, {
+                            name,
+                            solution: solution.solution,
+                          }),
+                        );
+                      }}
+                      onDelete={() => {
+                        const remainingSolutions = solutions.toSpliced(idx, 1);
+                        setSolutions(remainingSolutions);
+                        const adjustedIndex =
+                          activeSolutionIndex < idx
+                            ? activeSolutionIndex
+                            : activeSolutionIndex - 1;
+                        setActiveSolutionIndex(Math.max(0, adjustedIndex));
+                      }}
+                      onSelectStep={(idx) => {
+                        setSolutionStepIndex(idx);
+                      }}
+                      onSelect={() => {
+                        setActiveSolutionIndex(idx);
+                        setSolutionStepIndex(-1);
+                      }}
+                      onHide={() => {
+                        setActiveSolutionIndex(-1);
+                        setSolutionStepIndex(-1);
+                      }}
+                    />
+                  );
+                })}
+              </FlexCenter>
+            </RenderWhen>
             <Divider />
             <FlexCenter>
               <ThemedButton
                 onClick={() => {
-                  setSolutions([...solutions, DEFAULT_EMPTY_SOLUTION]);
+                  setSolutions([...solutions, NEW_SOLUTION]);
                 }}
               >
                 New Solution
               </ThemedButton>
               <ThemedFormLine>
                 <ThemedButton
+                  disabled={!activeSolution}
                   onClick={() => {
                     setSolutionStepIndex((last) => Math.max(-1, last - 1));
                   }}
@@ -245,9 +336,10 @@ export const BoardExplorer = () => {
                   &lt;
                 </ThemedButton>
                 <ThemedButton
+                  disabled={!activeSolution}
                   onClick={() => {
                     setSolutionStepIndex((last) =>
-                      Math.min(activeSolution.solution.length - 1, last + 1),
+                      Math.min(activeSolution!.solution.length - 1, last + 1),
                     );
                   }}
                 >
@@ -255,8 +347,9 @@ export const BoardExplorer = () => {
                 </ThemedButton>
               </ThemedFormLine>
               <ThemedButton
+                disabled={!activeSolution}
                 onClick={() => {
-                  setAnimationQueue(range(-1, activeSolution.solution.length));
+                  setAnimationQueue(range(-1, activeSolution!.solution.length));
                   processAnimationQueue();
                 }}
               >
@@ -265,14 +358,7 @@ export const BoardExplorer = () => {
             </FlexCenter>
           </FlexCenter>
         </ThemedPanel>
-        <Board
-          interactive={!isAnimating}
-          walledBoard={position.walled_board}
-          goal={position.goal}
-          actorSquares={actorSquares}
-          onMoveActor={onMoveActor}
-        />
-        {/* <SimpleBoard
+        <SimpleBoard
           walledBoard={position.walled_board}
           goal={position.goal}
           actorSquares={actorSquares}
@@ -280,7 +366,7 @@ export const BoardExplorer = () => {
           onClickRegion={handleClickRegion}
           indicatorSquares={indicatorSquares}
           emphasizedIndicatorSquares={emphasizedIndicatorSquares}
-        /> */}
+        />
       </FlexCenter>
     </>
   );

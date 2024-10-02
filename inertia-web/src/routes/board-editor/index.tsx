@@ -1,4 +1,4 @@
-import { ActorSquares, WalledBoard } from 'inertia-core';
+import { ActorSquares, MetaBoardWrapper, WalledBoard } from 'inertia-core';
 import {
   encode_position,
   encode_solution,
@@ -7,7 +7,7 @@ import {
   get_min_moves_board,
   solve,
   get_min_crawls_board,
-} from 'inertia-wasm';
+} from 'inertia-core';
 import { useEffect, useState } from 'preact/hooks';
 import { Divider } from '../../components/divider';
 import { ErrorPage } from '../../components/error-page';
@@ -15,17 +15,23 @@ import { FlexCenter } from '../../components/flex-center';
 import { PanelTitle } from '../../components/panel-title';
 import { AppControls } from '../../components/room-controls';
 import {
-  BoardSelection,
   SimpleBoard,
   SquareMouseEvent,
   SquareRegionType,
-  isActorSelection,
 } from '../../components/simple-board';
 import { Starfield } from '../../components/starfield';
 import { ThemedButton, ThemedFormLine } from '../../components/themed-form';
 import { ThemedPanel } from '../../components/themed-panel';
 import { emptyBoard } from '../../utils/board';
-import { useUrlSyncedPositionState } from '../../utils/url-params';
+import {
+  clearUrlParams,
+  useUrlSyncedPositionsState,
+} from '../../utils/url-params';
+import {
+  BoardSelection,
+  isActorSelection,
+  useClickAwayDeselect,
+} from '../../utils/selection';
 
 // TODO: use wasm and reuse logic from walled_board.rs (requires internet)?
 const toggleWall = (
@@ -38,13 +44,13 @@ const toggleWall = (
     return;
   }
   if (region === SquareRegionType.LEFT && column !== 0) {
-    walls.vertical[row][column - 1] = !walls.vertical[row][column - 1];
+    walls.vertical[row]![column - 1] = !walls.vertical[row]![column - 1];
   } else if (region === SquareRegionType.RIGHT && column !== 15) {
-    walls.vertical[row][column] = !walls.vertical[row][column];
+    walls.vertical[row]![column] = !walls.vertical[row]![column];
   } else if (region === SquareRegionType.TOP && row !== 0) {
-    walls.horizontal[column][row - 1] = !walls.horizontal[column][row - 1];
+    walls.horizontal[column]![row - 1] = !walls.horizontal[column]![row - 1];
   } else if (region === SquareRegionType.BOTTOM && row !== 15) {
-    walls.horizontal[column][row] = !walls.horizontal[column][row];
+    walls.horizontal[column]![row] = !walls.horizontal[column]![row];
   }
 };
 
@@ -52,23 +58,18 @@ export const BoardEditor = () => {
   const [metaBoardType, setMetaBoardType] = useState('');
 
   const [selection, setSelection] = useState(BoardSelection.NONE);
+  useClickAwayDeselect(setSelection);
 
-  const [position, setPosition] = useUrlSyncedPositionState();
+  const [positions, setPositions] = useUrlSyncedPositionsState();
 
   const [mouseOverIndicatorWall, setMouseOverIndicatorWall] =
     useState(emptyBoard());
 
   useEffect(() => {
-    const listener = () => {
-      // Click events don't propogate from the board
-      setSelection(BoardSelection.NONE);
-    };
-    document.addEventListener('click', listener);
-    return () => {
-      document.removeEventListener('click', listener);
-    };
-  });
+    clearUrlParams(['solution']);
+  }, []);
 
+  const position = positions[0]?.position;
   if (!position) {
     return (
       <>
@@ -113,10 +114,15 @@ export const BoardEditor = () => {
     ) {
       const currentWalls = structuredClone(position.walled_board);
       toggleWall(currentWalls, row, column, region);
-      setPosition({
-        ...position,
-        walled_board: currentWalls,
-      });
+      setPositions([
+        {
+          name: '',
+          position: {
+            ...position,
+            walled_board: currentWalls,
+          },
+        },
+      ]);
       return;
     }
 
@@ -143,19 +149,29 @@ export const BoardEditor = () => {
     if (isActorSelection(selection)) {
       const newActorSquares = [...position.actor_squares] as ActorSquares;
       newActorSquares[selection] = squareIndex;
-      setPosition({
-        ...position,
-        actor_squares: newActorSquares,
-      });
+      setPositions([
+        {
+          name: '',
+          position: {
+            ...position,
+            actor_squares: newActorSquares,
+          },
+        },
+      ]);
       setSelection(BoardSelection.NONE);
       return;
     }
 
     if (selection === BoardSelection.GOAL) {
-      setPosition({
-        ...position,
-        goal: squareIndex,
-      });
+      setPositions([
+        {
+          name: '',
+          position: {
+            ...position,
+            goal: squareIndex,
+          },
+        },
+      ]);
       setSelection(BoardSelection.NONE);
       return;
     }
@@ -175,7 +191,7 @@ export const BoardEditor = () => {
     setMouseOverIndicatorWall(emptyBoard());
   };
 
-  let metaBoard;
+  let metaBoard: MetaBoardWrapper | undefined;
   if (metaBoardType === 'min_moves') {
     metaBoard = get_min_moves_board(position);
   } else if (metaBoardType === 'group_min_moves') {

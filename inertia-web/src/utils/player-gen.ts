@@ -8,7 +8,7 @@ const addCross = (result: string[], namePairing: NamePairing) => {
 };
 
 const collectNames = (namePairings: NamePairing[]) => {
-  const result = [];
+  const result: string[] = [];
   for (const pairing of namePairings) {
     addCross(result, pairing);
   }
@@ -196,7 +196,7 @@ console.log('Possible names:', COLLECTED_NAMES.length);
 
 export const generatePlayerName = () => {
   const index = Math.floor(Math.random() * COLLECTED_NAMES.length);
-  return COLLECTED_NAMES[index];
+  return COLLECTED_NAMES[index]!;
 };
 
 const MAX_U32 = 4_294_967_295;

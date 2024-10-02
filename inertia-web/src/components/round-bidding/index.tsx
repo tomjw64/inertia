@@ -40,15 +40,18 @@ export const RoundBidding = ({
 
   const playerBids = 'player_bids' in state ? state.player_bids : undefined;
   const firstBidSubmitted = !!playerBids;
-  const bidType = playerBids?.bids?.[userPlayerId]?.type ?? 'None';
-  const currentBidValue = playerBids?.bids?.[userPlayerId]?.content?.value;
+
+  const playerBid = playerBids?.bids?.[userPlayerId] ?? { type: 'None' };
+  const bidType = playerBid.type ?? 'None';
+  const currentBidValue =
+    'content' in playerBid ? playerBid.content.value : null;
   const isBidReady = bidType === 'ProspectiveReady' || bidType === 'NoneReady';
-  const isStatusReadyable =
+  const isBidReadyable =
     bidType === 'Prospective' ||
     bidType === 'ProspectiveReady' ||
     bidType === 'None' ||
     bidType === 'NoneReady';
-  const canChangeReadyStatus = firstBidSubmitted && isStatusReadyable;
+  const canChangeReadyStatus = firstBidSubmitted && isBidReadyable;
 
   const handleSubmitBid = useCallback(() => {
     const bidValue = parseInt(pendingBid);

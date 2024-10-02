@@ -2,10 +2,10 @@ use super::SolutionStep;
 use itertools::Itertools;
 use serde::Deserialize;
 use serde::Serialize;
-use typeshare::typeshare;
 
-#[typeshare]
-#[repr(u8)]
+#[cfg(feature = "web")]
+use {tsify::Tsify, wasm_bindgen::prelude::wasm_bindgen};
+
 #[derive(
   Debug,
   PartialEq,
@@ -18,6 +18,8 @@ use typeshare::typeshare;
   Deserialize,
   Serialize,
 )]
+#[cfg_attr(feature = "web", derive(Tsify), tsify(into_wasm_abi, from_wasm_abi))]
+#[repr(u8)]
 pub enum Difficulty {
   Easiest = 0,
   Easy = 1,

@@ -1,15 +1,15 @@
-use std::cmp::min;
-
+use super::Direction;
 use serde::Deserialize;
 use serde::Serialize;
-use typeshare::typeshare;
+use std::cmp::min;
 
-use super::Direction;
+#[cfg(feature = "web")]
+use {tsify::Tsify, wasm_bindgen::prelude::wasm_bindgen};
 
-#[typeshare]
 #[derive(
   Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize,
 )]
+#[cfg_attr(feature = "web", derive(Tsify), tsify(into_wasm_abi, from_wasm_abi))]
 pub struct Square(pub u8);
 
 impl From<u8> for Square {

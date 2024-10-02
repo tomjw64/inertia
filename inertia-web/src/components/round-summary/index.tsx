@@ -13,7 +13,7 @@ import { PanelTitle } from '../panel-title';
 import { Divider } from '../divider';
 import { RenderWhen } from '../utils/RenderWhen';
 import { BlockText } from '../block-text';
-import { encode_position, encode_solution, get_difficulty } from 'inertia-wasm';
+import { encode_position, encode_solution, get_difficulty } from 'inertia-core';
 
 export const RoundSummary = ({
   state,
@@ -36,7 +36,7 @@ export const RoundSummary = ({
   const lastRoundSolutionMoves = state.last_round_solution?.length ?? -1;
   const lastRoundSolverName =
     state.last_solver != null
-      ? state.meta.player_info[state.last_solver].player_name ?? 'unknown'
+      ? state.meta.player_info[state.last_solver]?.player_name ?? 'unknown'
       : 'unknown';
   const lastRoundOptimalSolutionMoves =
     state.last_round_optimal_solution?.length ?? -1;

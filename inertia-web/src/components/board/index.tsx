@@ -18,9 +18,10 @@ import {
 import {
   get_movement_for_actor,
   get_movement_ray_for_actor,
-} from 'inertia-wasm';
+} from 'inertia-core';
 import { getActorColor } from '../../utils/actor-colors';
 import { StateSetter } from '../../utils/types';
+import { DIRECTIONS } from '../../constants/direction';
 
 export const ACTOR_FLIP_ANIMATE_DURATION = 0.2;
 export const MOVE_INDICATOR_ANIMATE_DURATION = 0.2;
@@ -34,7 +35,7 @@ const KEY_SELECTION_MAP = {
   b: 1,
   g: 2,
   y: 3,
-};
+} as Record<string, number>;
 
 type MoveActorFunction = (solutionStep: SolutionStep) => void;
 
@@ -190,7 +191,7 @@ export const Board = ({
   }, [interactive]);
 
   const movementRaySquares = useMemo(() => {
-    return Object.values(Direction)
+    return Object.values(DIRECTIONS)
       .map((direction) => {
         return {
           [direction]: get_movement_ray_for_actor(
@@ -208,7 +209,7 @@ export const Board = ({
   }, [walledBoard, actorSquares, goal, selectedActor]);
 
   const movementSquares = useMemo(() => {
-    return Object.values(Direction)
+    return Object.values(DIRECTIONS)
       .map((direction) => {
         return {
           [direction]: get_movement_for_actor(
@@ -330,17 +331,17 @@ const BoardSquare = ({
   const { horizontal, vertical } = walledBoard;
   const features = [style.square];
 
-  if (horizontal[column][row]) {
+  if (horizontal[column]![row]) {
     features.push(style['block-down']);
   }
-  if (horizontal[column][row - 1]) {
+  if (horizontal[column]![row - 1]) {
     features.push(style['block-up']);
   }
 
-  if (vertical[row][column]) {
+  if (vertical[row]![column]) {
     features.push(style['block-right']);
   }
-  if (vertical[row][column - 1]) {
+  if (vertical[row]![column - 1]) {
     features.push(style['block-left']);
   }
 
@@ -390,7 +391,7 @@ const BoardSquare = ({
     );
   }
 
-  for (const direction of Object.values(Direction)) {
+  for (const direction of Object.values(DIRECTIONS)) {
     if (movementSquares[direction] === squareIndex) {
       const moveIndicator = (
         <div
@@ -412,7 +413,7 @@ const BoardSquare = ({
     }
   }
 
-  for (const direction of Object.values(Direction)) {
+  for (const direction of Object.values(DIRECTIONS)) {
     if (movementRaySquares[direction][squareIndex]) {
       const moveRayIndicator = (
         <div

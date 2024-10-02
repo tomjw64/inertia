@@ -1,12 +1,13 @@
-use serde::Deserialize;
-use serde::Serialize;
-use typeshare::typeshare;
-
 use crate::mechanics::BitBoard;
 use crate::mechanics::Square;
+use serde::Deserialize;
+use serde::Serialize;
 
-#[typeshare]
+#[cfg(feature = "web")]
+use {tsify::Tsify, wasm_bindgen::prelude::wasm_bindgen};
+
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "web", derive(Tsify), tsify(into_wasm_abi, from_wasm_abi))]
 #[repr(align(4))] // Pretty much always accessed together
 pub struct ActorSquares(pub [Square; 4]);
 

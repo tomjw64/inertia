@@ -32,12 +32,14 @@ export const RoundSolving = ({
   onYieldSolve: () => void;
   onMoveActor: (step: SolutionStep) => void;
 }) => {
-  const solver = state.meta.player_info[state.solver];
+  const solver = state.meta.player_info[state.solver]!;
 
   const isUserSolver = solver.player_id === userPlayerId;
 
   const movesMade = state.solution.length;
-  const bidMoves = state.player_bids.bids[solver.player_id].content!.value;
+  const bidMoves = (
+    state.player_bids.bids[solver.player_id] as { content: { value: number } }
+  ).content.value;
   const isOutOfMoves = movesMade >= bidMoves;
 
   const giveUpButton = useRef<HTMLDivElement | null>(null);

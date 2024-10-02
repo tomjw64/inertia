@@ -1,5 +1,4 @@
 import {
-  Difficulty,
   RoomState,
   RoundSolving as RoundSolvingState,
   SolutionStep,
@@ -17,12 +16,13 @@ import { RoomWebSocket } from '../../utils/room-websocket';
 import { RoundBidding } from '../../components/round-bidding';
 import { RoundSolving } from '../../components/round-solving';
 import { defaultPosition } from '../../utils/board';
-import { apply_solution } from 'inertia-wasm';
+import { apply_solution } from 'inertia-core';
 import { ACTOR_FLIP_ANIMATE_DURATION } from '../../components/board';
 import { Starfield } from '../../components/starfield';
 import { AppControls } from '../../components/room-controls';
 import { ErrorPage } from '../../components/error-page';
 import { useThrottledQueue } from '../../utils/throttled-queue';
+import { parseDifficulty } from '../../constants/difficulty';
 
 const RoomStateType = {
   NONE: 'None',
@@ -77,7 +77,7 @@ export const Room = ({ roomId: roomIdString }: { roomId: string }) => {
   >([]);
   const [localSolution, setLocalSolution] = useState<SolutionStep[]>([]);
 
-  const solver = (roomState.content as Partial<RoundSolvingState>)?.solver;
+  const solver = (roomState as { content?: RoundSolvingState }).content?.solver;
   const isUserSolver = solver === userPlayerId;
   const useLocalSolution = isUserSolver;
   const solutionToApply = useLocalSolution
@@ -127,8 +127,8 @@ export const Room = ({ roomId: roomIdString }: { roomId: string }) => {
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    const minDifficulty = urlParams.get('minDifficulty');
-    const maxDifficulty = urlParams.get('maxDifficulty');
+    const minDifficulty = parseDifficulty(urlParams.get('minDifficulty'));
+    const maxDifficulty = parseDifficulty(urlParams.get('maxDifficulty'));
 
     websocket.current = new RoomWebSocket();
     const ws = websocket.current;
@@ -140,8 +140,8 @@ export const Room = ({ roomId: roomIdString }: { roomId: string }) => {
           player_id: userPlayerId,
           player_reconnect_key: userPlayerReconnectKey,
           room_id: roomId,
-          min_difficulty: minDifficulty ? Difficulty[minDifficulty] : undefined,
-          max_difficulty: maxDifficulty ? Difficulty[maxDifficulty] : undefined,
+          min_difficulty: minDifficulty ?? null,
+          max_difficulty: maxDifficulty ?? null,
         },
       });
     });
