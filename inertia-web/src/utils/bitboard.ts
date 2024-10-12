@@ -19,3 +19,14 @@ export const fromSquares = (squares: Square[]) => {
   }
   return board;
 };
+
+export const removeSquares = (
+  bitboard: ExpandedBitBoard,
+  squares: Square[],
+) => {
+  const clone = [...bitboard];
+  for (const square of squares) {
+    clone[square] = false;
+  }
+  return clone;
+};

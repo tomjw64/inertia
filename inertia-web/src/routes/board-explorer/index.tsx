@@ -1,51 +1,37 @@
-import {
-  apply_solution,
-  Direction,
-  ExpandedBitBoard,
-  get_movement_for_actor,
-  get_movement_ray_for_actor,
-  Position,
-  Square,
-} from 'inertia-core';
-import style from './style.module.scss';
-import { ACTOR_FLIP_ANIMATE_DURATION } from '../../components/board';
-import { FlexCenter } from '../../components/flex-center';
-import { AppControls } from '../../components/room-controls';
-import { Starfield } from '../../components/starfield';
-import { ErrorPage } from '../../components/error-page';
-import { ThemedPanel } from '../../components/themed-panel';
-import { Tray } from '../../components/tray';
-import { PanelTitle } from '../../components/panel-title';
-import { Divider } from '../../components/divider';
+import classnames from 'classnames';
+import { apply_solution, Position, SolutionStep } from 'inertia-core';
+import { range } from 'lodash';
 import { useMemo, useState } from 'preact/hooks';
-import { ArrowCircleUp } from '../../components/svg/arrow-circle-up';
+import { Divider } from '../../components/divider';
+import { ErrorPage } from '../../components/error-page';
+import { FlexCenter } from '../../components/flex-center';
+import { PanelTitle } from '../../components/panel-title';
+import { PlayableBoard } from '../../components/playable-board';
+import { AppControls } from '../../components/room-controls';
+import { ACTOR_FLIP_ANIMATE_DURATION } from '../../components/simple-board';
+import { Starfield } from '../../components/starfield';
 import { ArrowCircleDown } from '../../components/svg/arrow-circle-down';
 import { ArrowCircleLeft } from '../../components/svg/arrow-circle-left';
 import { ArrowCircleRight } from '../../components/svg/arrow-circle-right';
-import { getActorColor } from '../../utils/actor-colors';
+import { ArrowCircleUp } from '../../components/svg/arrow-circle-up';
 import { FlagCircle } from '../../components/svg/flag-circle';
 import {
   ThemedButton,
   ThemedFormLine,
   ThemedInput,
 } from '../../components/themed-form';
+import { ThemedPanel } from '../../components/themed-panel';
+import { Tray } from '../../components/tray';
+import { RenderWhen } from '../../components/utils/RenderWhen';
+import { DIRECTIONS } from '../../constants/direction';
+import { NamedSolution } from '../../types';
+import { getActorColor } from '../../utils/actor-colors';
 import { useThrottledQueue } from '../../utils/throttled-queue';
-import { range } from 'lodash';
-import classnames from 'classnames';
-import {
-  SimpleBoard,
-  SquareMouseEvent,
-  SquareRegionType,
-} from '../../components/simple-board';
 import {
   useInitialUrlPositions,
   useUrlSyncedSolutionsState,
 } from '../../utils/url-params';
-import { NamedSolution } from '../../types';
-import { DIRECTIONS } from '../../constants/direction';
-import { RenderWhen } from '../../components/utils/RenderWhen';
-import { BoardSelection, useClickAwayDeselect } from '../../utils/selection';
-import { fromSquares, union } from '../../utils/bitboard';
+import style from './style.module.scss';
 
 // defaultBoard = AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAgP_
 
@@ -157,16 +143,17 @@ export const BoardExplorer = () => {
     );
   }
 
-  return <NonEmptyBoardExplorer position={position} />;
+  return <NonEmptyBoardExplorer initialPosition={position} />;
 };
 
-const NonEmptyBoardExplorer = ({ position }: { position: Position }) => {
+const NonEmptyBoardExplorer = ({
+  initialPosition,
+}: {
+  initialPosition: Position;
+}) => {
   const [solutions, setSolutions] = useUrlSyncedSolutionsState();
   const [activeSolutionIndex, setActiveSolutionIndex] = useState(-1);
   const [solutionStepIndex, setSolutionStepIndex] = useState(-1);
-
-  const [selection, setSelection] = useState(BoardSelection.NONE);
-  useClickAwayDeselect(setSelection);
 
   const {
     processQueue: processAnimationQueue,
@@ -186,83 +173,35 @@ const NonEmptyBoardExplorer = ({ position }: { position: Position }) => {
   );
 
   const actorSquares = appliedSolution
-    ? apply_solution(position, appliedSolution)
-    : position.actor_squares;
+    ? apply_solution(initialPosition, appliedSolution)
+    : initialPosition.actor_squares;
 
-  const movementRaySquares = useMemo(() => {
-    return Object.values(DIRECTIONS)
-      .map((direction) => {
-        return {
-          [direction]: get_movement_ray_for_actor(
-            {
-              ...position,
-              actor_squares: actorSquares,
-            },
-            selection,
-            direction,
-          ),
-        } as Record<Direction, ExpandedBitBoard>;
-      })
-      .reduce((prev, acc) => ({ ...acc, ...prev }));
-  }, [position, actorSquares, selection]);
-  const indicatorSquares = useMemo(
-    () => union(Object.values(movementRaySquares)),
-    [movementRaySquares],
+  const position = useMemo(
+    () => ({
+      walled_board: initialPosition.walled_board,
+      goal: initialPosition.goal,
+      actor_squares: actorSquares,
+    }),
+    [actorSquares, initialPosition.goal, initialPosition.walled_board],
   );
 
-  const movementSquares = useMemo(() => {
-    return Object.values(DIRECTIONS)
-      .map((direction) => {
-        return {
-          [direction]: get_movement_for_actor(
-            {
-              ...position,
-              actor_squares: actorSquares,
-            },
-            selection,
-            direction,
-          ),
-        } as Record<Direction, Square>;
-      })
-      .reduce((prev, acc) => ({ ...acc, ...prev }));
-  }, [position, actorSquares, selection]);
-  const emphasizedIndicatorSquares = useMemo(
-    () => fromSquares(Object.values(movementSquares)),
-    [movementSquares],
-  );
-
-  const handleClickRegion = (event: SquareMouseEvent) => {
-    const { squareIndex, region } = event;
-
-    const selectingActorIndex = position.actor_squares.indexOf(squareIndex);
-    if (region === SquareRegionType.CENTER && selectingActorIndex !== -1) {
-      setSelection(
-        selection === selectingActorIndex
-          ? BoardSelection.NONE
-          : selectingActorIndex,
-      );
-      return;
-    }
-
-    for (const direction of Object.values(DIRECTIONS)) {
-      if (movementRaySquares[direction][squareIndex]) {
-        const step = {
-          actor: selection,
-          direction: direction,
-        };
-        setSolutionStepIndex((prev) => prev + 1);
-        setSolutions((solutions) => {
-          if (!activeSolution) {
-            return [...solutions, { name: 'New solution', solution: [step] }];
-          }
-          solutions.toSpliced(activeSolutionIndex, 1, {
-            name: activeSolution.name,
-            solution: appliedSolution ? [...appliedSolution, step] : [step],
-          });
-          return solutions;
-        });
+  const onMoveActor = (step: SolutionStep) => {
+    setSolutionStepIndex((prev) => prev + 1);
+    setSolutions((solutions) => {
+      if (!activeSolution) {
+        return [...solutions, { name: 'New solution', solution: [step] }];
       }
-    }
+      return solutions.toSpliced(activeSolutionIndex, 1, {
+        name: activeSolution.name,
+        solution: appliedSolution ? [...appliedSolution, step] : [step],
+      });
+    });
+    setActiveSolutionIndex((activeSolutionIndex) => {
+      if (!activeSolution) {
+        return solutions.length;
+      }
+      return activeSolutionIndex;
+    });
   };
 
   return (
@@ -299,7 +238,15 @@ const NonEmptyBoardExplorer = ({ position }: { position: Position }) => {
                           activeSolutionIndex < idx
                             ? activeSolutionIndex
                             : activeSolutionIndex - 1;
-                        setActiveSolutionIndex(Math.max(0, adjustedIndex));
+                        setActiveSolutionIndex((activeSolutionIndex) => {
+                          if (
+                            activeSolutionIndex === idx ||
+                            activeSolutionIndex === -1
+                          ) {
+                            return -1;
+                          }
+                          return Math.max(0, adjustedIndex);
+                        });
                       }}
                       onSelectStep={(idx) => {
                         setSolutionStepIndex(idx);
@@ -322,6 +269,7 @@ const NonEmptyBoardExplorer = ({ position }: { position: Position }) => {
               <ThemedButton
                 onClick={() => {
                   setSolutions([...solutions, NEW_SOLUTION]);
+                  setActiveSolutionIndex(solutions.length);
                 }}
               >
                 New Solution
@@ -358,14 +306,10 @@ const NonEmptyBoardExplorer = ({ position }: { position: Position }) => {
             </FlexCenter>
           </FlexCenter>
         </ThemedPanel>
-        <SimpleBoard
-          walledBoard={position.walled_board}
-          goal={position.goal}
-          actorSquares={actorSquares}
-          selection={selection}
-          onClickRegion={handleClickRegion}
-          indicatorSquares={indicatorSquares}
-          emphasizedIndicatorSquares={emphasizedIndicatorSquares}
+        <PlayableBoard
+          position={position}
+          interactive={!isAnimating}
+          onMoveActor={onMoveActor}
         />
       </FlexCenter>
     </>

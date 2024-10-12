@@ -1,4 +1,4 @@
-FROM rustlang/rust:nightly-bookworm-slim AS rust-deps-build
+FROM rust:slim-bookworm AS rust-deps-build
 RUN cargo install wasm-pack
 
 COPY inertia-core /build/inertia-core

@@ -1,6 +1,15 @@
 import { Dispatch, StateUpdater, useEffect } from 'preact/hooks';
 import { getActorIndex } from './actor-colors';
 
+export enum BoardSelection {
+  GOAL = -2,
+  NONE = -1,
+  RED = getActorIndex('red'),
+  BLUE = getActorIndex('blue'),
+  GREEN = getActorIndex('green'),
+  YELLOW = getActorIndex('yellow'),
+}
+
 export const useClickAwayDeselect = (
   setSelection: Dispatch<StateUpdater<BoardSelection>>,
 ) => {
@@ -21,12 +30,3 @@ export const isActorSelection = (
 ): selection is 0 | 1 | 2 | 3 => {
   return selection >= 0;
 };
-
-export enum BoardSelection {
-  GOAL = -2,
-  NONE = -1,
-  RED = getActorIndex('red'),
-  BLUE = getActorIndex('blue'),
-  GREEN = getActorIndex('green'),
-  YELLOW = getActorIndex('yellow'),
-}

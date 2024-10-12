@@ -23,7 +23,7 @@ const NAME_PAIRINGS: NamePairing[] = [
     descriptors: ['NICE', 'NEARLY', 'NOBLE', 'NATURALLY'],
   },
   {
-    names: ['GORN', 'GUNGAN', 'GERRERA', 'GAMORREAN'],
+    names: ['GORN', 'GUNGAN', 'GERRERA', 'GAMORREAN', 'GARAK'],
     descriptors: ['GOOGLY', 'GREAT', 'GRITTY', 'GLOBAL', 'GIGGLY'],
   },
   {
@@ -126,7 +126,7 @@ const NAME_PAIRINGS: NamePairing[] = [
     descriptors: ['CALM', 'COOL', 'CARING', 'CAPABLE', 'CLEARLY'],
   },
   {
-    names: ['VADER', 'VULCAN', 'VENTRESS'],
+    names: ['VADER', 'VULCAN', 'VENTRESS', 'VORTA'],
     descriptors: ['VIBRANT', 'VERMILLION', 'VEXED', 'VERY', 'VERITABLY'],
   },
   {
@@ -174,7 +174,7 @@ const NAME_PAIRINGS: NamePairing[] = [
     ],
   },
   {
-    names: ['WINDU', 'WORF', 'WOOKIEE', 'WASH'],
+    names: ['WINDU', 'WORF', 'WOOKIEE', 'WASH', 'WEYOUN'],
     descriptors: [
       'WONDROUS',
       'WACKY',

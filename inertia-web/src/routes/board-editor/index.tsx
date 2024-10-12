@@ -240,9 +240,7 @@ export const BoardEditor = () => {
         </ThemedPanel>
         <SimpleBoard
           metaBoard={metaBoard}
-          walledBoard={position.walled_board}
-          goal={position.goal}
-          actorSquares={position.actor_squares}
+          position={position}
           selection={selection}
           indicatorWalls={mouseOverIndicatorWall}
           onClickRegion={handleClickRegion}

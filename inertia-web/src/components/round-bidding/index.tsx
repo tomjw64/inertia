@@ -2,10 +2,9 @@ import {
   RoundStart as RoundStartState,
   RoundBidding as RoundBiddingState,
   PlayerId,
-  ActorSquares,
+  Position,
 } from 'inertia-core';
 import { Countdown } from '../countdown';
-import { Board } from '../board';
 import { FlexCenter } from '../flex-center';
 import { ThemedPanel } from '../themed-panel';
 import { ThemedButton, ThemedFormLine, ThemedInput } from '../themed-form';
@@ -16,18 +15,19 @@ import { Bids } from '../bids';
 import { isMobile } from '../../utils/is-mobile';
 import { RenderWhen } from '../utils/RenderWhen';
 import { BlockText } from '../block-text';
+import { PlayableBoard } from '../playable-board';
 
 export const RoundBidding = ({
   state,
   userPlayerId,
   countdownTimeLeft,
-  actorSquares,
+  position,
   onBid,
   onReadyBid,
   onUnreadyBid,
 }: {
   state: RoundStartState | RoundBiddingState;
-  actorSquares: ActorSquares;
+  position: Position;
   userPlayerId: PlayerId;
   countdownTimeLeft: number;
   onBid: (value: number) => void;
@@ -144,11 +144,7 @@ export const RoundBidding = ({
           </FlexCenter>
         </ThemedPanel>
       </FlexCenter>
-      <Board
-        walledBoard={state.board.walled_board}
-        goal={state.board.goal}
-        actorSquares={actorSquares}
-      />
+      <PlayableBoard position={position} />
     </FlexCenter>
   );
 };

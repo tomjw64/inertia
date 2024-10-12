@@ -1,4 +1,4 @@
-FROM rustlang/rust:nightly-bookworm-slim AS dev
+FROM rust:slim-bookworm AS dev
 RUN cargo install cargo-watch
 COPY inertia-core /build/inertia-core
 COPY inertia-async-server /build/inertia-async-server
@@ -6,7 +6,7 @@ WORKDIR /build/inertia-async-server
 RUN cargo build
 
 
-FROM rustlang/rust:nightly-bookworm-slim AS prod-build
+FROM rust:slim-bookworm AS prod-build
 COPY inertia-core /build/inertia-core
 COPY inertia-async-server /build/inertia-async-server
 WORKDIR /build/inertia-async-server
