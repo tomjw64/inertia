@@ -246,6 +246,7 @@ export const BoardEditor = () => {
           onClickRegion={handleClickRegion}
           onMouseEnterRegion={handleMouseEnterRegion}
           onMouseLeaveBoard={handleMouseLeaveBoard}
+          interactive
         />
       </FlexCenter>
     </>

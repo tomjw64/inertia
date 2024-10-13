@@ -1,5 +1,6 @@
 import style from './style.module.scss';
 import { useState } from 'preact/hooks';
+import { Starfield as GpuStarfield } from '../../components/gpu-starfield';
 import { Starfield } from '../../components/starfield';
 import { StarfieldControls } from '../../components/starfield-controls';
 

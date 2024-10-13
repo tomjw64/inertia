@@ -42,7 +42,7 @@ export const StarfieldControls = ({
         <input
           type="range"
           min="0"
-          max="2000"
+          max="10000"
           value={numStars}
           step="100"
           onChange={handleNumStarsChange}

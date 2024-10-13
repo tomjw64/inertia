@@ -11,6 +11,7 @@ module.exports = {
     browser: true,
   },
   rules: {
-    '@typescript-eslint/no-unused-vars': ['error', { varsIgnorePattern: '^_', argsIgnorePattern: '^_'  }]
+    '@typescript-eslint/no-unused-vars': ['error', { varsIgnorePattern: '^_', argsIgnorePattern: '^_'  }],
+    'no-constant-condition': 'off'
   }
 };
