@@ -1,28 +1,27 @@
 import {
-  Difficulty,
+  apply_solution,
   RoomState,
   RoundSolving as RoundSolvingState,
   SolutionStep,
   ToClientMessage,
-  Position,
 } from 'inertia-core';
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
-import { RoundSummary } from '../../components/round-summary';
-import {
-  getPlayerName,
-  getPlayerReconnectKey,
-  getPlayerId,
-} from '../../utils/storage';
-import { RoomWebSocket } from '../../utils/room-websocket';
+import { ErrorPage } from '../../components/error-page';
+import { AppControls } from '../../components/room-controls';
 import { RoundBidding } from '../../components/round-bidding';
 import { RoundSolving } from '../../components/round-solving';
-import { defaultPosition } from '../../utils/board';
-import { apply_solution } from 'inertia-wasm';
-import { ACTOR_FLIP_ANIMATE_DURATION } from '../../components/board';
+import { RoundSummary } from '../../components/round-summary';
+import { ACTOR_FLIP_ANIMATE_DURATION } from '../../components/simple-board';
 import { Starfield } from '../../components/starfield';
-import { AppControls } from '../../components/room-controls';
-import { ErrorPage } from '../../components/error-page';
-import { useThrottledQueue } from '../../utils/throttled-queue';
+import { parseDifficulty } from '../../constants/difficulty';
+import { defaultPosition } from '../../utils/board';
+import { RoomWebSocket } from '../../utils/room-websocket';
+import {
+  getPlayerId,
+  getPlayerName,
+  getPlayerReconnectKey,
+} from '../../utils/storage';
+import { useThrottledQueue } from '../../utils/hooks/use-throttled-queue';
 
 const RoomStateType = {
   NONE: 'None',
@@ -49,7 +48,7 @@ export const Room = ({ roomId: roomIdString }: { roomId: string }) => {
     null,
   );
 
-  const position: Position = useMemo(() => {
+  const initialPosition = useMemo(() => {
     if (roomState.type === 'None' || roomState.type === 'Closed') {
       return defaultPosition();
     } else if (roomState.type === 'RoundSummary') {
@@ -77,7 +76,7 @@ export const Room = ({ roomId: roomIdString }: { roomId: string }) => {
   >([]);
   const [localSolution, setLocalSolution] = useState<SolutionStep[]>([]);
 
-  const solver = (roomState.content as Partial<RoundSolvingState>)?.solver;
+  const solver = (roomState as { content?: RoundSolvingState }).content?.solver;
   const isUserSolver = solver === userPlayerId;
   const useLocalSolution = isUserSolver;
   const solutionToApply = useLocalSolution
@@ -122,13 +121,22 @@ export const Room = ({ roomId: roomIdString }: { roomId: string }) => {
   }, [roomState.type, solver]);
 
   const actorSquares = useMemo(() => {
-    return apply_solution(position, solutionToApply);
-  }, [solutionToApply, position]);
+    return apply_solution(initialPosition, solutionToApply);
+  }, [solutionToApply, initialPosition]);
+
+  const position = useMemo(
+    () => ({
+      walled_board: initialPosition.walled_board,
+      goal: initialPosition.goal,
+      actor_squares: actorSquares,
+    }),
+    [actorSquares, initialPosition.goal, initialPosition.walled_board],
+  );
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    const minDifficulty = urlParams.get('minDifficulty');
-    const maxDifficulty = urlParams.get('maxDifficulty');
+    const minDifficulty = parseDifficulty(urlParams.get('minDifficulty'));
+    const maxDifficulty = parseDifficulty(urlParams.get('maxDifficulty'));
 
     websocket.current = new RoomWebSocket();
     const ws = websocket.current;
@@ -140,8 +148,8 @@ export const Room = ({ roomId: roomIdString }: { roomId: string }) => {
           player_id: userPlayerId,
           player_reconnect_key: userPlayerReconnectKey,
           room_id: roomId,
-          min_difficulty: minDifficulty ? Difficulty[minDifficulty] : undefined,
-          max_difficulty: maxDifficulty ? Difficulty[maxDifficulty] : undefined,
+          min_difficulty: minDifficulty ?? null,
+          max_difficulty: maxDifficulty ?? null,
         },
       });
     });
@@ -222,7 +230,7 @@ export const Room = ({ roomId: roomIdString }: { roomId: string }) => {
         <RoundSummary
           state={roomState.content}
           userPlayerId={userPlayerId}
-          actorSquares={actorSquares}
+          position={position}
           onStartRound={onStartRound}
         />
       );
@@ -233,7 +241,7 @@ export const Room = ({ roomId: roomIdString }: { roomId: string }) => {
         <RoundBidding
           state={roomState.content}
           userPlayerId={userPlayerId}
-          actorSquares={actorSquares}
+          position={position}
           onBid={onBid}
           onReadyBid={onReadyBid}
           onUnreadyBid={onUnreadyBid}
@@ -247,7 +255,7 @@ export const Room = ({ roomId: roomIdString }: { roomId: string }) => {
         <RoundBidding
           state={roomState.content}
           userPlayerId={userPlayerId}
-          actorSquares={actorSquares}
+          position={position}
           onBid={onBid}
           onReadyBid={onReadyBid}
           onUnreadyBid={onUnreadyBid}
@@ -261,7 +269,7 @@ export const Room = ({ roomId: roomIdString }: { roomId: string }) => {
         <RoundSolving
           state={roomState.content}
           userPlayerId={userPlayerId}
-          actorSquares={actorSquares}
+          position={position}
           countdownTimeLeft={countdownTimeLeft ?? 0}
           onYieldSolve={onYieldSolve}
           onMoveActor={onMoveActor}

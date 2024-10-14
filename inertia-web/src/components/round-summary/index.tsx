@@ -1,29 +1,30 @@
 import {
-  ActorSquares,
+  encode_position,
+  encode_solution,
+  get_difficulty,
   PlayerId,
+  Position,
   RoundSummary as RoundSummaryState,
 } from 'inertia-core';
-import { Scoreboard } from '../scoreboard';
-import { Board } from '../board';
-import { emptyBoard } from '../../utils/board';
-import { FlexCenter } from '../flex-center';
-import { ThemedPanel } from '../themed-panel';
-import { ThemedButton } from '../themed-form';
-import { PanelTitle } from '../panel-title';
-import { Divider } from '../divider';
-import { RenderWhen } from '../utils/RenderWhen';
 import { BlockText } from '../block-text';
-import { encode_position, encode_solution, get_difficulty } from 'inertia-wasm';
+import { Divider } from '../divider';
+import { FlexCenter } from '../flex-center';
+import { PanelTitle } from '../panel-title';
+import { PlayableBoard } from '../playable-board';
+import { Scoreboard } from '../scoreboard';
+import { ThemedButton } from '../themed-form';
+import { ThemedPanel } from '../themed-panel';
+import { RenderWhen } from '../utils/RenderWhen';
 
 export const RoundSummary = ({
   state,
   userPlayerId,
-  actorSquares,
+  position,
   onStartRound,
 }: {
   state: RoundSummaryState;
   userPlayerId: PlayerId;
-  actorSquares: ActorSquares;
+  position: Position;
   onStartRound: () => void;
 }) => {
   const roundPanelTitle =
@@ -36,7 +37,7 @@ export const RoundSummary = ({
   const lastRoundSolutionMoves = state.last_round_solution?.length ?? -1;
   const lastRoundSolverName =
     state.last_solver != null
-      ? state.meta.player_info[state.last_solver].player_name ?? 'unknown'
+      ? state.meta.player_info[state.last_solver]?.player_name ?? 'unknown'
       : 'unknown';
   const lastRoundOptimalSolutionMoves =
     state.last_round_optimal_solution?.length ?? -1;
@@ -113,11 +114,7 @@ export const RoundSummary = ({
           </FlexCenter>
         </ThemedPanel>
       </FlexCenter>
-      <Board
-        walledBoard={state.last_round_board?.walled_board || emptyBoard()}
-        goal={state.last_round_board?.goal ?? 255}
-        actorSquares={actorSquares}
-      />
+      <PlayableBoard position={position} />
     </FlexCenter>
   );
 };

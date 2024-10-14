@@ -1,11 +1,10 @@
 import {
-  ActorSquares,
   PlayerId,
+  Position,
   RoundSolving as RoundSolvingState,
   SolutionStep,
 } from 'inertia-core';
 import { Countdown } from '../countdown';
-import { Board } from '../board';
 import { FlexCenter } from '../flex-center';
 import { ThemedPanel } from '../themed-panel';
 import { Divider } from '../divider';
@@ -16,28 +15,31 @@ import { ThemedButton } from '../themed-form';
 import { shake } from '../../animations/shake';
 import { useRef } from 'preact/hooks';
 import { BlockText } from '../block-text';
+import { PlayableBoard } from '../playable-board';
 
 export const RoundSolving = ({
   state,
   userPlayerId,
   countdownTimeLeft,
-  actorSquares,
+  position,
   onYieldSolve,
   onMoveActor,
 }: {
   state: RoundSolvingState;
   userPlayerId: PlayerId;
   countdownTimeLeft: number;
-  actorSquares: ActorSquares;
+  position: Position;
   onYieldSolve: () => void;
   onMoveActor: (step: SolutionStep) => void;
 }) => {
-  const solver = state.meta.player_info[state.solver];
+  const solver = state.meta.player_info[state.solver]!;
 
   const isUserSolver = solver.player_id === userPlayerId;
 
   const movesMade = state.solution.length;
-  const bidMoves = state.player_bids.bids[solver.player_id].content!.value;
+  const bidMoves = (
+    state.player_bids.bids[solver.player_id] as { content: { value: number } }
+  ).content.value;
   const isOutOfMoves = movesMade >= bidMoves;
 
   const giveUpButton = useRef<HTMLDivElement | null>(null);
@@ -83,10 +85,8 @@ export const RoundSolving = ({
           </FlexCenter>
         </ThemedPanel>
       </FlexCenter>
-      <Board
-        walledBoard={state.board.walled_board}
-        goal={state.board.goal}
-        actorSquares={actorSquares}
+      <PlayableBoard
+        position={position}
         interactive={isUserSolver}
         onMoveActor={isOutOfMoves ? emphasizeOutOfMoves : onMoveActor}
       />

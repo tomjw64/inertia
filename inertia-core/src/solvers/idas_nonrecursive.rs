@@ -107,61 +107,6 @@ pub fn deepening_search_to_depth(
   None
 }
 
-// Needed to prevent long benchmarks from running during `cargo test`
-#[cfg(all(feature = "benchmarks", test))]
-mod benchmarks {
-  extern crate test;
-  use test::Bencher;
-
-  use std::time::Instant;
-
-  use crate::board_generators::EmptyMiddleGoalBoardGenerator;
-  use crate::mechanics::Position;
-  use crate::mechanics::PositionGenerator;
-  use crate::mechanics::WalledBoard;
-  use crate::solvers::fixtures::GENERATED_WALLED_BOARD_15;
-
-  use super::*;
-
-  #[bench]
-  fn bench_solve_generated_15(_b: &mut Bencher) {
-    let walled_board = GENERATED_WALLED_BOARD_15;
-    let actor_squares = ActorSquares([37, 108, 57, 50].map(Square));
-    let board = MoveBoard::from(&walled_board);
-
-    let start = Instant::now();
-
-    let solution: Option<Vec<SolutionStep>> =
-      deepening_search_to_depth(&board, Square(184), actor_squares, 45);
-    assert_eq!(solution.map(|v| v.len()), Some(15));
-
-    let elapsed = start.elapsed();
-    println!("#######");
-    println!("Elapsed: {:.2?}", elapsed);
-  }
-
-  #[bench]
-  fn bench_solve_empty_middle_goal(_b: &mut Bencher) {
-    let position = EmptyMiddleGoalBoardGenerator::new().generate_position();
-    let Position {
-      walled_board,
-      actor_squares,
-      goal,
-    } = position;
-    let board = MoveBoard::from(&walled_board);
-
-    let start = Instant::now();
-
-    let solution: Option<Vec<SolutionStep>> =
-      deepening_search_to_depth(&board, goal, actor_squares, 45);
-    assert_eq!(solution.map(|v| v.len()), Some(41));
-
-    let elapsed = start.elapsed();
-    println!("#######");
-    println!("Elapsed: {:.2?}", elapsed);
-  }
-}
-
 #[cfg(test)]
 mod test {
   use super::*;

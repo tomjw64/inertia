@@ -8,7 +8,7 @@ const addCross = (result: string[], namePairing: NamePairing) => {
 };
 
 const collectNames = (namePairings: NamePairing[]) => {
-  const result = [];
+  const result: string[] = [];
   for (const pairing of namePairings) {
     addCross(result, pairing);
   }
@@ -23,7 +23,7 @@ const NAME_PAIRINGS: NamePairing[] = [
     descriptors: ['NICE', 'NEARLY', 'NOBLE', 'NATURALLY'],
   },
   {
-    names: ['GORN', 'GUNGAN', 'GERRERA', 'GAMORREAN'],
+    names: ['GORN', 'GUNGAN', 'GERRERA', 'GAMORREAN', 'GARAK'],
     descriptors: ['GOOGLY', 'GREAT', 'GRITTY', 'GLOBAL', 'GIGGLY'],
   },
   {
@@ -126,7 +126,7 @@ const NAME_PAIRINGS: NamePairing[] = [
     descriptors: ['CALM', 'COOL', 'CARING', 'CAPABLE', 'CLEARLY'],
   },
   {
-    names: ['VADER', 'VULCAN', 'VENTRESS'],
+    names: ['VADER', 'VULCAN', 'VENTRESS', 'VORTA'],
     descriptors: ['VIBRANT', 'VERMILLION', 'VEXED', 'VERY', 'VERITABLY'],
   },
   {
@@ -174,7 +174,7 @@ const NAME_PAIRINGS: NamePairing[] = [
     ],
   },
   {
-    names: ['WINDU', 'WORF', 'WOOKIEE', 'WASH'],
+    names: ['WINDU', 'WORF', 'WOOKIEE', 'WASH', 'WEYOUN'],
     descriptors: [
       'WONDROUS',
       'WACKY',
@@ -196,7 +196,7 @@ console.log('Possible names:', COLLECTED_NAMES.length);
 
 export const generatePlayerName = () => {
   const index = Math.floor(Math.random() * COLLECTED_NAMES.length);
-  return COLLECTED_NAMES[index];
+  return COLLECTED_NAMES[index]!;
 };
 
 const MAX_U32 = 4_294_967_295;

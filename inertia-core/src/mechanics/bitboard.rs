@@ -1,14 +1,14 @@
+use crate::mechanics::Square;
 use core::fmt;
+use primitive_types::U256;
 use std::ops::BitAnd;
 use std::ops::BitOr;
 use std::ops::Not;
 
-use primitive_types::U256;
-use typeshare::typeshare;
+#[cfg(feature = "web")]
+use {tsify::declare, wasm_bindgen::prelude::wasm_bindgen};
 
-use crate::mechanics::Square;
-
-#[typeshare]
+#[cfg_attr(feature = "web", declare)]
 pub type ExpandedBitBoard = [bool; 256];
 
 #[derive(Copy, Clone, PartialEq)]

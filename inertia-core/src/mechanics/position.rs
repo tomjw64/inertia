@@ -1,17 +1,17 @@
-use serde::Deserialize;
-use serde::Serialize;
-use typeshare::typeshare;
-
+use super::Direction;
+use super::MoveBoard;
 use crate::mechanics::ActorSquares;
 use crate::mechanics::Square;
 use crate::mechanics::WalledBoard;
 use crate::solvers::SolutionStep;
+use serde::Deserialize;
+use serde::Serialize;
 
-use super::Direction;
-use super::MoveBoard;
+#[cfg(feature = "web")]
+use {tsify::Tsify, wasm_bindgen::prelude::wasm_bindgen};
 
-#[typeshare]
 #[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[cfg_attr(feature = "web", derive(Tsify), tsify(into_wasm_abi, from_wasm_abi))]
 pub struct Position {
   pub walled_board: WalledBoard,
   pub actor_squares: ActorSquares,

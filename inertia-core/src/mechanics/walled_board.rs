@@ -1,14 +1,14 @@
+use super::Square;
 use core::fmt;
-
 use serde::Deserialize;
 use serde::Serialize;
-use typeshare::typeshare;
 
-use super::Square;
+#[cfg(feature = "web")]
+use {tsify::declare, tsify::Tsify, wasm_bindgen::prelude::wasm_bindgen};
 
-#[typeshare]
+#[cfg_attr(feature = "web", declare)]
 type WallGroup = [bool; 15];
-#[typeshare]
+#[cfg_attr(feature = "web", declare)]
 type WallGrid = [WallGroup; 16];
 
 #[derive(Debug, Default, Copy, Clone)]
@@ -26,8 +26,8 @@ impl Walls {
   }
 }
 
-#[typeshare]
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[cfg_attr(feature = "web", derive(Tsify), tsify(into_wasm_abi, from_wasm_abi))]
 pub struct WalledBoard {
   pub vertical: WallGrid,   // 16 ROWS of 15
   pub horizontal: WallGrid, // 16 COLUMNS of 15

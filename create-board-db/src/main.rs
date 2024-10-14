@@ -1,6 +1,3 @@
-use std::cmp::max;
-use std::collections::HashMap;
-
 use inertia_core::board_generators::ClassicBoardGenerator;
 use inertia_core::mechanics::MoveBoard;
 use inertia_core::mechanics::Position;
@@ -10,6 +7,8 @@ use inertia_core::solvers::idas_nonrecursive::deepening_search_to_depth;
 use inertia_core::solvers::SolutionStep;
 use sqlx::Connection;
 use sqlx::SqliteConnection;
+use std::cmp::max;
+use std::collections::HashMap;
 
 const DB_URL: &str = "sqlite:db/boards.db";
 

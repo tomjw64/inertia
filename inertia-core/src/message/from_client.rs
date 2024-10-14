@@ -6,10 +6,12 @@ use crate::state::data::PlayerReconnectKey;
 use crate::state::data::RoomId;
 use serde::Deserialize;
 use strum::Display;
-use typeshare::typeshare;
 
-#[typeshare]
+#[cfg(feature = "web")]
+use {tsify::Tsify, wasm_bindgen::prelude::wasm_bindgen};
+
 #[derive(Deserialize, Debug, Display)]
+#[cfg_attr(feature = "web", derive(Tsify), tsify(from_wasm_abi))]
 #[serde(tag = "type", content = "content")]
 pub enum FromClientMessage {
   ExplicitPing,
@@ -23,27 +25,26 @@ pub enum FromClientMessage {
   YieldSolve,
 }
 
-#[typeshare]
 #[derive(Deserialize, Debug)]
+#[cfg_attr(feature = "web", derive(Tsify), tsify(from_wasm_abi))]
 pub struct UpdateSolutionMessage {
   pub solution: Vec<SolutionStep>,
 }
 
-#[typeshare]
 #[derive(Deserialize, Debug)]
+#[cfg_attr(feature = "web", derive(Tsify), tsify(from_wasm_abi))]
 pub struct BidMessage {
-  #[typeshare(typescript(type = "number"))]
   pub bid_value: u32,
 }
 
-#[typeshare]
 #[derive(Deserialize, Debug)]
+#[cfg_attr(feature = "web", derive(Tsify), tsify(from_wasm_abi))]
 pub struct RenameMessage {
   pub player_name: PlayerName,
 }
 
-#[typeshare]
 #[derive(Deserialize, Debug)]
+#[cfg_attr(feature = "web", derive(Tsify), tsify(from_wasm_abi))]
 pub struct JoinMessage {
   pub player_name: PlayerName,
   pub player_id: PlayerId,

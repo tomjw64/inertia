@@ -4,10 +4,9 @@ import { Divider } from '../divider';
 import { ThemedPanel } from '../themed-panel';
 import { FlexCenter } from '../flex-center';
 import { PanelTitle } from '../panel-title';
-import { get_next_solver } from 'inertia-wasm';
+import { get_next_solver } from 'inertia-core';
 import { RenderWhen } from '../utils/RenderWhen';
 import { PlayerListItem } from '../player-status';
-import { Tray } from '../tray';
 import { useState } from 'preact/hooks';
 import { BlockText } from '../block-text';
 import { FullWidth } from '../full-width';
@@ -51,7 +50,9 @@ export const Bids = ({
                   key={playerId}
                   userPlayerId={userPlayerId}
                   playerInfo={playerInfo}
-                  playerBid={playerBids?.bids?.[playerId] ?? { type: 'None' }}
+                  playerBid={
+                    playerBids?.bids?.[parseInt(playerId)] ?? { type: 'None' }
+                  }
                   isLeader={leader?.toString() === playerId}
                   solving={solving}
                 />

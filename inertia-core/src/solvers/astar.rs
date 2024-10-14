@@ -1,14 +1,19 @@
+use std::borrow::Borrow;
+
 use hashbrown::hash_map::Entry;
 use hashbrown::HashMap;
 
 use crate::mechanics::ActorSquares;
 use crate::mechanics::Direction;
 use crate::mechanics::MoveBoard;
+use crate::mechanics::Position;
 use crate::mechanics::Square;
-use crate::solvers::BucketingMonotonicPriorityQueue;
-use crate::solvers::HeuristicBoard;
-use crate::solvers::ImprovedHeuristicBoard;
 use crate::solvers::SolutionStep;
+
+use super::BucketingPriorityQueue;
+use super::CombinedHeuristic;
+// use super::GroupMinMovesBoard;
+use super::Heuristic;
 
 struct VisitedData {
   parent: ActorSquares,
@@ -20,14 +25,32 @@ struct QueueData {
   depth: u8,
 }
 
+pub fn solve_position<P: Borrow<Position>>(
+  position: P,
+  max_depth: usize,
+) -> Option<Vec<SolutionStep>> {
+  let Position {
+    walled_board,
+    actor_squares,
+    goal,
+  } = position.borrow();
+  let board = MoveBoard::from(walled_board);
+  solve(&board, *goal, *actor_squares, max_depth)
+}
+
 pub fn solve(
   board: &MoveBoard,
   goal: Square,
   actor_squares: ActorSquares,
   max_depth: usize,
 ) -> Option<Vec<SolutionStep>> {
-  let heuristic_board = ImprovedHeuristicBoard::from_move_board(board, goal);
-  let mut queue = BucketingMonotonicPriorityQueue::with_capacities(256, 1024);
+  let heuristic_board = CombinedHeuristic::from_move_board(board, goal);
+  // let heuristic_board = GroupMinMovesBoard::from_move_board(board, goal);
+  // let heuristic_board = ExpensiveCrawlsBoard::from_move_board(board, goal);
+  // let heuristic_board = MinAssistsBoard::from_move_board(board, goal);
+
+  // let mut queue = BucketingMonotonicPriorityQueue::with_capacities(256, 1024);
+  let mut queue = BucketingPriorityQueue::with_capacities(256, 1024);
   let mut visited: HashMap<u32, VisitedData> = HashMap::with_capacity(1024);
 
   queue.push(
@@ -35,7 +58,7 @@ pub fn solve(
       actor_squares,
       depth: 0,
     },
-    heuristic_board.get(actor_squares),
+    heuristic_board.get_heuristic(actor_squares) as usize,
   );
 
   while let Some(queue_data) = queue.pop() {
@@ -85,6 +108,7 @@ pub fn solve(
         let move_destination =
           board.get_move_destination(actor_square, actor_squares, direction);
         if move_destination == actor_square {
+          // No change in position, skip
           continue;
         }
 
@@ -124,118 +148,14 @@ pub fn solve(
             actor_squares: new_actor_squares,
             depth: new_depth,
           },
-          new_depth as usize + heuristic_board.get(actor_squares),
+          new_depth as usize
+            + heuristic_board.get_heuristic(actor_squares) as usize,
         );
       }
     }
   }
 
   None
-}
-
-// Needed to prevent long benchmarks from running during `cargo test`
-#[cfg(all(feature = "benchmarks", test))]
-mod benchmarks {
-  extern crate test;
-  use test::Bencher;
-
-  use std::time::Instant;
-
-  use crate::board_generators::EmptyMiddleGoalBoardGenerator;
-  use crate::mechanics::Position;
-  use crate::mechanics::PositionGenerator;
-  use crate::mechanics::WalledBoard;
-  use crate::solvers::fixtures::GENERATED_WALLED_BOARD_15;
-
-  use super::*;
-
-  #[bench]
-  fn bench_solve_generated_15(_b: &mut Bencher) {
-    println!("#######");
-    let walled_board = GENERATED_WALLED_BOARD_15;
-    let actor_squares = ActorSquares([37, 108, 57, 50].map(Square));
-    let board = MoveBoard::from(&walled_board);
-    let goal = Square(184);
-
-    let start = Instant::now();
-
-    let solution: Option<Vec<SolutionStep>> =
-      solve(&board, goal, actor_squares, 45);
-
-    let elapsed = start.elapsed();
-    println!("Elapsed: {:.2?}", elapsed);
-
-    assert_eq!(solution.as_ref().map(|v| v.len()), Some(15));
-    assert!(Position {
-      walled_board,
-      actor_squares,
-      goal
-    }
-    .is_solution(&solution.unwrap()));
-  }
-
-  #[bench]
-  fn bench_solve_shuffle_puzzle(_b: &mut Bencher) {
-    println!("#######");
-    let mut vertical = [[false; 15]; 16];
-    vertical[0] = [true; 15];
-    vertical[15] = [true; 15];
-    let mut horizontal = [[false; 15]; 16];
-    horizontal[0] = [true; 15];
-    horizontal[15] = [true; 15];
-    let walled_board = WalledBoard {
-      vertical,
-      horizontal,
-    };
-    let actor_squares =
-      ActorSquares([Square(17), Square(18), Square(33), Square(34)]);
-    let goal = Square::from_row_col(8, 8);
-    let board = MoveBoard::from(&walled_board);
-
-    let start = Instant::now();
-
-    let solution: Option<Vec<SolutionStep>> =
-      solve(&board, goal, actor_squares, 80);
-
-    let elapsed = start.elapsed();
-    println!("Elapsed: {:.2?}", elapsed);
-
-    assert_eq!(solution.as_ref().map(|v| v.len()), Some(70));
-    assert!(Position {
-      walled_board,
-      actor_squares,
-      goal
-    }
-    .is_solution(&solution.unwrap()));
-  }
-
-  #[bench]
-  fn bench_solve_empty_middle_goal(_b: &mut Bencher) {
-    println!("#######");
-    let position = EmptyMiddleGoalBoardGenerator::new().generate_position();
-    let Position {
-      walled_board,
-      actor_squares,
-      goal,
-    } = position;
-    let board = MoveBoard::from(&walled_board);
-
-    let start = Instant::now();
-
-    let solution: Option<Vec<SolutionStep>> =
-      solve(&board, goal, actor_squares, 45);
-
-    let elapsed = start.elapsed();
-    println!("Elapsed: {:.2?}", elapsed);
-
-    assert_eq!(solution.as_ref().map(|v| v.len()), Some(41));
-    assert!(Position {
-      walled_board,
-      actor_squares,
-      goal
-    }
-    .is_solution(&solution.unwrap()));
-  }
 }
 
 #[cfg(test)]

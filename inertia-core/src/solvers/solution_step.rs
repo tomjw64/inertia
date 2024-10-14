@@ -1,13 +1,13 @@
+use crate::mechanics::Direction;
 use serde::Deserialize;
 use serde::Serialize;
-use typeshare::typeshare;
 
-use crate::mechanics::Direction;
+#[cfg(feature = "web")]
+use {tsify::Tsify, wasm_bindgen::prelude::wasm_bindgen};
 
-#[typeshare]
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "web", derive(Tsify), tsify(into_wasm_abi, from_wasm_abi))]
 pub struct SolutionStep {
-  #[typeshare(typescript(type = "number"))]
   pub actor: u8,
   pub direction: Direction,
 }

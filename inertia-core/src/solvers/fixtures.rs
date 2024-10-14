@@ -1,8 +1,9 @@
-#[cfg(all(feature = "benchmarks", test))]
+// #[cfg(all(feature = "benchmarks", test))]
 use crate::mechanics::WalledBoard;
 
-#[cfg(all(feature = "benchmarks", test))]
-pub(crate) const GENERATED_WALLED_BOARD_15: WalledBoard = WalledBoard {
+// #[cfg(all(feature = "benchmarks", test))]
+// pub(crate) const GENERATED_WALLED_BOARD_15: WalledBoard = WalledBoard {
+pub const GENERATED_WALLED_BOARD_15: WalledBoard = WalledBoard {
   vertical: [
     [
       false, false, false, false, false, false, true, false, false, false,

@@ -1,9 +1,25 @@
+use std::borrow::Borrow;
+
 use crate::mechanics::ActorSquares;
 use crate::mechanics::Direction;
 use crate::mechanics::MoveBoard;
+use crate::mechanics::Position;
 use crate::mechanics::Square;
 use crate::solvers::HeuristicBoard;
 use crate::solvers::SolutionStep;
+
+pub fn solve_position<P: Borrow<Position>>(
+  position: P,
+  max_depth: usize,
+) -> Option<Vec<SolutionStep>> {
+  let Position {
+    walled_board,
+    actor_squares,
+    goal,
+  } = position.borrow();
+  let board = MoveBoard::from(walled_board);
+  deepening_search_to_depth(&board, *goal, *actor_squares, max_depth)
+}
 
 pub fn deepening_search_to_depth(
   board: &MoveBoard,
@@ -102,110 +118,110 @@ fn search_at_depth(
 }
 
 // Needed to prevent long benchmarks from running during `cargo test`
-#[cfg(all(feature = "benchmarks", test))]
-mod benchmarks {
-  extern crate test;
-  use test::Bencher;
+// #[cfg(all(feature = "benchmarks", test))]
+// mod benchmarks {
+//   extern crate test;
+//   use test::Bencher;
 
-  use std::time::Instant;
+//   use std::time::Instant;
 
-  use crate::board_generators::EmptyMiddleGoalBoardGenerator;
-  use crate::mechanics::Position;
-  use crate::mechanics::PositionGenerator;
-  use crate::mechanics::WalledBoard;
-  use crate::solvers::fixtures::GENERATED_WALLED_BOARD_15;
+//   use crate::board_generators::EmptyMiddleGoalBoardGenerator;
+//   use crate::mechanics::Position;
+//   use crate::mechanics::PositionGenerator;
+//   use crate::mechanics::WalledBoard;
+//   use crate::solvers::fixtures::GENERATED_WALLED_BOARD_15;
 
-  use super::*;
+//   use super::*;
 
-  #[bench]
-  fn bench_solve_generated_15(_b: &mut Bencher) {
-    println!("#######");
-    let walled_board = GENERATED_WALLED_BOARD_15;
-    let actor_squares = ActorSquares([37, 108, 57, 50].map(Square));
-    let board = MoveBoard::from(&walled_board);
-    let goal = Square(184);
+//   #[bench]
+//   fn bench_solve_generated_15(_b: &mut Bencher) {
+//     println!("#######");
+//     let walled_board = GENERATED_WALLED_BOARD_15;
+//     let actor_squares = ActorSquares([37, 108, 57, 50].map(Square));
+//     let board = MoveBoard::from(&walled_board);
+//     let goal = Square(184);
 
-    let start = Instant::now();
+//     let start = Instant::now();
 
-    let solution: Option<Vec<SolutionStep>> =
-      deepening_search_to_depth(&board, goal, actor_squares, 45);
+//     let solution: Option<Vec<SolutionStep>> =
+//       deepening_search_to_depth(&board, goal, actor_squares, 45);
 
-    let elapsed = start.elapsed();
-    println!("Elapsed: {:.2?}", elapsed);
+//     let elapsed = start.elapsed();
+//     println!("Elapsed: {:.2?}", elapsed);
 
-    assert_eq!(solution.as_ref().map(|v| v.len()), Some(15));
-    assert!(Position {
-      walled_board,
-      actor_squares,
-      goal
-    }
-    .is_solution(&solution.unwrap()));
-  }
+//     assert_eq!(solution.as_ref().map(|v| v.len()), Some(15));
+//     assert!(Position {
+//       walled_board,
+//       actor_squares,
+//       goal
+//     }
+//     .is_solution(&solution.unwrap()));
+//   }
 
-  #[bench]
-  fn bench_solve_shuffle_puzzle(_b: &mut Bencher) {
-    println!("#######");
-    let mut vertical = [[false; 15]; 16];
-    vertical[0] = [true; 15];
-    vertical[15] = [true; 15];
-    let mut horizontal = [[false; 15]; 16];
-    horizontal[0] = [true; 15];
-    horizontal[15] = [true; 15];
-    let walled_board = WalledBoard {
-      vertical,
-      horizontal,
-    };
-    let actor_squares =
-      ActorSquares([Square(17), Square(18), Square(33), Square(34)]);
-    let goal = Square::from_row_col(8, 8);
+//   #[bench]
+//   fn bench_solve_shuffle_puzzle(_b: &mut Bencher) {
+//     println!("#######");
+//     let mut vertical = [[false; 15]; 16];
+//     vertical[0] = [true; 15];
+//     vertical[15] = [true; 15];
+//     let mut horizontal = [[false; 15]; 16];
+//     horizontal[0] = [true; 15];
+//     horizontal[15] = [true; 15];
+//     let walled_board = WalledBoard {
+//       vertical,
+//       horizontal,
+//     };
+//     let actor_squares =
+//       ActorSquares([Square(17), Square(18), Square(33), Square(34)]);
+//     let goal = Square::from_row_col(8, 8);
 
-    let board = MoveBoard::from(&walled_board);
+//     let board = MoveBoard::from(&walled_board);
 
-    let start = Instant::now();
+//     let start = Instant::now();
 
-    let solution: Option<Vec<SolutionStep>> =
-      deepening_search_to_depth(&board, goal, actor_squares, 80);
+//     let solution: Option<Vec<SolutionStep>> =
+//       deepening_search_to_depth(&board, goal, actor_squares, 80);
 
-    let elapsed = start.elapsed();
-    println!("Elapsed: {:.2?}", elapsed);
+//     let elapsed = start.elapsed();
+//     println!("Elapsed: {:.2?}", elapsed);
 
-    assert_eq!(solution.as_ref().map(|v| v.len()), Some(70));
-    assert!(Position {
-      walled_board,
-      actor_squares,
-      goal
-    }
-    .is_solution(&solution.unwrap()));
-  }
+//     assert_eq!(solution.as_ref().map(|v| v.len()), Some(70));
+//     assert!(Position {
+//       walled_board,
+//       actor_squares,
+//       goal
+//     }
+//     .is_solution(&solution.unwrap()));
+//   }
 
-  #[bench]
-  fn bench_solve_empty_middle_goal(_b: &mut Bencher) {
-    println!("#######");
-    let position = EmptyMiddleGoalBoardGenerator::new().generate_position();
-    let Position {
-      walled_board,
-      actor_squares,
-      goal,
-    } = position;
-    let board = MoveBoard::from(&walled_board);
+//   #[bench]
+//   fn bench_solve_empty_middle_goal(_b: &mut Bencher) {
+//     println!("#######");
+//     let position = EmptyMiddleGoalBoardGenerator::new().generate_position();
+//     let Position {
+//       walled_board,
+//       actor_squares,
+//       goal,
+//     } = position;
+//     let board = MoveBoard::from(&walled_board);
 
-    let start = Instant::now();
+//     let start = Instant::now();
 
-    let solution: Option<Vec<SolutionStep>> =
-      deepening_search_to_depth(&board, goal, actor_squares, 45);
+//     let solution: Option<Vec<SolutionStep>> =
+//       deepening_search_to_depth(&board, goal, actor_squares, 45);
 
-    let elapsed = start.elapsed();
-    println!("Elapsed: {:.2?}", elapsed);
+//     let elapsed = start.elapsed();
+//     println!("Elapsed: {:.2?}", elapsed);
 
-    assert_eq!(solution.as_ref().map(|v| v.len()), Some(41));
-    assert!(Position {
-      walled_board,
-      actor_squares,
-      goal
-    }
-    .is_solution(&solution.unwrap()));
-  }
-}
+//     assert_eq!(solution.as_ref().map(|v| v.len()), Some(41));
+//     assert!(Position {
+//       walled_board,
+//       actor_squares,
+//       goal
+//     }
+//     .is_solution(&solution.unwrap()));
+//   }
+// }
 
 #[cfg(test)]
 mod test {

@@ -13,7 +13,7 @@ export const emptyBoard = (): WalledBoard => {
   };
 };
 
-export const defaultPositionBytes =
+export const defaultPositionBytes = () =>
   'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAgP_';
 
 export const defaultPosition = (): Position => {

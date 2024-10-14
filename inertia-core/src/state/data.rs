@@ -5,22 +5,24 @@ use serde::Deserialize;
 use serde::Serialize;
 use strum::Display;
 use thiserror::Error;
-use typeshare::typeshare;
 
 use crate::mechanics::Position;
 use crate::mechanics::SolvedPositionGenerator;
 use crate::solvers::SolutionStep;
 
-#[typeshare(serialized_as = "number")]
+#[cfg(feature = "web")]
+use {tsify::Tsify, wasm_bindgen::prelude::wasm_bindgen};
+
 #[derive(Serialize, Deserialize, Eq, PartialEq, Hash, Copy, Clone, Debug)]
+#[cfg_attr(feature = "web", derive(Tsify), tsify(into_wasm_abi, from_wasm_abi))]
 pub struct PlayerId(pub u32);
 
-#[typeshare(serialized_as = "number")]
 #[derive(Serialize, Deserialize, Eq, PartialEq, Hash, Copy, Clone, Debug)]
+#[cfg_attr(feature = "web", derive(Tsify), tsify(into_wasm_abi, from_wasm_abi))]
 pub struct RoomId(pub u32);
 
-#[typeshare]
 #[derive(Serialize, Deserialize, Eq, PartialEq, Clone, Debug)]
+#[cfg_attr(feature = "web", derive(Tsify), tsify(into_wasm_abi, from_wasm_abi))]
 pub struct PlayerName(pub String);
 
 impl<T> From<T> for PlayerName
@@ -32,32 +34,19 @@ where
   }
 }
 
-#[typeshare(serialized_as = "number")]
 #[derive(Serialize, Deserialize, Eq, PartialEq, Copy, Clone, Debug)]
+#[cfg_attr(feature = "web", derive(Tsify), tsify(into_wasm_abi, from_wasm_abi))]
 pub struct PlayerReconnectKey(pub u32);
 
-#[typeshare]
 #[derive(Serialize, Deserialize, Eq, PartialEq, Copy, Clone, Debug)]
+#[cfg_attr(feature = "web", derive(Tsify), tsify(into_wasm_abi, from_wasm_abi))]
 #[serde(tag = "type", content = "content")]
 pub enum PlayerBid {
   None,
   NoneReady,
-  Prospective {
-    #[typeshare(serialized_as = "number")]
-    value: u32,
-    #[typeshare(serialized_as = "number")]
-    order: u32,
-  },
-  ProspectiveReady {
-    #[typeshare(serialized_as = "number")]
-    value: u32,
-    #[typeshare(serialized_as = "number")]
-    order: u32,
-  },
-  Failed {
-    #[typeshare(serialized_as = "number")]
-    value: u32,
-  },
+  Prospective { value: u32, order: u32 },
+  ProspectiveReady { value: u32, order: u32 },
+  Failed { value: u32 },
 }
 
 impl PlayerBid {
@@ -78,15 +67,6 @@ impl PlayerBid {
       PlayerBid::Prospective { order, .. } => order,
       PlayerBid::ProspectiveReady { order, .. } => order,
       PlayerBid::Failed { .. } => 0,
-    }
-  }
-
-  pub fn to_locked(self) -> Self {
-    let effective_value = self.to_effective_value();
-    let order = self.to_order();
-    Self::ProspectiveReady {
-      value: effective_value,
-      order,
     }
   }
 
@@ -125,8 +105,8 @@ impl PlayerBid {
   }
 }
 
-#[typeshare]
 #[derive(Serialize, Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "web", derive(Tsify), tsify(into_wasm_abi))]
 pub struct PlayerInfo {
   pub player_id: PlayerId,
   pub player_name: PlayerName,
@@ -135,18 +115,16 @@ pub struct PlayerInfo {
   #[serde(skip)]
   pub player_last_seen: u32,
   pub player_connected: bool,
-  #[typeshare(typescript(type = "number"))]
   pub player_score: u32,
 }
 
-#[typeshare]
 #[derive(Serialize, Debug, Clone)]
+#[cfg_attr(feature = "web", derive(Tsify), tsify(into_wasm_abi))]
 pub struct RoomMeta {
   pub room_id: RoomId,
   #[serde(skip)]
   pub generator: Box<dyn SolvedPositionGenerator>,
   pub player_info: HashMap<PlayerId, PlayerInfo>,
-  #[typeshare(typescript(type = "number"))]
   pub round_number: u32,
 }
 
@@ -160,8 +138,8 @@ impl PartialEq for RoomMeta {
 
 impl Eq for RoomMeta {}
 
-#[typeshare]
 #[derive(Serialize, Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "web", derive(Tsify), tsify(into_wasm_abi))]
 pub struct RoundSummary {
   pub meta: RoomMeta,
   pub last_round_board: Option<Position>,
@@ -170,8 +148,8 @@ pub struct RoundSummary {
   pub last_round_optimal_solution: Option<Vec<SolutionStep>>,
 }
 
-#[typeshare]
 #[derive(Serialize, Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "web", derive(Tsify), tsify(into_wasm_abi))]
 pub struct RoundStart {
   pub meta: RoomMeta,
   pub board: Position,
@@ -179,8 +157,8 @@ pub struct RoundStart {
   pub optimal_solution: Vec<SolutionStep>,
 }
 
-#[typeshare]
 #[derive(Serialize, Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "web", derive(Tsify), tsify(into_wasm_abi))]
 pub struct RoundBidding {
   pub meta: RoomMeta,
   pub board: Position,
@@ -189,8 +167,8 @@ pub struct RoundBidding {
   pub optimal_solution: Vec<SolutionStep>,
 }
 
-#[typeshare]
 #[derive(Serialize, Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "web", derive(Tsify), tsify(into_wasm_abi))]
 pub struct RoundSolving {
   pub meta: RoomMeta,
   pub board: Position,
@@ -201,8 +179,8 @@ pub struct RoundSolving {
   pub optimal_solution: Vec<SolutionStep>,
 }
 
-#[typeshare]
 #[derive(Serialize, Deserialize, Default, Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "web", derive(Tsify), tsify(into_wasm_abi, from_wasm_abi))]
 pub struct PlayerBids {
   pub bids: HashMap<PlayerId, PlayerBid>,
   #[serde(skip)]
@@ -307,8 +285,8 @@ impl PlayerBids {
   }
 }
 
-#[typeshare]
 #[derive(Serialize, Display, Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "web", derive(Tsify), tsify(into_wasm_abi))]
 #[serde(tag = "type", content = "content")]
 pub enum RoomState {
   None,

@@ -1,9 +1,16 @@
 import classNames from 'classnames';
-import { ActorSquares, ExpandedBitBoard, WalledBoard } from 'inertia-core';
+import {
+  ExpandedBitBoard,
+  MetaBoardWrapper,
+  Position,
+  WalledBoard,
+} from 'inertia-core';
 import { animate } from 'motion';
 import { useLayoutEffect, useRef } from 'preact/hooks';
-import { getActorColor, getActorIndex } from '../../utils/actor-colors';
+import { getActorColor } from '../../utils/actor-colors';
 import style from './style.module.scss';
+import { FlexCenter } from '../flex-center';
+import { BoardSelection, isActorSelection } from '../../utils/selection';
 
 export const ACTOR_FLIP_ANIMATE_DURATION = 0.2;
 export const MOVE_INDICATOR_ANIMATE_DURATION = 0.2;
@@ -27,32 +34,17 @@ export type SquareMouseEvent = {
   region: SquareRegionType;
 };
 
-export enum BoardSelection {
-  GOAL = -2,
-  NONE = -1,
-  RED = getActorIndex('red'),
-  BLUE = getActorIndex('blue'),
-  GREEN = getActorIndex('green'),
-  YELLOW = getActorIndex('yellow'),
-}
-
-export const isActorSelection = (
-  selection: BoardSelection,
-): selection is 0 | 1 | 2 | 3 => {
-  return selection >= 0;
-};
-
 type BoardCommonProps = {
-  walledBoard: WalledBoard;
-  goal: number;
-  actorSquares: ActorSquares;
+  position: Position;
   selection: BoardSelection;
+  interactive?: boolean;
   indicatorSquares?: ExpandedBitBoard;
   emphasizedIndicatorSquares?: ExpandedBitBoard;
   indicatorWalls?: WalledBoard;
   onClickRegion?: (event: SquareMouseEvent) => void;
   onMouseEnterRegion?: (event: SquareMouseEvent) => void;
   onMouseLeaveBoard?: () => void;
+  metaBoard?: MetaBoardWrapper;
 };
 
 type BoardProps = BoardCommonProps;
@@ -68,17 +60,17 @@ type BoardSquareProps = BoardRowProps & {
 
 type BorderSlotProps = Pick<
   BoardSquareProps,
-  'row' | 'column' | 'walledBoard' | 'indicatorWalls'
+  'row' | 'column' | 'position' | 'indicatorWalls'
 >;
 
 type GoalSlotProps = Pick<
   BoardSquareProps,
-  'squareIndex' | 'goal' | 'selection'
+  'squareIndex' | 'position' | 'selection'
 >;
 
 type ActorSlotProps = Pick<
   BoardSquareProps,
-  'squareIndex' | 'selection' | 'actorSquares'
+  'squareIndex' | 'selection' | 'position'
 >;
 
 type IndicatorSlotProps = Pick<
@@ -89,30 +81,34 @@ type IndicatorSlotProps = Pick<
   | 'emphasizedIndicatorSquares'
 >;
 
+type MetaDebugSlotProps = Pick<BoardSquareProps, 'squareIndex' | 'metaBoard'>;
+
 type SquareRegionProps = Pick<
   BoardSquareProps,
   | 'row'
   | 'column'
   | 'squareIndex'
+  | 'position'
+  | 'interactive'
+  | 'indicatorSquares'
   | 'onClickRegion'
   | 'onMouseEnterRegion'
-  | 'actorSquares'
 > & { type: SquareRegionType };
 
 // TODO: Get rid of so many queries inside event handlers. Hydrate only the
 // first time if needed.
 
 export const SimpleBoard = ({
-  walledBoard,
-  goal,
-  actorSquares,
+  position,
   selection,
+  interactive,
   indicatorSquares,
   emphasizedIndicatorSquares,
   indicatorWalls,
   onClickRegion,
   onMouseEnterRegion,
   onMouseLeaveBoard,
+  metaBoard,
 }: BoardProps) => {
   const boardElement = useRef<HTMLDivElement>(null);
 
@@ -203,7 +199,12 @@ export const SimpleBoard = ({
     actorFlipAnimations.then(() => {
       indicatorAnimations.forEach((animation) => animation.play());
     });
-  }, [actorSquares, indicatorSquares, emphasizedIndicatorSquares, selection]);
+  }, [
+    position.actor_squares,
+    indicatorSquares,
+    emphasizedIndicatorSquares,
+    selection,
+  ]);
 
   return (
     <div
@@ -217,15 +218,15 @@ export const SimpleBoard = ({
         <BoardRow
           {...{
             row,
-            walledBoard,
-            goal,
-            actorSquares,
+            position,
             selection,
+            interactive,
             indicatorSquares,
             emphasizedIndicatorSquares,
             indicatorWalls,
             onClickRegion,
             onMouseEnterRegion,
+            metaBoard,
           }}
         />
       ))}
@@ -235,15 +236,15 @@ export const SimpleBoard = ({
 
 const BoardRow = ({
   row,
-  walledBoard,
-  goal,
-  actorSquares,
+  position,
   selection,
+  interactive,
   indicatorSquares,
   emphasizedIndicatorSquares,
   indicatorWalls,
   onClickRegion,
   onMouseEnterRegion,
+  metaBoard,
 }: BoardRowProps) => {
   return (
     <>
@@ -252,16 +253,16 @@ const BoardRow = ({
           {...{
             row,
             column,
-            walledBoard,
-            goal,
-            actorSquares,
+            squareIndex: row * 16 + column,
+            position,
             selection,
+            interactive,
             indicatorSquares,
             emphasizedIndicatorSquares,
             indicatorWalls,
             onClickRegion,
             onMouseEnterRegion,
-            squareIndex: row * 16 + column,
+            metaBoard,
           }}
         />
       ))}
@@ -273,15 +274,15 @@ const BoardSquare = ({
   row,
   column,
   squareIndex,
-  walledBoard,
-  goal,
-  actorSquares,
+  position,
   selection,
+  interactive,
   indicatorSquares,
   emphasizedIndicatorSquares,
   indicatorWalls,
   onClickRegion,
   onMouseEnterRegion,
+  metaBoard,
 }: BoardSquareProps) => {
   return (
     <div className={style.square}>
@@ -289,13 +290,15 @@ const BoardSquare = ({
         {...{
           squareIndex,
           selection,
+          interactive,
           indicatorSquares,
           emphasizedIndicatorSquares,
         }}
       />
-      <GoalSlot {...{ squareIndex, goal, selection }} />
-      <ActorSlot {...{ squareIndex, actorSquares, selection }} />
-      <BorderSlot {...{ row, column, walledBoard, indicatorWalls }} />
+      <GoalSlot {...{ squareIndex, position, selection, interactive }} />
+      <BorderSlot {...{ row, column, position, indicatorWalls }} />
+      <ActorSlot {...{ squareIndex, position, selection, interactive }} />
+      <MetaDebugSlot {...{ squareIndex, metaBoard }} />
       {Object.values(SquareRegionType).map((type) => {
         return (
           <SquareRegion
@@ -304,7 +307,9 @@ const BoardSquare = ({
               row,
               column,
               squareIndex,
-              actorSquares,
+              position,
+              interactive,
+              indicatorSquares,
               onClickRegion,
               onMouseEnterRegion,
             }}
@@ -316,30 +321,40 @@ const BoardSquare = ({
 };
 
 const SquareRegion = ({
+  type,
   row,
   column,
   squareIndex,
-  actorSquares,
-  type,
+  position,
+  interactive,
+  indicatorSquares,
   onClickRegion,
   onMouseEnterRegion,
 }: SquareRegionProps) => {
-  const isActorPresent = actorSquares.includes(squareIndex);
+  const isActorHere = position.actor_squares.includes(squareIndex);
+  const isIndicatorHere = indicatorSquares?.[squareIndex];
+  const selectable =
+    isIndicatorHere || (isActorHere && type === SquareRegionType.CENTER);
+
   const eventPayload = { row, column, squareIndex, region: type };
   const eventProps = {
     onClick:
-      onClickRegion &&
-      ((originalEvent: MouseEvent) => {
-        originalEvent.stopPropagation(); // For easier deselection
-        onClickRegion(eventPayload);
-      }),
+      interactive && onClickRegion
+        ? (originalEvent: MouseEvent) => {
+            originalEvent.stopPropagation(); // For easier deselection
+            onClickRegion(eventPayload);
+          }
+        : undefined,
     onMouseEnter:
-      onMouseEnterRegion && (() => onMouseEnterRegion(eventPayload)),
+      interactive && onMouseEnterRegion
+        ? () => onMouseEnterRegion(eventPayload)
+        : undefined,
   };
   return (
     <div
       className={classNames(style.slot, style.region, style[`region-${type}`], {
-        [style['actor-adjusted']]: isActorPresent,
+        [style['actor-adjusted']]: isActorHere,
+        [style.selectable]: interactive && selectable,
       })}
       {...eventProps}
     />
@@ -349,17 +364,17 @@ const SquareRegion = ({
 const BorderSlot = ({
   row,
   column,
-  walledBoard,
+  position,
   indicatorWalls,
 }: BorderSlotProps) => {
-  const { horizontal, vertical } = walledBoard;
+  const { horizontal, vertical } = position.walled_board;
   const { horizontal: indicatorHorizontal, vertical: indicatorVertical } =
     indicatorWalls ?? {};
   const wallClasses = {
-    [style['wall-bottom']]: horizontal[column][row],
-    [style['wall-top']]: horizontal[column][row - 1],
-    [style['wall-right']]: vertical[row][column],
-    [style['wall-left']]: vertical[row][column - 1],
+    [style['wall-bottom']]: horizontal[column]![row],
+    [style['wall-top']]: horizontal[column]![row - 1],
+    [style['wall-right']]: vertical[row]![column],
+    [style['wall-left']]: vertical[row]![column - 1],
     [style['wall-bottom-indicator']]: indicatorHorizontal?.[column]?.[row],
     [style['wall-top-indicator']]: indicatorHorizontal?.[column]?.[row - 1],
     [style['wall-right-indicator']]: indicatorVertical?.[row]?.[column],
@@ -367,6 +382,20 @@ const BorderSlot = ({
   };
 
   return <div className={classNames(style.slot, style.border, wallClasses)} />;
+};
+
+const MetaDebugSlot = ({ squareIndex, metaBoard }: MetaDebugSlotProps) => {
+  const meta = metaBoard?.squares?.[squareIndex];
+  if (meta == null) {
+    return <></>;
+  }
+  return (
+    <div className={classNames(style.slot)}>
+      <FlexCenter expand>
+        <span>{meta}</span>
+      </FlexCenter>
+    </div>
+  );
 };
 
 const IndicatorSlot = ({
@@ -398,8 +427,8 @@ const IndicatorSlot = ({
   );
 };
 
-const GoalSlot = ({ squareIndex, goal, selection }: GoalSlotProps) => {
-  const isGoalHere = goal === squareIndex;
+const GoalSlot = ({ squareIndex, position, selection }: GoalSlotProps) => {
+  const isGoalHere = position.goal === squareIndex;
   if (!isGoalHere) {
     return <></>;
   }
@@ -415,12 +444,8 @@ const GoalSlot = ({ squareIndex, goal, selection }: GoalSlotProps) => {
   );
 };
 
-const ActorSlot = ({
-  squareIndex,
-  actorSquares,
-  selection,
-}: ActorSlotProps) => {
-  const actorIndex = actorSquares.indexOf(squareIndex);
+const ActorSlot = ({ squareIndex, position, selection }: ActorSlotProps) => {
+  const actorIndex = position.actor_squares.indexOf(squareIndex);
   const isActorHere = actorIndex !== -1;
   if (!isActorHere) {
     return <></>;
