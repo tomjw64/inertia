@@ -21,7 +21,7 @@ import {
   getPlayerName,
   getPlayerReconnectKey,
 } from '../../utils/storage';
-import { useThrottledQueue } from '../../utils/throttled-queue';
+import { useThrottledQueue } from '../../utils/hooks/use-throttled-queue';
 
 const RoomStateType = {
   NONE: 'None',

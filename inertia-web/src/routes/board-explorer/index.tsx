@@ -26,7 +26,7 @@ import { RenderWhen } from '../../components/utils/RenderWhen';
 import { DIRECTIONS } from '../../constants/direction';
 import { NamedSolution } from '../../types';
 import { getActorColor } from '../../utils/actor-colors';
-import { useThrottledQueue } from '../../utils/throttled-queue';
+import { useThrottledQueue } from '../../utils/hooks/use-throttled-queue';
 import {
   useInitialUrlPositions,
   useUrlSyncedSolutionsState,

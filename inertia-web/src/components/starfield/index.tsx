@@ -1,7 +1,6 @@
-import { useRef, useEffect, Ref } from 'preact/hooks';
+import { useRef, useEffect } from 'preact/hooks';
 import style from './style.module.scss';
-import { debounce, range } from 'lodash';
-import { groupBy } from 'lodash';
+import { debounce, range, groupBy } from 'lodash';
 
 // Heavily inspired by: https://codepen.io/ksenia-k/pen/gOPboQg
 
@@ -41,33 +40,16 @@ const STAR_COLOR_BY_OPACITY = range(1, OPACITY_LEVELS + 1)
   .map((val) => val / OPACITY_LEVELS)
   .map(getStarOpacityColor);
 
-const withCanvasContext = (
-  canvasRef: Ref<HTMLCanvasElement>,
-  fn: (_: {
-    canvas: HTMLCanvasElement;
-    context: CanvasRenderingContext2D;
-  }) => void,
-) => {
-  const canvas = canvasRef.current;
-  const context = canvas?.getContext('2d');
-  if (!canvas || !context) {
-    return;
-  }
-  fn({ canvas, context });
+const getContext = (canvas: HTMLCanvasElement) => canvas.getContext('2d')!;
+
+const resizeCanvas = (canvas: HTMLCanvasElement) => {
+  const pixelRatio = window.devicePixelRatio;
+  canvas.height = Math.floor(window.innerHeight * pixelRatio);
+  canvas.width = Math.floor(window.innerWidth * pixelRatio);
 };
 
-const resizeCanvas = (canvasRef: Ref<HTMLCanvasElement>) => {
-  withCanvasContext(canvasRef, ({ canvas }) => {
-    const pixelRatio = window.devicePixelRatio;
-    canvas.height = Math.floor(window.innerHeight * pixelRatio);
-    canvas.width = Math.floor(window.innerWidth * pixelRatio);
-  });
-};
-
-const clearCanvas = (canvasRef: Ref<HTMLCanvasElement>) => {
-  withCanvasContext(canvasRef, ({ canvas, context }) => {
-    context.clearRect(0, 0, canvas.width, canvas.height);
-  });
+const clearCanvas = (canvas: HTMLCanvasElement) => {
+  getContext(canvas).clearRect(0, 0, canvas.width, canvas.height);
 };
 
 const genStar = (): Star => {
@@ -179,10 +161,10 @@ type StarfieldProps = {
 
 export const Starfield = ({ numStars, speed }: StarfieldProps) => {
   // numStars = 0;
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  // const lastAnimationFrameTimestamp = useRef<DOMHighResTimeStamp | null>(null);
+  const canvas = useRef<HTMLCanvasElement>(null);
   const stars = useRef<Star[]>([]);
   const animationFrame = useRef<number>(0);
-  const _lastAnimationFrameTimestamp = useRef<DOMHighResTimeStamp | null>(null);
 
   if (stars.current.length > numStars) {
     stars.current.length = numStars;
@@ -194,7 +176,7 @@ export const Starfield = ({ numStars, speed }: StarfieldProps) => {
 
   useEffect(() => {
     const setup = () => {
-      resizeCanvas(canvasRef);
+      resizeCanvas(canvas.current!);
     };
 
     setup();
@@ -207,33 +189,31 @@ export const Starfield = ({ numStars, speed }: StarfieldProps) => {
   }, []);
 
   useEffect(() => {
-    // TODO: Separate animations for hyperspace effects (enter + exit) :)
     const animateMotion = (_timestamp: number) => {
-      clearCanvas(canvasRef);
+      clearCanvas(canvas.current!);
 
       if (numStars == 0) {
         return;
       }
 
-      withCanvasContext(canvasRef, ({ canvas, context }) => {
-        const starPaths: [Path2D, number][] = stars.current
-          .map((star) => starToPathAndOpacity(canvas, star, speed, 1))
-          .filter((path) => path != null);
+      const starPaths: [Path2D, number][] = stars.current
+        .map((star) => starToPathAndOpacity(canvas.current!, star, speed, 1))
+        .filter((path) => path != null);
 
-        const pathsByOpacityColor = groupBy(starPaths, ([_path, opacity]) => {
-          const opacityIndex = Math.min(
-            Math.round(opacity * STAR_COLOR_BY_OPACITY.length),
-            STAR_COLOR_BY_OPACITY.length - 1,
-          );
-          return STAR_COLOR_BY_OPACITY[opacityIndex];
-        });
+      const pathsByOpacityColor = groupBy(starPaths, ([_path, opacity]) => {
+        const opacityIndex = Math.min(
+          Math.round(opacity * STAR_COLOR_BY_OPACITY.length),
+          STAR_COLOR_BY_OPACITY.length - 1,
+        );
+        return STAR_COLOR_BY_OPACITY[opacityIndex];
+      });
 
-        Object.entries(pathsByOpacityColor).forEach(([opacityColor, paths]) => {
-          context.fillStyle = opacityColor;
-          for (const [path, _] of paths) {
-            context.fill(path);
-          }
-        });
+      const context = getContext(canvas.current!);
+      Object.entries(pathsByOpacityColor).forEach(([opacityColor, paths]) => {
+        context.fillStyle = opacityColor;
+        for (const [path, _] of paths) {
+          context.fill(path);
+        }
       });
 
       for (const star of stars.current) {
@@ -253,7 +233,7 @@ export const Starfield = ({ numStars, speed }: StarfieldProps) => {
   }, [numStars, speed]);
   return (
     <div className={style.background}>
-      <canvas className={style.canvas} ref={canvasRef} />;
+      <canvas className={style.canvas} ref={canvas} />;
     </div>
   );
 };

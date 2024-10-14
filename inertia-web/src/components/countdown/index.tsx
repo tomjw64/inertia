@@ -1,6 +1,6 @@
 import { useComputed } from '@preact/signals';
 import style from './style.module.scss';
-import { useCountdown } from '../../utils/use-countdown';
+import { useCountdown } from '../../utils/hooks/use-countdown';
 import { FlexCenter } from '../flex-center';
 
 const pad = (num: number, length: number) =>

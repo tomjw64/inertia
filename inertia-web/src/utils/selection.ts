@@ -1,5 +1,6 @@
 import { Dispatch, StateUpdater, useEffect } from 'preact/hooks';
 import { getActorIndex } from './actor-colors';
+import { StateSetter } from './types';
 
 export enum BoardSelection {
   GOAL = -2,
@@ -11,7 +12,7 @@ export enum BoardSelection {
 }
 
 export const useClickAwayDeselect = (
-  setSelection: Dispatch<StateUpdater<BoardSelection>>,
+  setSelection: StateSetter<BoardSelection>,
 ) => {
   useEffect(() => {
     const listener = () => {
