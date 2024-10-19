@@ -2,10 +2,8 @@ import { useRef, useEffect, useMemo, useCallback } from 'preact/hooks';
 import style from './style.module.scss';
 import { debounce } from 'lodash';
 import {
-  BufferGeometry,
   Color,
   CylinderGeometry,
-  Fog,
   FogExp2,
   Frustum,
   Matrix4,
@@ -13,23 +11,18 @@ import {
   MeshBasicMaterial,
   PerspectiveCamera,
   Scene,
-  SphereGeometry,
   Vector3,
   WebGLRenderer,
   WebGLRenderTarget,
 } from 'three';
 import {
-  BlendShader,
-  CopyShader,
   EffectComposer,
   FXAAShader,
   GammaCorrectionShader,
   RenderPass,
-  SavePass,
   ShaderPass,
 } from 'three/addons';
 import { useLazyEffectRef } from '../../utils/hooks/use-lazy-ref';
-import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 const getColorString = (r: number, g: number, b: number) =>
   `#${((r << 16) | (g << 8) | b).toString(16)}`;
@@ -66,7 +59,6 @@ export const Starfield = ({
   numStars: number;
   speed: number;
 }) => {
-  // numStars = 0;
   const canvas = useRef<HTMLCanvasElement>(null);
 
   const stars = useRef<
@@ -122,25 +114,13 @@ export const Starfield = ({
 
     const renderPass = new RenderPass(scene.current!, camera.current!);
 
-    // const savePassTarget = new WebGLRenderTarget(
-    //   getCanvasWidth(),
-    //   getCanvasHeight(),
-    // );
-    // const savePass = new SavePass(savePassTarget);
-    // const blendPass = new ShaderPass(BlendShader, 'tDiffuse1');
-    // blendPass.uniforms['tDiffuse2']!.value = savePass.renderTarget.texture;
-    // blendPass.uniforms['mixRatio']!.value = 0.2;
     const gammaCorrectionPass = new ShaderPass(GammaCorrectionShader);
-    // const outputPass = new ShaderPass(CopyShader);
     const fxaaPass = new ShaderPass(FXAAShader);
     fxaaPass.material.uniforms['resolution']!.value.x = 1 / getCanvasWidth();
     fxaaPass.material.uniforms['resolution']!.value.y = 1 / getCanvasHeight();
 
     composer.addPass(renderPass);
     composer.addPass(gammaCorrectionPass);
-    // composer.addPass(blendPass);
-    // composer.addPass(savePass);
-    // composer.addPass(outputPass);
     composer.addPass(fxaaPass);
     return composer;
   });

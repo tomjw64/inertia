@@ -160,8 +160,6 @@ type StarfieldProps = {
 };
 
 export const Starfield = ({ numStars, speed }: StarfieldProps) => {
-  // numStars = 0;
-  // const lastAnimationFrameTimestamp = useRef<DOMHighResTimeStamp | null>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
   const stars = useRef<Star[]>([]);
   const animationFrame = useRef<number>(0);
