@@ -50,16 +50,6 @@ pub struct MetaBoardWrapper {
 pub struct SolutionWrapper(Vec<SolutionStep>);
 
 #[wasm_bindgen]
-pub fn math() {
-  console_debug!(1 + 2);
-}
-
-#[wasm_bindgen]
-pub fn greet() {
-  console_log!("Hello there, inertia!");
-}
-
-#[wasm_bindgen]
 pub fn set_panic_hook() {
   #[cfg(feature = "console_error_panic_hook")]
   console_error_panic_hook::set_once();

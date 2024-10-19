@@ -1,5 +1,6 @@
 use serde::Deserialize;
 use serde::Serialize;
+use thiserror::Error;
 
 #[cfg(feature = "web")]
 use {tsify::Tsify, wasm_bindgen::prelude::wasm_bindgen};
@@ -34,15 +35,19 @@ impl From<Direction> for u8 {
   }
 }
 
+#[derive(Error, Debug)]
+#[error("Failed to convert to Direction")]
+pub struct DirectionConvertError;
+
 impl TryFrom<u8> for Direction {
-  type Error = ();
+  type Error = DirectionConvertError;
   fn try_from(value: u8) -> Result<Self, Self::Error> {
     match value {
       0 => Ok(Direction::Up),
       1 => Ok(Direction::Down),
       2 => Ok(Direction::Left),
       3 => Ok(Direction::Right),
-      _ => Err(()),
+      _ => Err(DirectionConvertError),
     }
   }
 }

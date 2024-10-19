@@ -1,6 +1,8 @@
 use crate::mechanics::Direction;
+use crate::mechanics::DirectionConvertError;
 use serde::Deserialize;
 use serde::Serialize;
+use thiserror::Error;
 
 #[cfg(feature = "web")]
 use {tsify::Tsify, wasm_bindgen::prelude::wasm_bindgen};
@@ -38,11 +40,24 @@ pub fn solution_to_bytes(solution: &[SolutionStep]) -> Vec<u8> {
   bytes
 }
 
-pub fn solution_from_bytes(bytes: &[u8]) -> Result<Vec<SolutionStep>, ()> {
+#[derive(Error, Debug)]
+pub enum SolutionParseError {
+  #[error("Failed to parse solution length")]
+  LengthParseError,
+  #[error(transparent)]
+  DirectionConvertError(#[from] DirectionConvertError),
+}
+
+pub fn solution_from_bytes(
+  bytes: &[u8],
+) -> Result<Vec<SolutionStep>, SolutionParseError> {
   let bytes_for_length = 2;
   let (length_bytes, solution_bytes) = bytes.split_at(bytes_for_length);
-  let length =
-    u16::from_le_bytes(length_bytes.try_into().or(Err(()))?) as usize;
+  let length = u16::from_le_bytes(
+    length_bytes
+      .try_into()
+      .or(Err(SolutionParseError::LengthParseError))?,
+  ) as usize;
   let mut steps = Vec::with_capacity(length);
   // Simple 1 byte per step
   for byte in solution_bytes {
@@ -79,7 +94,7 @@ mod test {
 
   #[test]
   fn to_and_from_bytes_identity_one() {
-    let mut solution = vec![SolutionStep {
+    let solution = vec![SolutionStep {
       actor: 1,
       direction: Direction::Left,
     }];
