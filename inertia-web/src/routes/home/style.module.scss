@@ -1,60 +1,15 @@
 @use '../../styles/common.scss';
 
-$button-height: 2.5em;
-
-.home {
-  --bounce-x-speed: 4s;
-  @media (min-width: 600px) {
-    --bounce-x-speed: 6s;
-  }
-  @media (min-width: 1200px) {
-    --bounce-x-speed: 8s;
-  }
-  @media (min-width: 1440px) {
-    --bounce-x-speed: 10s;
-  }
-
-  --bounce-y-speed: 5s;
-  @media (min-height: 600px) {
-    --bounce-y-speed: 7s;
-  }
-  @media (min-height: 1200px) {
-    --bounce-y-speed: 9s;
-  }
-  @media (min-height: 1440px) {
-    --bounce-y-speed: 11s;
-  }
-
-  width: 100vw;
-  height: 100vh;
-}
-
 .joinGameSection {
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
-.subtitle {
+.title {
   font-size: 2em;
   font-weight: bold;
 }
-
-// .title {
-//   position: absolute;
-//   display: inline-block;
-//   font-family: 'Plexifont', monospace;
-//   font-size: min(20svw, 200px);
-//   padding: 0 calc(1em / 15);
-//   color: white;
-// }
-
-// .titleX {
-//   animation: animationX var(--bounce-x-speed) linear infinite alternate, animationColor 8.5s ease-in-out infinite alternate;
-// }
-// .titleY {
-//   animation: animationY var(--bounce-y-speed) linear infinite alternate;
-// }
 
 .difficultySelection {
   padding: 0.25em;
@@ -65,48 +20,3 @@ $button-height: 2.5em;
   margin-right: 0.5em;
   font-weight: bold;
 }
-
-@mixin glow($color) {
-  color: $color;
-  // Looks great, not performance friendly
-  // text-shadow:
-  //   0 0 0.1em white,
-  //   0 0 0.2em white,
-  //   0 0 0.3em $color,
-  //   0 0 0.4em $color,
-  //   0 0 0.5em $color,
-  //   0 0 0.6em $color,
-  //   0 0 0.7em $color
-}
-
-// @keyframes animationColor {
-//   0% {
-//     @include glow(common.$canonical-green)
-//   }
-//   25% {
-//     @include glow(common.$canonical-blue)
-//   }
-//   50% {
-//     @include glow(common.$canonical-red)
-//   }
-//   100% {
-//     @include glow(common.$canonical-yellow)
-//   }
-// }
-
-// @keyframes animationX {
-//   0% {
-//     transform: translateX(0px);
-//   }
-//   100% {
-//     transform: translateX(calc(100vw - var(--bounce-width, 0px)));
-//   }
-// }
-// @keyframes animationY {
-//   0% {
-//     transform: translateY(0px);
-//   }
-//   100% {
-//     transform: translateY(calc(100vh - var(--bounce-height, 0px)));
-//   }
-// }

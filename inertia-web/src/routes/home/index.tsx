@@ -1,5 +1,5 @@
 import { debounce } from 'lodash';
-import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
+import { useMemo, useRef, useState } from 'preact/hooks';
 import style from './style.module.scss';
 import { Starfield } from '../../components/starfield';
 import { getPlayerName, savePlayerName } from '../../utils/storage';
@@ -18,6 +18,7 @@ import { Tray } from '../../components/tray';
 import { FullWidth } from '../../components/full-width';
 import { JSX } from 'preact/jsx-runtime';
 import { DIFFICULTIES, DIFFICULTY_TO_VALUE } from '../../constants/difficulty';
+import { FullScreen } from '../../components/full-screen';
 
 const DifficultyOptions = () => {
   return (
@@ -32,9 +33,6 @@ const DifficultyOptions = () => {
 const debouncedSavePlayerName = debounce(savePlayerName, 200);
 
 export const Home = () => {
-  const homeRef = useRef<HTMLDivElement | null>(null);
-  const titleRef = useRef<HTMLDivElement | null>(null);
-
   const [isStartOptionsExpanded, setIsStartOptionsExpanded] = useState(false);
   const startOptionsIcon = isStartOptionsExpanded
     ? '/contract-arrow.svg'
@@ -82,46 +80,14 @@ export const Home = () => {
     )}?minDifficulty=${minDifficulty}&maxDifficulty=${maxDifficulty}`;
   };
 
-  useEffect(() => {
-    const setAnimationVars = () => {
-      const homeElement = homeRef.current;
-      const titleElement = titleRef.current;
-
-      if (!homeElement || !titleElement) {
-        return;
-      }
-
-      homeElement.style.setProperty(
-        '--bounce-width',
-        titleElement.clientWidth.toString() + 'px',
-      );
-      homeElement.style.setProperty(
-        '--bounce-height',
-        titleElement.clientHeight.toString() + 'px',
-      );
-    };
-    setAnimationVars();
-
-    const debouncedResetAnimationVars = debounce(setAnimationVars, 200);
-    window.addEventListener('resize', debouncedResetAnimationVars);
-    const justInCaseInterval = setInterval(debouncedResetAnimationVars, 1000);
-    return () => {
-      clearInterval(justInCaseInterval);
-      window.removeEventListener('resize', debouncedResetAnimationVars);
-    };
-  }, []);
-
   return (
     <>
       <Starfield numStars={500} speed={0.5} />
-      <div className={style.home} ref={homeRef}>
-        {/* <div className={[style.title, style.titleX].join(' ')} ref={titleRef}>
-          <div className={style.titleY}>INERTIA</div>
-        </div> */}
+      <FullScreen>
         <FlexCenter expand>
           <ThemedPanel>
             <FlexCenter column>
-              <div className={style.subtitle}>Inertia</div>
+              <div className={style.title}>Inertia</div>
               <Divider />
               <ThemedFormLine>
                 <ThemedButton onClick={startGame}>Start Game</ThemedButton>
@@ -196,7 +162,7 @@ export const Home = () => {
             </FlexCenter>
           </ThemedPanel>
         </FlexCenter>
-      </div>
+      </FullScreen>
     </>
   );
 };
