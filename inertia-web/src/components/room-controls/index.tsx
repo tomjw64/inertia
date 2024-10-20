@@ -48,11 +48,7 @@ export const AppControls = () => {
     <>
       <div className={style.controls}>
         <div className={style.controlGroup}>
-          <a
-            onClick={() => {
-              window.location.href = '/';
-            }}
-          >
+          <a href="/">
             <img className={style.control} src="/home.svg" />
           </a>
           <a
