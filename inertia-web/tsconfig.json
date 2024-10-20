@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    "baseUrl": "./",
     "strict": true,
     "noImplicitAny": true,
     "outDir": "./dist/",
@@ -19,7 +18,7 @@
     "noUncheckedIndexedAccess": true,
     "allowJs": true,
     "paths": {
-      "three/addons/controls/*": ["node_modules/@types/three/examples/jsm/controls/*"],
+      "three/addons/controls/*": ["./node_modules/@types/three/examples/jsm/controls/*"],
     },
   }
 }
