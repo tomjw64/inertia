@@ -119,7 +119,10 @@ class StarfieldAnimation {
   }
 
   handleResize(width: number, height: number) {
-    this.camera.aspect = width / height;
+    this.canvasWidth = width;
+    this.canvasHeight = height;
+
+    this.camera.aspect = this.getCanvasAspectRatio();
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(width, height, false);
     this.frustum = this.getFrustumFromCurrentCamera();
