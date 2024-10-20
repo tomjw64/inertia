@@ -1,5 +1,5 @@
 import { set_panic_hook } from 'inertia-core';
-import { Route, Router } from 'preact-router';
+import { ErrorBoundary, LocationProvider, Route, Router } from 'preact-iso';
 import { FlexCenter } from './components/flex-center';
 import { Starfield } from './components/starfield';
 import { ThemedPanel } from './components/themed-panel';
@@ -26,16 +26,20 @@ const NotFound = () => {
 
 const App = () => (
   <main style={{ minHeight: '100svh' }}>
-    <Router>
-      <Route path="/" component={Home} />
-      <Route path="/room/:roomId" component={Room} />
-      <Route path="/explore" component={BoardExplorer} />
-      <Route path="/edit" component={BoardEditor} />
-      <Route path="/daily" component={() => <></>} />
-      <Route path="/puzzle" component={() => <></>} />
-      <Route path="/starfield-sandbox" component={StarfieldSandbox} />
-      <Route default component={NotFound} />
-    </Router>
+    <LocationProvider>
+      <ErrorBoundary>
+        <Router>
+          <Route path="/" component={Home} />
+          <Route path="/room/:roomId" component={Room} />
+          <Route path="/explore" component={BoardExplorer} />
+          <Route path="/edit" component={BoardEditor} />
+          <Route path="/daily" component={() => <></>} />
+          <Route path="/puzzle" component={() => <></>} />
+          <Route path="/starfield-sandbox" component={StarfieldSandbox} />
+          <Route default component={NotFound} />
+        </Router>
+      </ErrorBoundary>
+    </LocationProvider>
   </main>
 );
 
