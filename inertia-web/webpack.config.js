@@ -1,7 +1,17 @@
 const webpack = require('webpack');
 const path = require('path');
 
-module.exports = {
+const devOnlyConfig = {
+  devtool: 'source-map',
+}
+
+const isDevelopment = (mode) => mode === 'development'
+
+const getModeConfig = (mode) => {
+  return isDevelopment(mode) ? devOnlyConfig : {}
+}
+
+module.exports = (env, argv) => ({
   entry: './src/index.tsx',
   output: {
     path: path.resolve(__dirname, 'dist'),
@@ -36,4 +46,5 @@ module.exports = {
   devServer: {
     historyApiFallback: true,
   },
-};
+  ...getModeConfig(argv.mode)
+});
