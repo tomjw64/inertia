@@ -93,18 +93,30 @@ export const ThemedInput = ({
   );
 };
 
-export const ThemedSelect = ({
-  children,
+export type SelectOption<T> = {
+  text: string;
+  value: T;
+};
+export const ThemedSelect = <
+  T extends JSX.HTMLAttributes<HTMLSelectElement>['value'],
+>({
+  options,
   value,
   onChange,
 }: {
-  children?: ComponentChildren;
-  value?: string;
-  onChange?: JSX.DOMAttributes<HTMLSelectElement>['onChange'];
+  options: SelectOption<T>[];
+  value: T;
+  onChange: (selected: T) => void;
 }) => {
   return (
-    <select className={style.select} value={value} onChange={onChange}>
-      {children}
+    <select
+      className={style.select}
+      value={value}
+      onChange={(e) => onChange(e.currentTarget.value as T)}
+    >
+      {options.map(({ text, value }) => (
+        <option value={value}>{text}</option>
+      ))}
     </select>
   );
 };

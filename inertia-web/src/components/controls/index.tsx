@@ -5,8 +5,8 @@ import {
   Position,
 } from 'inertia-core';
 import { useState } from 'preact/hooks';
-import { JSX } from 'preact/jsx-runtime';
 import { StateSetter } from '../../utils/types';
+import { JSX } from 'preact';
 
 type ControlsProps = {
   setWalledBoard: StateSetter<WalledBoard>;

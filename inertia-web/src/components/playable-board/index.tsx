@@ -13,7 +13,7 @@ import {
   SquareRegionType,
 } from '../simple-board';
 import { useMemo, useState } from 'preact/hooks';
-import { DIRECTIONS } from '../../constants/direction';
+import { DIRECTIONS } from '../../utils/direction';
 import { BoardSelection, useClickAwayDeselect } from '../../utils/selection';
 import { fromSquares, removeSquares, union } from '../../utils/bitboard';
 

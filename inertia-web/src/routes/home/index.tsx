@@ -12,54 +12,77 @@ import {
   ThemedInput,
   ThemedSelect,
 } from '../../components/themed-form';
-import { Difficulty } from 'inertia-core';
 import { Tray } from '../../components/tray';
 import { FullWidth } from '../../components/full-width';
-import { JSX } from 'preact/jsx-runtime';
-import { DIFFICULTIES, DIFFICULTY_TO_VALUE } from '../../constants/difficulty';
+import {
+  DIFFICULTIES,
+  DIFFICULTY_OPTIONS,
+  useDifficultyRange,
+} from '../../utils/difficulty';
 import { FullScreen } from '../../components/full-screen';
 
-const DifficultyOptions = () => {
+const SingleplayerSection = () => {
+  const [isStartOptionsExpanded, setIsStartOptionsExpanded] = useState(false);
+  const { minDifficulty, setMinDifficulty, maxDifficulty, setMaxDifficulty } =
+    useDifficultyRange(DIFFICULTIES.Easiest, DIFFICULTIES.Hard);
+
+  const startOptionsIcon = isStartOptionsExpanded
+    ? '/contract-arrow.svg'
+    : '/expand-arrow.svg';
+
+  const startGame = () => {};
   return (
     <>
-      {Object.keys(DIFFICULTY_TO_VALUE).map((difficulty) => (
-        <option>{difficulty}</option>
-      ))}
+      <Divider text={'Singleplayer'} />
+      <ThemedFormLine>
+        <ThemedButton onClick={startGame}>Start Game</ThemedButton>
+        <ThemedButton
+          onClick={() => {
+            setIsStartOptionsExpanded(!isStartOptionsExpanded);
+          }}
+        >
+          <img src={startOptionsIcon} />
+        </ThemedButton>
+      </ThemedFormLine>
+      <FullWidth>
+        <Tray inset expanded={isStartOptionsExpanded}>
+          <div className={style.difficultySelection}>
+            <FlexCenter expand justify="space-between">
+              <span>Min difficulty:</span>
+              <ThemedSelect
+                options={DIFFICULTY_OPTIONS}
+                value={minDifficulty}
+                onChange={setMinDifficulty}
+              />
+            </FlexCenter>
+          </div>
+          <div className={style.difficultySelection}>
+            <FlexCenter expand justify="space-between">
+              <span>Max difficulty:</span>
+              <ThemedSelect
+                options={DIFFICULTY_OPTIONS}
+                value={maxDifficulty}
+                onChange={setMaxDifficulty}
+              />
+            </FlexCenter>
+          </div>
+        </Tray>
+      </FullWidth>
+      <Divider text={'or'} narrow />
+      <ThemedButton onClick={() => {}}>Daily Puzzle</ThemedButton>
     </>
   );
 };
 
 const MultiplayerSection = () => {
   const [isStartOptionsExpanded, setIsStartOptionsExpanded] = useState(false);
+  const { minDifficulty, setMinDifficulty, maxDifficulty, setMaxDifficulty } =
+    useDifficultyRange(DIFFICULTIES.Easiest, DIFFICULTIES.Hard);
+  const [joinGameInput, setJoinGameInput] = useState('');
+
   const startOptionsIcon = isStartOptionsExpanded
     ? '/contract-arrow.svg'
     : '/expand-arrow.svg';
-  const [minDifficulty, setMinDifficulty] = useState(DIFFICULTIES.Easiest);
-  const [maxDifficulty, setMaxDifficulty] = useState(DIFFICULTIES.Hard);
-
-  const [joinGameInput, setJoinGameInput] = useState('');
-
-  const onChangeMinDifficulty: JSX.DOMAttributes<HTMLSelectElement>['onChange'] =
-    (e) => {
-      const selection = e.currentTarget.value as Difficulty;
-      const other = maxDifficulty;
-
-      setMinDifficulty(selection);
-      if (DIFFICULTY_TO_VALUE[selection] > DIFFICULTY_TO_VALUE[other]) {
-        setMaxDifficulty(selection);
-      }
-    };
-
-  const onChangeMaxDifficulty: JSX.DOMAttributes<HTMLSelectElement>['onChange'] =
-    (e) => {
-      const selection = e.currentTarget.value as Difficulty;
-      const other = minDifficulty;
-
-      setMaxDifficulty(selection);
-      if (DIFFICULTY_TO_VALUE[selection] < DIFFICULTY_TO_VALUE[other]) {
-        setMinDifficulty(selection);
-      }
-    };
 
   const startGame = () => {
     window.location.href = `/room/${Math.floor(
@@ -86,27 +109,25 @@ const MultiplayerSection = () => {
             <FlexCenter expand justify="space-between">
               <span>Min difficulty:</span>
               <ThemedSelect
+                options={DIFFICULTY_OPTIONS}
                 value={minDifficulty}
-                onChange={onChangeMinDifficulty}
-              >
-                <DifficultyOptions />
-              </ThemedSelect>
+                onChange={setMinDifficulty}
+              />
             </FlexCenter>
           </div>
           <div className={style.difficultySelection}>
             <FlexCenter expand justify="space-between">
               <span>Max difficulty:</span>
               <ThemedSelect
+                options={DIFFICULTY_OPTIONS}
                 value={maxDifficulty}
-                onChange={onChangeMaxDifficulty}
-              >
-                <DifficultyOptions />
-              </ThemedSelect>
+                onChange={setMaxDifficulty}
+              />
             </FlexCenter>
           </div>
         </Tray>
       </FullWidth>
-      <Divider text={'or'} narrow></Divider>
+      <Divider text={'or'} narrow />
       <ThemedFormLine>
         <ThemedButton
           disabled={!joinGameInput}
@@ -168,6 +189,7 @@ export const Home = () => {
           <ThemedPanel>
             <FlexCenter column>
               <div className={style.title}>Inertia</div>
+              <SingleplayerSection />
               <MultiplayerSection />
               <SettingsSection />
             </FlexCenter>

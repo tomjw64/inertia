@@ -13,7 +13,7 @@ import { RoundSolving } from '../../components/round-solving';
 import { RoundSummary } from '../../components/round-summary';
 import { ACTOR_FLIP_ANIMATE_DURATION } from '../../components/simple-board';
 import { Starfield } from '../../components/starfield';
-import { parseDifficulty } from '../../constants/difficulty';
+import { parseDifficulty } from '../../utils/difficulty';
 import { defaultPosition } from '../../utils/board';
 import { RoomWebSocket } from '../../utils/room-websocket';
 import {

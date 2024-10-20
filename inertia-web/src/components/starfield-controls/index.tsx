@@ -1,4 +1,4 @@
-import { JSX } from 'preact/jsx-runtime';
+import { JSX } from 'preact';
 import { StateSetter } from '../../utils/types';
 import { FlexCenter } from '../flex-center';
 
