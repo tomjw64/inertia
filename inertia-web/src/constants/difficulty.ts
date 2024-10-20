@@ -18,8 +18,8 @@ export const parseDifficulty = (difficulty: Nullable<string>) => {
 
 export const DIFFICULTY_TO_VALUE: Record<Difficulty, number> = {
   Easiest: 0,
-  Easy: 0,
-  Medium: 0,
-  Hard: 0,
-  Hardest: 0,
+  Easy: 1,
+  Medium: 2,
+  Hard: 3,
+  Hardest: 4,
 };
