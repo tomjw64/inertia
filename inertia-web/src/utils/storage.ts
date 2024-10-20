@@ -1,3 +1,4 @@
+import { debounce } from 'lodash';
 import {
   generatePlayerId,
   generatePlayerName,
@@ -30,9 +31,9 @@ export const getPlayerName = (): string => {
   return playerName;
 };
 
-export const savePlayerName = (name: string) => {
+export const savePlayerName = debounce((name: string) => {
   localStorage.setItem(KEY_PLAYER_NAME, name);
-};
+}, 200);
 
 export const getPlayerId = (): number => {
   const storedPlayerId = localStorage.getItem(KEY_PLAYER_ID);
