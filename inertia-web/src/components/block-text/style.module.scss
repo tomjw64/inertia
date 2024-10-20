@@ -1,3 +1,9 @@
+@use '../../styles/common.scss';
+
 .blockText {
   margin: 0.25em;
+}
+
+.muted {
+  color: common.$muted-color;
 }

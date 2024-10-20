@@ -1,24 +1,20 @@
-.divider {
-  display: block;
-  width: calc(100% - 40px);
-  height: 2px;
-  background-color: #bbb;
-  margin: 0.75em;
-  color: rgba(50, 50, 50, 0.5);
-}
+@use '../../styles/common.scss';
 
-.dividerText {
+.divider {
   width: 100%;
   display: flex;
   align-items: center;
-  color: rgba(50, 50, 50, 0.5);
-}
+  color: common.$muted-color;
 
-.dividerText::before,
-.dividerText::after {
-  flex: 1;
-  content: '';
-  height: 2px;
-  background-color: #bbb;
-  margin: 0.75em 1.5em;
+  &.narrow {
+    width: 50%;
+  }
+
+  &::before, &.withText::after {
+    flex: 1;
+    content: '';
+    height: 2px;
+    background-color: #bbb;
+    margin: 0.75em 0.75em;
+  }
 }

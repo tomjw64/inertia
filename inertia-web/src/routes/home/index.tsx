@@ -88,7 +88,7 @@ export const Home = () => {
           <ThemedPanel>
             <FlexCenter column>
               <div className={style.title}>Inertia</div>
-              <Divider />
+              <Divider text={'Multiplayer'} />
               <ThemedFormLine>
                 <ThemedButton onClick={startGame}>Start Game</ThemedButton>
                 <ThemedButton
@@ -125,7 +125,7 @@ export const Home = () => {
                   </div>
                 </Tray>
               </FullWidth>
-              <Divider text={'or'} />
+              <Divider text={'or'} narrow></Divider>
               <ThemedFormLine>
                 <ThemedButton
                   disabled={!joinGameInput}
@@ -143,7 +143,7 @@ export const Home = () => {
                   placeholder="Room #"
                 />
               </ThemedFormLine>
-              <Divider />
+              <Divider text={'Settings'} />
               <FlexCenter>
                 <div className={style.nameHeader}>Name:</div>
                 <ThemedFormLine>
