@@ -9,6 +9,29 @@ export const ThemedFormLine = ({
   return <div className={style.formLine}>{children}</div>;
 };
 
+export const ThemedLinkButton = ({
+  children,
+  href,
+  onClick,
+  disabled = false,
+}: {
+  children?: ComponentChildren;
+  onClick?: JSX.MouseEventHandler<HTMLAnchorElement>;
+  disabled?: boolean;
+  href?: string;
+}) => {
+  return (
+    <a
+      className={style.button}
+      onClick={onClick}
+      disabled={disabled}
+      href={href}
+    >
+      {children}
+    </a>
+  );
+};
+
 export const ThemedButton = ({
   children,
   onClick,
@@ -17,7 +40,6 @@ export const ThemedButton = ({
   children?: ComponentChildren;
   onClick?: JSX.MouseEventHandler<HTMLButtonElement>;
   disabled?: boolean;
-  link?: boolean;
 }) => {
   return (
     <button className={style.button} onClick={onClick} disabled={disabled}>
