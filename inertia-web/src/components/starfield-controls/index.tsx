@@ -7,8 +7,6 @@ type StarfieldControlsProps = {
   setNumStars: StateSetter<number>;
   starSpeed: number;
   setStarSpeed: StateSetter<number>;
-  useGpu: boolean;
-  setUseGpu: StateSetter<boolean>;
 };
 
 export const StarfieldControls = ({
@@ -16,8 +14,6 @@ export const StarfieldControls = ({
   setNumStars,
   starSpeed,
   setStarSpeed,
-  useGpu,
-  setUseGpu,
 }: StarfieldControlsProps) => {
   const handleStarSpeedChange = (e: JSX.TargetedEvent<HTMLInputElement>) => {
     setStarSpeed(parseInt(e.currentTarget.value));
@@ -25,10 +21,6 @@ export const StarfieldControls = ({
 
   const handleNumStarsChange = (e: JSX.TargetedEvent<HTMLInputElement>) => {
     setNumStars(parseInt(e.currentTarget.value));
-  };
-
-  const handleToggleUseGpu = () => {
-    setUseGpu(!useGpu);
   };
 
   return (
@@ -56,11 +48,6 @@ export const StarfieldControls = ({
           onChange={handleNumStarsChange}
         />
         <div>[{numStars}]</div>
-      </FlexCenter>
-      <FlexCenter>
-        <button onClick={handleToggleUseGpu}>
-          {useGpu ? 'Use canvas' : 'Use gpu'}
-        </button>
       </FlexCenter>
     </div>
   );
