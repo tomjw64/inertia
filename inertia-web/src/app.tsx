@@ -33,8 +33,6 @@ const App = () => (
           <Route path="/room/:roomId" component={Room} />
           <Route path="/explore" component={BoardExplorer} />
           <Route path="/edit" component={BoardEditor} />
-          <Route path="/daily" component={() => <></>} />
-          <Route path="/puzzle" component={() => <></>} />
           <Route path="/starfield-sandbox" component={StarfieldSandbox} />
           <Route default component={NotFound} />
         </Router>

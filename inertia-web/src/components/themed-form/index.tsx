@@ -16,17 +16,15 @@ export const ThemedLinkButton = ({
   disabled = false,
 }: {
   children?: ComponentChildren;
-  onClick?: JSX.MouseEventHandler<HTMLAnchorElement>;
   disabled?: boolean;
+  onClick?: JSX.MouseEventHandler<HTMLAnchorElement>;
   href?: string;
 }) => {
+  if (disabled) {
+    return <ThemedButton disabled>{children}</ThemedButton>;
+  }
   return (
-    <a
-      className={style.button}
-      onClick={onClick}
-      disabled={disabled}
-      href={href}
-    >
+    <a className={style.button} onClick={onClick} href={href}>
       {children}
     </a>
   );

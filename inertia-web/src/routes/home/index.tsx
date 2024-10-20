@@ -10,6 +10,7 @@ import {
   ThemedButton,
   ThemedFormLine,
   ThemedInput,
+  ThemedLinkButton,
   ThemedSelect,
 } from '../../components/themed-form';
 import { Tray } from '../../components/tray';
@@ -20,6 +21,7 @@ import {
   useDifficultyRange,
 } from '../../utils/difficulty';
 import { FullScreen } from '../../components/full-screen';
+import { useRandom } from '../../utils/hooks/use-random';
 
 const SingleplayerSection = () => {
   const [isStartOptionsExpanded, setIsStartOptionsExpanded] = useState(false);
@@ -30,12 +32,11 @@ const SingleplayerSection = () => {
     ? '/contract-arrow.svg'
     : '/expand-arrow.svg';
 
-  const startGame = () => {};
   return (
     <>
       <Divider text={'Singleplayer'} />
       <ThemedFormLine>
-        <ThemedButton onClick={startGame}>Start Game</ThemedButton>
+        <ThemedLinkButton href="/play">Start Game</ThemedLinkButton>
         <ThemedButton
           onClick={() => {
             setIsStartOptionsExpanded(!isStartOptionsExpanded);
@@ -69,7 +70,7 @@ const SingleplayerSection = () => {
         </Tray>
       </FullWidth>
       <Divider text={'or'} narrow />
-      <ThemedButton onClick={() => {}}>Daily Puzzle</ThemedButton>
+      <ThemedLinkButton href="/daily">Daily Puzzle</ThemedLinkButton>
     </>
   );
 };
@@ -79,22 +80,25 @@ const MultiplayerSection = () => {
   const { minDifficulty, setMinDifficulty, maxDifficulty, setMaxDifficulty } =
     useDifficultyRange(DIFFICULTIES.Easiest, DIFFICULTIES.Hard);
   const [joinGameInput, setJoinGameInput] = useState('');
+  const { random: randomRoomId, reset: resetRandomRoomId } = useRandom({
+    start: 0,
+    end: 999_999,
+  });
 
   const startOptionsIcon = isStartOptionsExpanded
     ? '/contract-arrow.svg'
     : '/expand-arrow.svg';
 
-  const startGame = () => {
-    window.location.href = `/room/${Math.floor(
-      Math.random() * 999_999,
-    )}?minDifficulty=${minDifficulty}&maxDifficulty=${maxDifficulty}`;
-  };
-
   return (
     <>
       <Divider text={'Multiplayer'} />
       <ThemedFormLine>
-        <ThemedButton onClick={startGame}>Start Game</ThemedButton>
+        <ThemedLinkButton
+          href={`/room/${randomRoomId}?minDifficulty=${minDifficulty}&maxDifficulty=${maxDifficulty}`}
+          onClick={() => setTimeout(resetRandomRoomId, 0)}
+        >
+          Start Game
+        </ThemedLinkButton>
         <ThemedButton
           onClick={() => {
             setIsStartOptionsExpanded(!isStartOptionsExpanded);
@@ -129,14 +133,12 @@ const MultiplayerSection = () => {
       </FullWidth>
       <Divider text={'or'} narrow />
       <ThemedFormLine>
-        <ThemedButton
+        <ThemedLinkButton
+          href={`/room/${joinGameInput}`}
           disabled={!joinGameInput}
-          onClick={() => {
-            window.location.href = `/room/${joinGameInput}`;
-          }}
         >
           Join Game
-        </ThemedButton>
+        </ThemedLinkButton>
         <ThemedInput
           size="short"
           numeric
