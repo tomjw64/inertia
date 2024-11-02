@@ -1,8 +1,10 @@
+mod db_utils;
 mod difficulty_board_generator;
 mod join;
 mod state;
 mod ws_receiver;
 
+use std::array::TryFromSliceError;
 use std::collections::HashMap;
 use std::net::SocketAddr;
 use std::sync::Arc;
@@ -12,19 +14,24 @@ use axum::extract::ws::WebSocket;
 use axum::extract::ConnectInfo;
 use axum::extract::State;
 use axum::extract::WebSocketUpgrade;
+use axum::http::StatusCode;
 use axum::response::Response;
 use axum::routing::get;
 use axum::Json;
 use axum::Router;
 use futures::SinkExt;
 use futures::StreamExt;
+use inertia_core::mechanics::Position;
+use inertia_core::mechanics::SolvedPosition;
 use inertia_core::message::FromClientMessage;
 use inertia_core::message::ToClientMessage;
+use inertia_core::solvers::Difficulty;
 use inertia_core::state::event::apply_event::RoomEvent;
 use inertia_core::state::event::disconnect::Disconnect;
 use serde_json::json;
 use serde_json::Value;
 use sqlx::sqlite::SqlitePoolOptions;
+use thiserror::Error;
 use tokio::net::TcpListener;
 use tokio::sync::broadcast;
 use tokio::sync::mpsc;
@@ -39,7 +46,7 @@ use crate::join::JoinInfo;
 use crate::state::AppState;
 use crate::ws_receiver::handle_message_from_client;
 
-const DB_URL: &str = "sqlite:db/boards.db?mode=ro";
+const DB_URL: &str = "sqlite:db/positions.db?mode=ro";
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -65,6 +72,7 @@ async fn main() -> anyhow::Result<()> {
     .route("/healthcheck", get(healthcheck))
     .route("/status", get(status))
     .layer(CorsLayer::permissive())
+    // .route("/daily", get(daily))
     .route("/ws", get(ws_handler))
     .with_state(app_state)
     .into_make_service_with_connect_info::<SocketAddr>();
@@ -93,6 +101,53 @@ async fn status(State(state): State<AppState>) -> Json<Value> {
   let room_count = state.get_room_count().await;
   Json(json!({ "room_count": room_count }))
 }
+
+// async fn daily(
+//   State(state): State<AppState>,
+// ) -> Result<Json<Position>, StatusCode> {
+//   match get_daily_board(state).await {
+//     // Ok(solved_position) => Ok(Json(json!(solved_position.position))),
+//     Ok(solved_position) => Ok(Json(json!(()))),
+//     Err(err) => {
+//       tracing::error!("Error fetching board: {}", err);
+//       Err(StatusCode::INTERNAL_SERVER_ERROR)
+//     }
+//   }
+// }
+
+// #[derive(sqlx::FromRow, Debug)]
+// struct BoardBlobRow {
+//   board: Box<[u8]>,
+//   solution: String,
+// }
+
+// #[derive(Error, Debug)]
+// enum FetchError {
+//   #[error(transparent)]
+//   DbError(#[from] sqlx::Error),
+//   #[error("Error converting position from bytes: {0}")]
+//   ConvertError(#[from] TryFromSliceError),
+// }
+
+// async fn get_daily_board(
+//   state: AppState,
+// ) -> Result<SolvedPosition, FetchError> {
+//   let mut conn = state.db_pool.acquire().await?;
+//   let row = sqlx::query_as::<_, BoardBlobRow>(
+//     "SELECT board, solution FROM boards WHERE difficulty >= ? AND difficulty <= ? ORDER BY random() LIMIT 1",
+//   )
+//   .bind(Difficulty::Easy as u8)
+//   .bind(Difficulty::Hard as u8)
+//   .fetch_one(&mut *conn)
+//   .await?;
+//   let board_compressed_byte_array = <[u8; 69]>::try_from(row.board.as_ref())?;
+//   Ok(SolvedPosition {
+//     position: Position::from_compressed_byte_array(
+//       &board_compressed_byte_array,
+//     ),
+//     solution: serde_json::from_str(row.solution.as_str()).unwrap(),
+//   })
+// }
 
 async fn handle_socket(
   socket: WebSocket,

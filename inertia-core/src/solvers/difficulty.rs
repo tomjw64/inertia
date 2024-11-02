@@ -1,5 +1,8 @@
 use super::SolutionStep;
 use itertools::Itertools;
+use rand::distributions::Standard;
+use rand::prelude::Distribution;
+use rand::Rng;
 use serde::Deserialize;
 use serde::Serialize;
 
@@ -34,6 +37,18 @@ impl From<Difficulty> for u8 {
   }
 }
 
+impl Difficulty {
+  pub fn from_internal_difficulty(value: usize) -> Self {
+    match value {
+      0..=1 => Difficulty::Easiest,
+      2..=3 => Difficulty::Easy,
+      4..=6 => Difficulty::Medium,
+      7..=9 => Difficulty::Hard,
+      _ => Difficulty::Hardest,
+    }
+  }
+}
+
 impl TryFrom<u8> for Difficulty {
   type Error = ();
   fn try_from(value: u8) -> Result<Self, Self::Error> {
@@ -48,15 +63,34 @@ impl TryFrom<u8> for Difficulty {
   }
 }
 
-pub fn get_solution_difficulty(steps: &[SolutionStep]) -> Difficulty {
-  let steps_count = steps.len();
-  let actor_count = steps.iter().map(|step| step.actor).unique().count();
-  let focus_count = steps.iter().map(|step| step.actor).dedup().count();
-  match (steps_count, actor_count, focus_count) {
-    (0..=4, _, _) | (0..=6, 0..=1, 0..=1) => Difficulty::Easiest,
-    (_, 0..=1, 0..=1) | (0..=6, 0..=2, 0..=2) => Difficulty::Easy,
-    (0..=8, 0..=4, 0..=5) => Difficulty::Medium,
-    (0..=12, 0..=4, 0..=8) => Difficulty::Hard,
-    _ => Difficulty::Hardest,
+impl Distribution<Difficulty> for Standard {
+  fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Difficulty {
+    Difficulty::try_from(rng.gen_range(0..=4))
+      .expect("known range of difficulty values")
   }
+}
+
+pub fn get_solution_difficulty(steps: &[SolutionStep]) -> Difficulty {
+  Difficulty::from_internal_difficulty(get_solution_internal_difficulty(steps))
+}
+
+pub fn get_solution_internal_difficulty(steps: &[SolutionStep]) -> usize {
+  let steps_count: usize = steps.len();
+  let actor_count = steps.iter().map(|step| step.actor).unique().count();
+  let focus_switch_count = steps.iter().map(|step| step.actor).dedup().count();
+  let result = match (steps_count, actor_count, focus_switch_count) {
+    (1..=2, _, _) => 0,
+    (3..=4, 0..=1, 0..=1) => 1,
+    (3..=4, _, _) => 2,
+    (5..=7, 0..=2, 0..=2) => 3,
+    (5..=7, _, _) => 4,
+    (8..=9, 0..=2, 0..=2) => 5,
+    (_, 1, 1) | (8..=9, _, 3..=4) => 6,
+    (8..=9, _, _) | (10..=12, _, 0..=4) => 7,
+    (10..=12, _, 0..=6) => 8,
+    (10..=12, _, 0..=8) | (13..=15, _, 0..=6) => 9,
+    (10..=12, _, 0..=10) | (13..=15, _, 0..=8) | (16..=18, _, 0..=6) => 10,
+    _ => 11,
+  };
+  result
 }

@@ -12,7 +12,7 @@ use crate::solvers::SolutionStep;
 
 use super::BucketingPriorityQueue;
 use super::CombinedHeuristic;
-// use super::GroupMinMovesBoard;
+use super::GroupMinMovesBoard;
 use super::Heuristic;
 
 struct VisitedData {
@@ -44,8 +44,8 @@ pub fn solve(
   actor_squares: ActorSquares,
   max_depth: usize,
 ) -> Option<Vec<SolutionStep>> {
-  let heuristic_board = CombinedHeuristic::from_move_board(board, goal);
-  // let heuristic_board = GroupMinMovesBoard::from_move_board(board, goal);
+  // let heuristic_board = CombinedHeuristic::from_move_board(board, goal);
+  let heuristic_board = GroupMinMovesBoard::from_move_board(board, goal);
   // let heuristic_board = ExpensiveCrawlsBoard::from_move_board(board, goal);
   // let heuristic_board = MinAssistsBoard::from_move_board(board, goal);
 
