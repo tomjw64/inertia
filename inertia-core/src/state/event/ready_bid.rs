@@ -1,3 +1,4 @@
+use crate::solvers::Solution;
 use crate::state::data::PlayerBid;
 use crate::state::data::PlayerId;
 use crate::state::data::RoomState;
@@ -61,7 +62,7 @@ pub fn round_bidding_ready_bid(
           optimal_solution,
           player_bids,
           solver: next_solver_id,
-          solution: Vec::new(),
+          solution: Solution(Vec::new()),
         }))
       }
       None => EventResult::ok(RoomState::RoundSummary(RoundSummary {

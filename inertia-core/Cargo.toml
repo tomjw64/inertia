@@ -4,11 +4,12 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-base64 = { version = "0.21.5", optional = true }
+base64 = "0.21.5"
 console_error_panic_hook = { version = "0.1.7", optional = true }
 getrandom = { version = "0.2", optional = true }
 hashbrown = "0.14.5"
 itertools = "0.12.0"
+num_enum = "0.7.3"
 primitive-types = "0.12.2"
 rand = "0.8.5"
 serde = { version = "1.0.195", features = ["derive"] }
@@ -29,7 +30,6 @@ web = [
   "dep:wasm-bindgen",
   "dep:getrandom",
   "dep:serde_with",
-  "dep:base64",
   "getrandom/js"
 ]
 console_error_panic_hook = ["dep:console_error_panic_hook"]

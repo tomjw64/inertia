@@ -8,6 +8,7 @@ import { BoardExplorer } from './routes/board-explorer';
 import { Home } from './routes/home';
 import { Room } from './routes/room';
 import { StarfieldSandbox } from './routes/starfield-sandbox';
+import { Daily } from './routes/daily';
 
 set_panic_hook();
 
@@ -33,6 +34,7 @@ const App = () => (
           <Route path="/room/:roomId" component={Room} />
           <Route path="/explore" component={BoardExplorer} />
           <Route path="/edit" component={BoardEditor} />
+          <Route path="/daily" component={Daily} />
           <Route path="/starfield-sandbox" component={StarfieldSandbox} />
           <Route default component={NotFound} />
         </Router>

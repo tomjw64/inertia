@@ -1,5 +1,7 @@
-use super::SolutionStep;
+use super::Solution;
 use itertools::Itertools;
+use num_enum::IntoPrimitive;
+use num_enum::TryFromPrimitive;
 use rand::distributions::Standard;
 use rand::prelude::Distribution;
 use rand::Rng;
@@ -20,6 +22,8 @@ use {tsify::Tsify, wasm_bindgen::prelude::wasm_bindgen};
   Ord,
   Deserialize,
   Serialize,
+  IntoPrimitive,
+  TryFromPrimitive,
 )]
 #[cfg_attr(feature = "web", derive(Tsify), tsify(into_wasm_abi, from_wasm_abi))]
 #[repr(u8)]
@@ -29,12 +33,6 @@ pub enum Difficulty {
   Medium = 2,
   Hard = 3,
   Hardest = 4,
-}
-
-impl From<Difficulty> for u8 {
-  fn from(value: Difficulty) -> Self {
-    value as u8
-  }
 }
 
 impl Difficulty {
@@ -49,20 +47,6 @@ impl Difficulty {
   }
 }
 
-impl TryFrom<u8> for Difficulty {
-  type Error = ();
-  fn try_from(value: u8) -> Result<Self, Self::Error> {
-    match value {
-      0 => Ok(Difficulty::Easiest),
-      1 => Ok(Difficulty::Easy),
-      2 => Ok(Difficulty::Medium),
-      3 => Ok(Difficulty::Hard),
-      4 => Ok(Difficulty::Hardest),
-      _ => Err(()),
-    }
-  }
-}
-
 impl Distribution<Difficulty> for Standard {
   fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Difficulty {
     Difficulty::try_from(rng.gen_range(0..=4))
@@ -70,11 +54,14 @@ impl Distribution<Difficulty> for Standard {
   }
 }
 
-pub fn get_solution_difficulty(steps: &[SolutionStep]) -> Difficulty {
-  Difficulty::from_internal_difficulty(get_solution_internal_difficulty(steps))
+pub fn get_solution_difficulty(solution: &Solution) -> Difficulty {
+  Difficulty::from_internal_difficulty(get_solution_internal_difficulty(
+    solution,
+  ))
 }
 
-pub fn get_solution_internal_difficulty(steps: &[SolutionStep]) -> usize {
+pub fn get_solution_internal_difficulty(solution: &Solution) -> usize {
+  let steps = &solution.0;
   let steps_count: usize = steps.len();
   let actor_count = steps.iter().map(|step| step.actor).unique().count();
   let focus_switch_count = steps.iter().map(|step| step.actor).dedup().count();

@@ -1,26 +1,21 @@
-use inertia_core::mechanics::Position;
 use inertia_core::mechanics::SolvedPosition;
 use inertia_core::mechanics::SolvedPositionGenerator;
 use inertia_core::solvers::Difficulty;
-use sqlx::Pool;
-use sqlx::Sqlite;
+use sqlx::SqlitePool;
 
-#[derive(sqlx::FromRow, Debug)]
-struct BoardBlobRow {
-  board: Box<[u8]>,
-  solution: String,
-}
+use crate::db_utils::get_position_from_db_coordinates;
+use crate::db_utils::get_random_db_position_coordinates_in_difficulty_range;
 
 #[derive(Debug, Clone)]
 pub struct DifficultyDbBoardGenerator {
-  db_pool: Pool<Sqlite>,
+  db_pool: SqlitePool,
   min_difficulty: Difficulty,
   max_difficulty: Difficulty,
 }
 
 impl DifficultyDbBoardGenerator {
   pub fn new(
-    db_pool: Pool<Sqlite>,
+    db_pool: SqlitePool,
     min_difficulty: Difficulty,
     max_difficulty: Difficulty,
   ) -> Self {
@@ -35,41 +30,18 @@ impl DifficultyDbBoardGenerator {
 impl SolvedPositionGenerator for DifficultyDbBoardGenerator {
   fn generate_solved_position(&self) -> SolvedPosition {
     futures::executor::block_on(async {
-      let mut conn = match self.db_pool.acquire().await {
-        Ok(conn) => conn,
-        Err(err) => {
-          tracing::error!("Error fetching board: {}", err);
-          return SolvedPosition::default();
-        }
-      };
-      let row = match sqlx::query_as::<_, BoardBlobRow>(
-        "SELECT board, solution FROM boards WHERE difficulty >= ? AND difficulty <= ? ORDER BY random() LIMIT 1",
-      )
-      .bind(self.min_difficulty as u8)
-      .bind(self.max_difficulty as u8)
-      .fetch_one(&mut *conn)
-      .await
-      {
-        Ok(row) => row,
-        Err(err) => {
-          tracing::error!("Error fetching board: {}", err);
-          return SolvedPosition::default();
-        }
-      };
-      let board_compressed_byte_array =
-        match <[u8; 69]>::try_from(row.board.as_ref()) {
-          Ok(bytes) => bytes,
-          Err(err) => {
-            tracing::error!("Error fetching board: {}", err);
-            return SolvedPosition::default();
-          }
-        };
-      SolvedPosition {
-        position: Position::from_compressed_byte_array(
-          &board_compressed_byte_array,
+      get_position_from_db_coordinates(
+        &self.db_pool,
+        get_random_db_position_coordinates_in_difficulty_range(
+          self.min_difficulty,
+          self.max_difficulty,
         ),
-        solution: serde_json::from_str(row.solution.as_str()).unwrap(),
-      }
+      )
+      .await
+      .unwrap_or_else(|err| {
+        tracing::error!("Error fetching solved position: {}", err);
+        return SolvedPosition::default();
+      })
     })
   }
 }

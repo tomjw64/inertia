@@ -5,6 +5,7 @@ use crate::mechanics::SolvedPosition;
 use crate::mechanics::SolvedPositionGenerator;
 use crate::mechanics::Square;
 use crate::mechanics::WalledBoard;
+use crate::solvers::Solution;
 use crate::solvers::SolutionStep;
 
 #[derive(Debug, Clone, Copy)]
@@ -35,10 +36,10 @@ impl SolvedPositionGenerator for OneMoveSolutionBoardGenerator {
         ]),
         walled_board: WalledBoard::EMPTY,
       },
-      solution: vec![SolutionStep {
+      solution: Solution(vec![SolutionStep {
         actor: 0,
         direction: Direction::Down,
-      }],
+      }]),
     }
   }
 }

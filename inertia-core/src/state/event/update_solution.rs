@@ -1,6 +1,6 @@
 use thiserror::Error;
 
-use crate::solvers::SolutionStep;
+use crate::solvers::Solution;
 use crate::state::data::RoomState;
 use crate::state::data::RoundSolving;
 use crate::state::data::RoundSummary;
@@ -15,7 +15,7 @@ pub enum UpdateSolutionError {
 
 #[derive(Debug, Clone)]
 pub struct UpdateSolution {
-  pub solution: Vec<SolutionStep>,
+  pub solution: Solution,
 }
 
 pub fn round_solving_update_solution(
@@ -37,7 +37,7 @@ pub fn round_solving_update_solution(
   let bid = player_bids.get(solver);
   let effective_bid_value = bid.to_effective_value();
 
-  if updated_solution.len() > effective_bid_value as usize {
+  if updated_solution.0.len() > effective_bid_value as usize {
     return EventResult::err(
       RoomState::RoundSolving(RoundSolving {
         board,

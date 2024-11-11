@@ -2,8 +2,8 @@ pub mod astar;
 pub mod idas;
 pub mod idas_nonrecursive;
 
-mod solution_step;
-pub use solution_step::*;
+mod solution;
+pub use solution::*;
 
 mod heuristic_board;
 pub use heuristic_board::*;

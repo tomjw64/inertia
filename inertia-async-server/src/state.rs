@@ -6,8 +6,7 @@ use inertia_core::state::data::RoomState;
 use inertia_core::state::event::apply_event::RoomEvent;
 use inertia_core::state::event::result::EventError;
 use inertia_core::state::event::result::EventResult;
-use sqlx::Pool;
-use sqlx::Sqlite;
+use sqlx::SqlitePool;
 use std::collections::HashMap;
 use std::mem;
 use std::sync::Arc;
@@ -52,7 +51,7 @@ impl Room {
 
 #[derive(Clone)]
 pub struct AppState {
-  pub db_pool: Pool<Sqlite>,
+  pub db_pool: SqlitePool,
   pub rooms: Arc<RwLock<HashMap<RoomId, RwLock<Room>>>>,
 }
 
@@ -158,19 +157,10 @@ impl AppState {
   pub async fn get_broadcast_channel_pair(
     &self,
     room_id: RoomId,
-  ) -> Result<
-    (
-      broadcast::Sender<ToClientMessage>,
-      broadcast::Receiver<ToClientMessage>,
-    ),
-    NoRoomExistsError,
-  > {
+  ) -> Result<broadcast::Receiver<ToClientMessage>, NoRoomExistsError> {
     self
       .with_room_read(room_id, |room| {
-        Ok((
-          room.utils.broadcast_channel.clone(),
-          room.utils.broadcast_channel.subscribe(),
-        ))
+        Ok(room.utils.broadcast_channel.subscribe())
       })
       .await
   }

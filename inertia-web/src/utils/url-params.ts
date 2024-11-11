@@ -39,7 +39,8 @@ export const useUrlSyncedPositionsState = () => {
     debouncedSetUrlParam(
       'position',
       positions.map(
-        (position) => `${position.name}:${encode_position(position.position)}`,
+        (position) =>
+          `${position.name ? position.name + ':' : ''}${encode_position(position.position)}`,
       ),
     );
   }, [positions]);
@@ -54,7 +55,8 @@ export const useUrlSyncedSolutionsState = () => {
     debouncedSetUrlParam(
       'solution',
       solutions.map(
-        (solution) => `${solution.name}:${encode_solution(solution.solution)}`,
+        (solution) =>
+          `${solution.name ? solution.name + ':' : ''}:${encode_solution(solution.solution)}`,
       ),
     );
   }, [solutions]);

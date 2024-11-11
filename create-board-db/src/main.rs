@@ -1,11 +1,12 @@
-use base64::engine::general_purpose;
-use base64::Engine;
 use inertia_core::board_generators::ClassicBoardGenerator;
+use inertia_core::mechanics::B64EncodedCompressedPosition;
+use inertia_core::mechanics::CompressedPosition;
 use inertia_core::mechanics::PositionGenerator;
 use inertia_core::solvers::astar::solve_position;
 use inertia_core::solvers::get_solution_internal_difficulty;
+use inertia_core::solvers::CompressedSolution;
 use inertia_core::solvers::Difficulty;
-use inertia_core::solvers::SolutionStep;
+use inertia_core::solvers::Solution;
 use sqlx::Connection;
 use sqlx::SqliteConnection;
 use std::ops::DerefMut;
@@ -54,17 +55,19 @@ async fn main() -> Result<(), sqlx::Error> {
         scope.spawn(async {
           let thread_conn = conn.clone();
           let position = ClassicBoardGenerator::new().generate_position();
-          let position_bytes = position.to_compressed_byte_array();
+          let compressed_position = CompressedPosition::from(position);
 
           let start = Instant::now();
-          let solution: Vec<SolutionStep> =
+          let solution: Solution =
             solve_position(position, 45).unwrap();
           let solve_millis = start.elapsed().as_millis();
           if solve_millis > 3000 {
-            println!("Position took {}ms to solve: {:?}", solve_millis, general_purpose::URL_SAFE_NO_PAD.encode(position_bytes));
+            println!("Position took {}ms to solve: {:?}", solve_millis, B64EncodedCompressedPosition::from(&compressed_position));
           }
+          
+          let solution_length = solution.0.len();
 
-          if solution.len() == 0 {
+          if solution_length == 0 {
             return;
           }
 
@@ -84,16 +87,16 @@ async fn main() -> Result<(), sqlx::Error> {
           sqlx::query(
             "insert into solved_positions (position, solution, difficulty, difficulty_ordinal) values (?, ?, ?, ?)",
           )
-          .bind(position_bytes.as_slice())
-          .bind(serde_json::to_string(&solution).unwrap())
+          .bind(compressed_position.0.as_slice())
+          .bind(CompressedSolution::from(solution).0)
           .bind(u8::from(difficulty))
           .bind(difficulty_count as u32)
           .execute(thread_conn.lock().await.deref_mut())
           .await
           .unwrap();
 
-          let length = solution.len();
-          max_length.fetch_max(length, Ordering::SeqCst);
+          
+          max_length.fetch_max(solution_length, Ordering::SeqCst);
         });
       }
       iter += BATCH_SIZE;

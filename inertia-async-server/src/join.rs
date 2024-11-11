@@ -13,15 +13,19 @@ use inertia_core::state::data::PlayerName;
 use inertia_core::state::data::RoomId;
 use inertia_core::state::event::apply_event::RoomEvent;
 use inertia_core::state::event::connect::Connect;
+use thiserror::Error;
 use tokio::sync::broadcast;
 
 use crate::difficulty_board_generator::DifficultyDbBoardGenerator;
 use crate::state::AppState;
 
-#[derive(Debug)]
+#[derive(Debug, Error)]
 pub enum JoinError {
+  #[error("No message received on websocket.")]
   NoMessageReceived,
+  #[error("Connection closed by remote.")]
   ConnectionClosed,
+  #[error("Error reading websocket message: {0}")]
   WebSocketError(axum::Error),
 }
 
@@ -29,7 +33,6 @@ pub struct JoinInfo {
   pub room_id: RoomId,
   pub player_id: PlayerId,
   pub player_name: PlayerName,
-  pub broadcast_channel_sender: broadcast::Sender<ToClientMessage>,
   pub broadcast_channel_receiver: broadcast::Receiver<ToClientMessage>,
 }
 
@@ -106,7 +109,7 @@ pub async fn join(
       max_difficulty
     );
 
-    let (broadcast_channel_sender, broadcast_channel_receiver) =
+    let broadcast_channel_receiver =
       match state.get_broadcast_channel_pair(room_id).await {
         Ok(result) => result,
         Err(err) => {
@@ -129,7 +132,6 @@ pub async fn join(
       room_id,
       player_id,
       player_name,
-      broadcast_channel_sender,
       broadcast_channel_receiver,
     });
   }

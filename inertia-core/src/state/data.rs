@@ -8,7 +8,7 @@ use thiserror::Error;
 
 use crate::mechanics::Position;
 use crate::mechanics::SolvedPositionGenerator;
-use crate::solvers::SolutionStep;
+use crate::solvers::Solution;
 
 #[cfg(feature = "web")]
 use {tsify::Tsify, wasm_bindgen::prelude::wasm_bindgen};
@@ -143,9 +143,9 @@ impl Eq for RoomMeta {}
 pub struct RoundSummary {
   pub meta: RoomMeta,
   pub last_round_board: Option<Position>,
-  pub last_round_solution: Option<Vec<SolutionStep>>,
+  pub last_round_solution: Option<Solution>,
   pub last_solver: Option<PlayerId>,
-  pub last_round_optimal_solution: Option<Vec<SolutionStep>>,
+  pub last_round_optimal_solution: Option<Solution>,
 }
 
 #[derive(Serialize, Debug, Clone, PartialEq, Eq)]
@@ -154,7 +154,7 @@ pub struct RoundStart {
   pub meta: RoomMeta,
   pub board: Position,
   #[serde(skip)]
-  pub optimal_solution: Vec<SolutionStep>,
+  pub optimal_solution: Solution,
 }
 
 #[derive(Serialize, Debug, Clone, PartialEq, Eq)]
@@ -164,7 +164,7 @@ pub struct RoundBidding {
   pub board: Position,
   pub player_bids: PlayerBids,
   #[serde(skip)]
-  pub optimal_solution: Vec<SolutionStep>,
+  pub optimal_solution: Solution,
 }
 
 #[derive(Serialize, Debug, Clone, PartialEq, Eq)]
@@ -174,9 +174,9 @@ pub struct RoundSolving {
   pub board: Position,
   pub player_bids: PlayerBids,
   pub solver: PlayerId,
-  pub solution: Vec<SolutionStep>,
+  pub solution: Solution,
   #[serde(skip)]
-  pub optimal_solution: Vec<SolutionStep>,
+  pub optimal_solution: Solution,
 }
 
 #[derive(Serialize, Deserialize, Default, Debug, Clone, PartialEq, Eq)]

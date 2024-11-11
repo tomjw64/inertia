@@ -2,7 +2,7 @@
 create table if not exists solved_positions (
   id integer primary key not null,
   difficulty integer not null,
-  solution text not null,
+  solution blob not null,
   position blob not null,
   difficulty_ordinal integer not null
 );
