@@ -93,11 +93,13 @@ export const PlayableBoard = ({
   return (
     <SimpleBoard
       position={position}
-      selection={selection}
+      selection={interactive ? selection : BoardSelection.NONE}
       interactive={interactive}
       onClickRegion={onClickRegion}
-      indicatorSquares={indicatorSquares}
-      emphasizedIndicatorSquares={emphasizedIndicatorSquares}
+      indicatorSquares={interactive ? indicatorSquares : undefined}
+      emphasizedIndicatorSquares={
+        interactive ? emphasizedIndicatorSquares : undefined
+      }
     />
   );
 };

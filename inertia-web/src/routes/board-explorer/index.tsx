@@ -1,4 +1,3 @@
-import classnames from 'classnames';
 import { apply_solution, Position, SolutionStep } from 'inertia-core';
 import { range } from 'lodash';
 import { useMemo, useState } from 'preact/hooks';
@@ -10,35 +9,20 @@ import { PlayableBoard } from '../../components/playable-board';
 import { AppControls } from '../../components/room-controls';
 import { ACTOR_FLIP_ANIMATE_DURATION } from '../../components/simple-board';
 import { Starfield } from '../../components/starfield';
-import { ArrowCircleDown } from '../../components/svg/arrow-circle-down';
-import { ArrowCircleLeft } from '../../components/svg/arrow-circle-left';
-import { ArrowCircleRight } from '../../components/svg/arrow-circle-right';
-import { ArrowCircleUp } from '../../components/svg/arrow-circle-up';
-import { FlagCircle } from '../../components/svg/flag-circle';
 import {
   ThemedButton,
   ThemedFormLine,
   ThemedInput,
 } from '../../components/themed-form';
 import { ThemedPanel } from '../../components/themed-panel';
-import { Tray } from '../../components/tray';
 import { RenderWhen } from '../../components/utils/RenderWhen';
-import { DIRECTIONS } from '../../utils/direction';
 import { NamedSolution } from '../../types';
-import { getActorColor } from '../../utils/actor-colors';
 import { useThrottledQueue } from '../../utils/hooks/use-throttled-queue';
 import {
   useInitialUrlPositions,
   useUrlSyncedSolutionsState,
 } from '../../utils/url-params';
-import style from './style.module.scss';
-
-const DIRECTION_TO_COMPONENT = {
-  [DIRECTIONS.Up]: <ArrowCircleUp />,
-  [DIRECTIONS.Down]: <ArrowCircleDown />,
-  [DIRECTIONS.Left]: <ArrowCircleLeft />,
-  [DIRECTIONS.Right]: <ArrowCircleRight />,
-};
+import { SolutionTray } from '../../components/solution-tray';
 
 const NEW_SOLUTION_NAME = 'New solution';
 const NEW_SOLUTION = { name: NEW_SOLUTION_NAME, solution: [] };
@@ -79,41 +63,12 @@ const ExpandableSolution = ({
         </RenderWhen>
         <ThemedButton onClick={onDelete}>Delete</ThemedButton>
       </ThemedFormLine>
-      <div className={style.solutionTrayContainer}>
-        <Tray inset expanded={expanded} transformOrigin="top left">
-          <FlexCenter wrap justify="start">
-            <div
-              className={classnames(style.stepIcon, style.neutral, {
-                [style.selected]: selectedStep === -1,
-              })}
-              onClick={() => {
-                onSelectStep(-1);
-              }}
-            >
-              <FlagCircle />
-            </div>
-            {solution.solution.map((step, idx) => {
-              return (
-                <div
-                  className={classnames(
-                    style.stepIcon,
-                    style[getActorColor(step.actor)],
-                    {
-                      [style.selected]: selectedStep === idx,
-                    },
-                  )}
-                  key={idx}
-                  onClick={() => {
-                    onSelectStep(idx);
-                  }}
-                >
-                  {DIRECTION_TO_COMPONENT[step.direction]}
-                </div>
-              );
-            })}
-          </FlexCenter>
-        </Tray>
-      </div>
+      <SolutionTray
+        solution={solution.solution}
+        expanded={expanded}
+        selectedStep={selectedStep}
+        onSelectStep={onSelectStep}
+      />
     </div>
   );
 };
@@ -202,55 +157,52 @@ const NonEmptyBoardExplorer = ({
             <PanelTitle>Board Explorer</PanelTitle>
             <RenderWhen when={solutions.length > 0}>
               <Divider />
-
-              <FlexCenter column align="flex-start">
-                {solutions.map((solution, idx) => {
-                  return (
-                    <ExpandableSolution
-                      key={idx}
-                      solution={solution}
-                      expanded={activeSolutionIndex === idx}
-                      selectedStep={solutionStepIndex}
-                      onChangeName={(name) => {
-                        setSolutions(
-                          solutions.toSpliced(idx, 1, {
-                            name,
-                            solution: solution.solution,
-                          }),
-                        );
-                      }}
-                      onDelete={() => {
-                        const remainingSolutions = solutions.toSpliced(idx, 1);
-                        setSolutions(remainingSolutions);
-                        const adjustedIndex =
-                          activeSolutionIndex < idx
-                            ? activeSolutionIndex
-                            : activeSolutionIndex - 1;
-                        setActiveSolutionIndex((activeSolutionIndex) => {
-                          if (
-                            activeSolutionIndex === idx ||
-                            activeSolutionIndex === -1
-                          ) {
-                            return -1;
-                          }
-                          return Math.max(0, adjustedIndex);
-                        });
-                      }}
-                      onSelectStep={(idx) => {
-                        setSolutionStepIndex(idx);
-                      }}
-                      onSelect={() => {
-                        setActiveSolutionIndex(idx);
-                        setSolutionStepIndex(-1);
-                      }}
-                      onHide={() => {
-                        setActiveSolutionIndex(-1);
-                        setSolutionStepIndex(-1);
-                      }}
-                    />
-                  );
-                })}
-              </FlexCenter>
+              {solutions.map((solution, idx) => {
+                return (
+                  <ExpandableSolution
+                    key={idx}
+                    solution={solution}
+                    expanded={activeSolutionIndex === idx}
+                    selectedStep={solutionStepIndex}
+                    onChangeName={(name) => {
+                      setSolutions(
+                        solutions.toSpliced(idx, 1, {
+                          name,
+                          solution: solution.solution,
+                        }),
+                      );
+                    }}
+                    onDelete={() => {
+                      const remainingSolutions = solutions.toSpliced(idx, 1);
+                      setSolutions(remainingSolutions);
+                      const adjustedIndex =
+                        activeSolutionIndex < idx
+                          ? activeSolutionIndex
+                          : activeSolutionIndex - 1;
+                      setActiveSolutionIndex((activeSolutionIndex) => {
+                        if (
+                          activeSolutionIndex === idx ||
+                          activeSolutionIndex === -1
+                        ) {
+                          return -1;
+                        }
+                        return Math.max(0, adjustedIndex);
+                      });
+                    }}
+                    onSelectStep={(idx) => {
+                      setSolutionStepIndex(idx);
+                    }}
+                    onSelect={() => {
+                      setActiveSolutionIndex(idx);
+                      setSolutionStepIndex(-1);
+                    }}
+                    onHide={() => {
+                      setActiveSolutionIndex(-1);
+                      setSolutionStepIndex(-1);
+                    }}
+                  />
+                );
+              })}
             </RenderWhen>
             <Divider />
             <FlexCenter>

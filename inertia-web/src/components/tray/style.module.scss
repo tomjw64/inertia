@@ -1,7 +1,9 @@
+$expand-transition-time: 0.25s;
+
 .wrapper {
   display: grid;
   grid-template-rows: 0fr;
-  transition: grid-template-rows 0.2s ease-out;
+  transition: grid-template-rows $expand-transition-time ease-out;
 
   &.expanded {
     grid-template-rows: 1fr;
@@ -10,15 +12,17 @@
       margin-top: 2px;
       padding: 0.5em;
       transform: scale(1);
+      opacity: 1;
     }
   }
 }
 
 .inner {
   overflow: hidden;
-  transition: transform 0.2s ease-out;
+  transition: all $expand-transition-time ease-out;
   transform: scale(0);
   transform-origin: top;
+  opacity: 0;
 
   &.inset {
     filter: drop-shadow(0px -2px 0px #aaaaaa);

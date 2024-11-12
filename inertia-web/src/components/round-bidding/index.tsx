@@ -4,7 +4,6 @@ import {
   PlayerId,
   Position,
 } from 'inertia-core';
-import { Countdown } from '../countdown';
 import { FlexCenter } from '../flex-center';
 import { ThemedPanel } from '../themed-panel';
 import { ThemedButton, ThemedFormLine, ThemedInput } from '../themed-form';
@@ -16,6 +15,8 @@ import { isMobile } from '../../utils/is-mobile';
 import { RenderWhen } from '../utils/RenderWhen';
 import { BlockText } from '../block-text';
 import { PlayableBoard } from '../playable-board';
+import { useCountdown } from '../../utils/hooks/use-countdown';
+import { Timer } from '../timer';
 
 export const RoundBidding = ({
   state,
@@ -40,6 +41,35 @@ export const RoundBidding = ({
 
   const playerBids = 'player_bids' in state ? state.player_bids : undefined;
   const firstBidSubmitted = !!playerBids;
+
+  const {
+    reset: resetFirstBidCountdown,
+    timeLeftMillis: firstBidTimeLeftMillis,
+  } = useCountdown({
+    timeMillis: firstBidSubmitted ? 0 : countdownTimeLeft,
+    paused: firstBidSubmitted,
+  });
+
+  const {
+    reset: resetSecondBidCountdown,
+    timeLeftMillis: secondBidTimeLeftMillis,
+  } = useCountdown({
+    timeMillis: firstBidSubmitted ? 0 : 60000,
+    paused: !firstBidSubmitted,
+  });
+
+  useEffect(() => {
+    if (!firstBidSubmitted) {
+      resetFirstBidCountdown(countdownTimeLeft);
+    } else {
+      resetSecondBidCountdown(countdownTimeLeft);
+    }
+  }, [
+    countdownTimeLeft,
+    firstBidSubmitted,
+    resetFirstBidCountdown,
+    resetSecondBidCountdown,
+  ]);
 
   const playerBid = playerBids?.bids?.[userPlayerId] ?? { type: 'None' };
   const bidType = playerBid.type ?? 'None';
@@ -98,15 +128,15 @@ export const RoundBidding = ({
             <FlexCenter wrap>
               <FlexCenter column>
                 <BlockText>First bid</BlockText>
-                <Countdown
-                  timeLeft={countdownTimeLeft}
+                <Timer
+                  time={firstBidTimeLeftMillis}
                   paused={firstBidSubmitted}
                 />
               </FlexCenter>
               <FlexCenter column>
                 <BlockText>All bids</BlockText>
-                <Countdown
-                  timeLeft={firstBidSubmitted ? countdownTimeLeft : 60000}
+                <Timer
+                  time={secondBidTimeLeftMillis}
                   paused={!firstBidSubmitted}
                 />
               </FlexCenter>

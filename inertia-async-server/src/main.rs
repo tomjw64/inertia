@@ -29,7 +29,6 @@ use db_utils::DbPositionFetchError;
 use futures::SinkExt;
 use futures::StreamExt;
 use inertia_core::mechanics::B64EncodedCompressedPosition;
-use inertia_core::mechanics::CheckSolutionResult;
 use inertia_core::mechanics::CompressedPosition;
 use inertia_core::mechanics::SolvedPosition;
 use inertia_core::message::FromClientMessage;

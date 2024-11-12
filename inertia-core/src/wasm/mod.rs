@@ -107,6 +107,11 @@ pub fn apply_solution(
 }
 
 #[wasm_bindgen]
+pub fn is_solution(board_position: Position, solution: Solution) -> bool {
+  board_position.is_solution(&solution)
+}
+
+#[wasm_bindgen]
 pub fn get_difficulty(solution: Solution) -> Difficulty {
   get_solution_difficulty(&solution)
 }
