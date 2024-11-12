@@ -54,7 +54,7 @@ const CHECK_SOLUTION_RESULT_TO_EMOJI = {
 };
 
 const resultToShareableLines = (result: SolveResult) => {
-  return `${mmssccFormat(result.time)} - ${CHECK_SOLUTION_RESULT_TO_EMOJI[result.outcome]}`;
+  return `${CHECK_SOLUTION_RESULT_TO_EMOJI[result.outcome]} ${mmssccFormat(result.time)}`;
 };
 
 export const Daily = () => {
@@ -79,6 +79,8 @@ export const Daily = () => {
   const shareButton = useRef<HTMLDivElement>(null);
   const emphasizeShare = () => shake(shareButton.current);
 
+  const [wereResultsCopied, setWereResultsCopied] = useState(false);
+
   const actorSquares = apply_solution(initialPosition, solution);
   const isSolution = is_solution(initialPosition, solution);
   const shareableResultLines = [
@@ -97,12 +99,12 @@ export const Daily = () => {
 
   useEffect(() => {
     let interval: ReturnType<typeof setInterval> | undefined;
-    if (isSolution) {
+    if (isSolution && !wereResultsCopied) {
       const emphasis = isOptimalSolutionFound ? emphasizeShare : emphasizeReset;
       interval = setInterval(emphasis, 2000);
     }
     return () => clearInterval(interval);
-  }, [isOptimalSolutionFound, isSolution]);
+  }, [isOptimalSolutionFound, isSolution, wereResultsCopied]);
 
   useEffect(() => {
     const getDailyPosition = async () => {
@@ -217,6 +219,7 @@ export const Daily = () => {
                     <ThemedButton
                       disabled={results.length === 0}
                       onClick={() => {
+                        setWereResultsCopied(true);
                         navigator.clipboard
                           .writeText(shareableResultLines.join('\n'))
                           .then(() => popup(sharePopupElement.current))
