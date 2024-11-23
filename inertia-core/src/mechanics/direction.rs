@@ -1,11 +1,22 @@
+use num_enum::IntoPrimitive;
+use num_enum::TryFromPrimitive;
 use serde::Deserialize;
 use serde::Serialize;
-use thiserror::Error;
 
 #[cfg(feature = "web")]
 use {tsify::Tsify, wasm_bindgen::prelude::wasm_bindgen};
 
-#[derive(Copy, Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
+#[derive(
+  Copy,
+  Clone,
+  PartialEq,
+  Eq,
+  Debug,
+  Serialize,
+  Deserialize,
+  IntoPrimitive,
+  TryFromPrimitive,
+)]
 #[cfg_attr(feature = "web", derive(Tsify), tsify(into_wasm_abi, from_wasm_abi))]
 #[repr(u8)]
 pub enum Direction {
@@ -25,29 +36,6 @@ impl Direction {
       Direction::Down => Direction::Up,
       Direction::Left => Direction::Right,
       Direction::Right => Direction::Left,
-    }
-  }
-}
-
-impl From<Direction> for u8 {
-  fn from(value: Direction) -> Self {
-    value as u8
-  }
-}
-
-#[derive(Error, Debug)]
-#[error("Failed to convert to Direction")]
-pub struct DirectionConvertError;
-
-impl TryFrom<u8> for Direction {
-  type Error = DirectionConvertError;
-  fn try_from(value: u8) -> Result<Self, Self::Error> {
-    match value {
-      0 => Ok(Direction::Up),
-      1 => Ok(Direction::Down),
-      2 => Ok(Direction::Left),
-      3 => Ok(Direction::Right),
-      _ => Err(DirectionConvertError),
     }
   }
 }

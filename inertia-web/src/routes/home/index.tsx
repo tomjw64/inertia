@@ -24,52 +24,9 @@ import { FullScreen } from '../../components/full-screen';
 import { useRandom } from '../../utils/hooks/use-random';
 
 const SingleplayerSection = () => {
-  const [isStartOptionsExpanded, setIsStartOptionsExpanded] = useState(false);
-  const { minDifficulty, setMinDifficulty, maxDifficulty, setMaxDifficulty } =
-    useDifficultyRange(DIFFICULTIES.Easiest, DIFFICULTIES.Hard);
-
-  const startOptionsIcon = isStartOptionsExpanded
-    ? '/contract-arrow.svg'
-    : '/expand-arrow.svg';
-
   return (
     <>
       <Divider text={'Singleplayer'} />
-      <ThemedFormLine>
-        <ThemedLinkButton href="/play">Start Game</ThemedLinkButton>
-        <ThemedButton
-          onClick={() => {
-            setIsStartOptionsExpanded(!isStartOptionsExpanded);
-          }}
-        >
-          <img src={startOptionsIcon} />
-        </ThemedButton>
-      </ThemedFormLine>
-      <FullWidth>
-        <Tray inset expanded={isStartOptionsExpanded}>
-          <div className={style.difficultySelection}>
-            <FlexCenter expand justify="space-between">
-              <span>Min difficulty:</span>
-              <ThemedSelect
-                options={DIFFICULTY_OPTIONS}
-                value={minDifficulty}
-                onChange={setMinDifficulty}
-              />
-            </FlexCenter>
-          </div>
-          <div className={style.difficultySelection}>
-            <FlexCenter expand justify="space-between">
-              <span>Max difficulty:</span>
-              <ThemedSelect
-                options={DIFFICULTY_OPTIONS}
-                value={maxDifficulty}
-                onChange={setMaxDifficulty}
-              />
-            </FlexCenter>
-          </div>
-        </Tray>
-      </FullWidth>
-      <Divider text={'or'} narrow />
       <ThemedLinkButton href="/daily">Daily Puzzle</ThemedLinkButton>
     </>
   );

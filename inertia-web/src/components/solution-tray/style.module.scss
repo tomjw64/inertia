@@ -3,12 +3,16 @@
 
 .solutionTrayContainer {
   font-size: 2em;
-  max-width: 11em;
+  width: 11em;
 }
 
 .stepIcon {
   display: flex;
-  cursor: pointer;
+  
+  &.selectable {
+
+    cursor: pointer;
+  }
 
   &.selected {
     border-bottom: 2px solid #333333;

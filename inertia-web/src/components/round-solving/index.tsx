@@ -4,7 +4,6 @@ import {
   RoundSolving as RoundSolvingState,
   SolutionStep,
 } from 'inertia-core';
-import { Countdown } from '../countdown';
 import { FlexCenter } from '../flex-center';
 import { ThemedPanel } from '../themed-panel';
 import { Divider } from '../divider';
@@ -13,9 +12,11 @@ import { Bids } from '../bids';
 import { RenderWhen } from '../utils/RenderWhen';
 import { ThemedButton } from '../themed-form';
 import { shake } from '../../animations/shake';
-import { useRef } from 'preact/hooks';
+import { useEffect, useRef } from 'preact/hooks';
 import { BlockText } from '../block-text';
 import { PlayableBoard } from '../playable-board';
+import { Timer } from '../timer';
+import { useCountdown } from '../../utils/hooks/use-countdown';
 
 export const RoundSolving = ({
   state,
@@ -45,6 +46,14 @@ export const RoundSolving = ({
   const giveUpButton = useRef<HTMLDivElement | null>(null);
   const emphasizeOutOfMoves = () => shake(giveUpButton.current);
 
+  const { reset: resetCountdown, timeLeftMillis } = useCountdown({
+    timeMillis: countdownTimeLeft,
+  });
+
+  useEffect(() => {
+    resetCountdown(countdownTimeLeft);
+  }, [countdownTimeLeft, resetCountdown]);
+
   return (
     <FlexCenter wrap>
       <FlexCenter wrap>
@@ -59,7 +68,7 @@ export const RoundSolving = ({
             <PanelTitle>Round {state.meta.round_number}</PanelTitle>
             <Divider />
             <div>{solver.player_name} solving...</div>
-            <Countdown timeLeft={countdownTimeLeft} />
+            <Timer time={timeLeftMillis} />
           </FlexCenter>
 
           <FlexCenter column>

@@ -1,26 +1,31 @@
-import { Signal, useSignal } from '@preact/signals';
-import { useEffect } from 'preact/hooks';
+import { useComputed, useSignal } from '@preact/signals';
+import { useStopwatch } from './use-stopwatch';
+import { useCallback } from 'preact/hooks';
 
-export const useCountdown = (
-  timeLeftMillis: number,
-  paused?: boolean,
-): Signal<number> => {
-  const stopTime = Date.now() + timeLeftMillis;
-  const timeLeft = useSignal(timeLeftMillis);
+export const useCountdown = ({
+  timeMillis,
+  paused,
+}: {
+  timeMillis: number;
+  paused?: boolean;
+}) => {
+  const { reset: resetStopwatch, timeMillis: timePastMillis } = useStopwatch({
+    paused,
+  });
+  const initialTimeLeftMillis = useSignal(timeMillis);
 
-  useEffect(() => {
-    if (paused) {
-      return;
-    }
+  const reset = useCallback(
+    (timeMillis: number) => {
+      resetStopwatch();
+      initialTimeLeftMillis.value = timeMillis;
+    },
+    [resetStopwatch, initialTimeLeftMillis],
+  );
 
-    const interval = setInterval(() => {
-      timeLeft.value = Math.max(0, stopTime - Date.now());
-    }, 10);
-
-    return () => {
-      clearInterval(interval);
-    };
-  }, [timeLeftMillis, paused, timeLeft, stopTime]);
-
-  return timeLeft;
+  return {
+    timeLeftMillis: useComputed(() =>
+      Math.max(0, initialTimeLeftMillis.value - timePastMillis.value),
+    ),
+    reset,
+  };
 };

@@ -11,7 +11,7 @@ services:
     expose:
       - 8001
     environment:
-      DB_URL: sqlite:/app/db/boards.db?mode=ro
+      DB_URL: sqlite:/app/db/positions.db?mode=ro
 
   proxy:
     image: 'jc21/nginx-proxy-manager:latest'

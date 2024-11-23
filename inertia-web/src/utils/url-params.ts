@@ -6,7 +6,7 @@ import {
 } from 'inertia-core';
 import { debounce } from 'lodash';
 import { useEffect, useMemo, useState } from 'preact/hooks';
-import { NamedSolution } from '../types';
+import { NamedPosition, NamedSolution } from '../types';
 
 export const clearUrlParams = (params: string[]) => {
   for (const param of params) {
@@ -33,13 +33,16 @@ export const setUrlParam = (param: string, values: string[]) => {
 export const debouncedSetUrlParam = debounce(setUrlParam, 200);
 
 export const useUrlSyncedPositionsState = () => {
-  const initialUrlPosition = useInitialUrlPositions();
-  const [positions, setPositions] = useState(initialUrlPosition);
+  const initialUrlPositions = useInitialUrlPositions();
+  const [positions, setPositions] = useState<NamedPosition[]>(
+    initialUrlPositions.length ? initialUrlPositions : [],
+  );
   useEffect(() => {
     debouncedSetUrlParam(
       'position',
       positions.map(
-        (position) => `${position.name}:${encode_position(position.position)}`,
+        (position) =>
+          `${encode_position(position.position)}${position.name ? ':' + position.name : ''}`,
       ),
     );
   }, [positions]);
@@ -54,7 +57,8 @@ export const useUrlSyncedSolutionsState = () => {
     debouncedSetUrlParam(
       'solution',
       solutions.map(
-        (solution) => `${solution.name}:${encode_solution(solution.solution)}`,
+        (solution) =>
+          `${encode_solution(solution.solution)}${solution.name ? ':' + solution.name : ''}`,
       ),
     );
   }, [solutions]);
@@ -68,19 +72,15 @@ export const useInitialUrlPositions = () => {
         .getAll('position')
         .flatMap((param) => {
           const nameAndPosition = param.split(':');
-          if (nameAndPosition.length <= 0) {
+          const [positionBytes, name] = nameAndPosition;
+          if (!positionBytes) {
             return [];
           }
-          if (nameAndPosition.length > 2) {
-            return [];
-          }
-          const hasName = nameAndPosition.length == 2;
-          const name = hasName ? nameAndPosition[0]! : '';
-          const positionBytes = hasName
-            ? nameAndPosition[1]!
-            : nameAndPosition[0]!;
           const position = decode_position(positionBytes);
-          return position ? [{ name, position }] : [];
+          if (!position) {
+            return [];
+          }
+          return [{ name, position }];
         }),
     [],
   );
@@ -93,19 +93,15 @@ export const useInitialUrlSolutions = () => {
         .getAll('solution')
         .flatMap((param) => {
           const nameAndSolution = param.split(':');
-          if (nameAndSolution.length <= 0) {
+          const [solutionBytes, name] = nameAndSolution;
+          if (!solutionBytes) {
             return [];
           }
-          if (nameAndSolution.length > 2) {
-            return [];
-          }
-          const hasName = nameAndSolution.length == 2;
-          const name = hasName ? nameAndSolution[0]! : '';
-          const solutionBytes = hasName
-            ? nameAndSolution[1]!
-            : nameAndSolution[0]!;
           const solution = decode_solution(solutionBytes);
-          return solution ? [{ name, solution }] : [];
+          if (!solution) {
+            return [];
+          }
+          return [{ name, solution }];
         }),
     [],
   );

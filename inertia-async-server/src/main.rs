@@ -1,3 +1,4 @@
+mod db_utils;
 mod difficulty_board_generator;
 mod join;
 mod state;
@@ -12,19 +13,36 @@ use axum::extract::ws::WebSocket;
 use axum::extract::ConnectInfo;
 use axum::extract::State;
 use axum::extract::WebSocketUpgrade;
+use axum::http::StatusCode;
 use axum::response::Response;
 use axum::routing::get;
+use axum::routing::put;
 use axum::Json;
 use axum::Router;
+use chrono::Datelike;
+use chrono::NaiveDate;
+use chrono::Utc;
+use chrono_tz::US;
+use db_utils::get_position_from_db_coordinates;
+use db_utils::get_reproducible_random_db_position_coordinates_in_difficulty_range;
+use db_utils::DbPositionFetchError;
 use futures::SinkExt;
 use futures::StreamExt;
+use inertia_core::mechanics::B64EncodedCompressedPosition;
+use inertia_core::mechanics::CompressedPosition;
+use inertia_core::mechanics::SolvedPosition;
 use inertia_core::message::FromClientMessage;
 use inertia_core::message::ToClientMessage;
+use inertia_core::solvers::B64EncodedCompressedSolution;
+use inertia_core::solvers::CompressedSolution;
+use inertia_core::solvers::Difficulty;
+use inertia_core::solvers::Solution;
 use inertia_core::state::event::apply_event::RoomEvent;
 use inertia_core::state::event::disconnect::Disconnect;
 use serde_json::json;
 use serde_json::Value;
 use sqlx::sqlite::SqlitePoolOptions;
+use sqlx::SqlitePool;
 use tokio::net::TcpListener;
 use tokio::sync::broadcast;
 use tokio::sync::mpsc;
@@ -39,7 +57,7 @@ use crate::join::JoinInfo;
 use crate::state::AppState;
 use crate::ws_receiver::handle_message_from_client;
 
-const DB_URL: &str = "sqlite:db/boards.db?mode=ro";
+const DB_URL: &str = "sqlite:db/positions.db?mode=ro";
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -65,6 +83,8 @@ async fn main() -> anyhow::Result<()> {
     .route("/healthcheck", get(healthcheck))
     .route("/status", get(status))
     .layer(CorsLayer::permissive())
+    .route("/daily", get(daily))
+    .route("/check-daily", put(check_daily))
     .route("/ws", get(ws_handler))
     .with_state(app_state)
     .into_make_service_with_connect_info::<SocketAddr>();
@@ -94,6 +114,69 @@ async fn status(State(state): State<AppState>) -> Json<Value> {
   Json(json!({ "room_count": room_count }))
 }
 
+fn get_canonical_date() -> NaiveDate {
+  Utc::now().with_timezone(&US::Pacific).date_naive()
+}
+
+async fn get_daily_solved_position(
+  db_pool: &SqlitePool,
+) -> Result<SolvedPosition, DbPositionFetchError> {
+  let today_date = get_canonical_date();
+  let seed = today_date.year() as u64 * 10000
+    + today_date.month() as u64 * 100
+    + today_date.day() as u64;
+  tracing::info!("Fetching daily with seed: {}", seed);
+  get_position_from_db_coordinates(
+    db_pool,
+    get_reproducible_random_db_position_coordinates_in_difficulty_range(
+      seed,
+      Difficulty::Easy,
+      Difficulty::Hard,
+    ),
+  )
+  .await
+}
+
+async fn check_daily(
+  State(state): State<AppState>,
+  body: String,
+) -> Result<Json<Value>, StatusCode> {
+  let solution = Solution::try_from(
+    CompressedSolution::try_from(B64EncodedCompressedSolution(body))
+      .map_err(|_err| StatusCode::BAD_REQUEST)?,
+  )
+  .map_err(|_err| StatusCode::BAD_REQUEST)?;
+  get_daily_solved_position(&state.db_pool)
+    .await
+    .map(|solved_position| solved_position.check_solution(&solution))
+    .map(|result| json!({ "result": result }))
+    .map(Json)
+    .map_err(|err| {
+      tracing::error!("Error fetching solved position: {}", err);
+      StatusCode::INTERNAL_SERVER_ERROR
+    })
+}
+
+async fn daily(
+  State(state): State<AppState>,
+) -> Result<Json<Value>, StatusCode> {
+  get_daily_solved_position(&state.db_pool)
+    .await
+    .map(|solved_position| {
+      B64EncodedCompressedPosition::from(CompressedPosition::from(
+        solved_position.position,
+      ))
+    })
+    .map(
+      |position| json!({ "date": get_canonical_date().format("%Y-%m-%d").to_string(), "position": position }),
+    )
+    .map(Json)
+    .map_err(|err| {
+      tracing::error!("Error fetching solved position: {}", err);
+      StatusCode::INTERNAL_SERVER_ERROR
+    })
+}
+
 async fn handle_socket(
   socket: WebSocket,
   socket_address: SocketAddr,
@@ -117,7 +200,7 @@ async fn handle_socket(
   } = match join(&mut ws_receiver, &socket_address, &state).await {
     Ok(info) => info,
     Err(err) => {
-      ws_debug!("Failed to connect: {:?}", err);
+      ws_debug!("Failed to connect: {}", err);
       return;
     }
   };

@@ -11,6 +11,7 @@ mod test {
   use crate::mechanics::Position;
   use crate::mechanics::PositionGenerator;
   use crate::mechanics::SolvedPositionGenerator;
+  use crate::solvers::Solution;
   use crate::solvers::SolutionStep;
   use crate::state::data::PlayerBids;
   use crate::state::data::PlayerId;
@@ -35,7 +36,7 @@ mod test {
     OneMoveSolutionBoardGenerator::new().generate_position()
   }
 
-  fn expected_optimal_solution() -> Vec<SolutionStep> {
+  fn expected_optimal_solution() -> Solution {
     OneMoveSolutionBoardGenerator::new()
       .generate_solved_position()
       .solution
@@ -365,7 +366,7 @@ mod test {
         timestamp: 3,
       },
       solver: PlayerId(3),
-      solution: Vec::new(),
+      solution: Solution(Vec::new()),
     };
 
     assert_eq!(result, RoomState::RoundSolving(expected.clone()));
@@ -414,10 +415,10 @@ mod test {
       }),
       RoomEvent::FinalizeBids,
       RoomEvent::UpdateSolution(UpdateSolution {
-        solution: vec![SolutionStep {
+        solution: Solution(vec![SolutionStep {
           actor: 0,
           direction: Direction::Down,
-        }],
+        }]),
       }),
     ];
     let result = simulate(events);
@@ -443,10 +444,10 @@ mod test {
         },
         last_round_board: Some(expected_board()),
         last_round_optimal_solution: Some(expected_optimal_solution()),
-        last_round_solution: Some(vec![SolutionStep {
+        last_round_solution: Some(Solution(vec![SolutionStep {
           actor: 0,
           direction: Direction::Down,
-        }]),
+        }])),
         last_solver: Some(PlayerId(1))
       })
     );

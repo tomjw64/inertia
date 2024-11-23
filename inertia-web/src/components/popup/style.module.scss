@@ -1,28 +1,4 @@
-.controls {
-  @media (orientation: landscape) {
-    position: absolute;
-  }
-
-  @media (orientation: portrait) {
-    position: relative;
-  }
-
-  display: flex;
-  justify-content: space-between;
-  top: 0;
-  width: 100vw;
-}
-
-.control {
-  opacity: 0.4;
-  width: 3em;
-}
-
-.controlGroup {
-  display: flex;
-}
-
-.controlPopup {
+.popup {
   display: none;
   position: absolute;
   background: #ddd;
@@ -30,10 +6,6 @@
   border: 2px solid black;
   z-index: 100;
   transform-origin: top left;
-
-  &.visible {
-    display: block;
-  }
 
   &::before {
     position: absolute;

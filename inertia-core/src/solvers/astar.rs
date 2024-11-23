@@ -8,11 +8,12 @@ use crate::mechanics::Direction;
 use crate::mechanics::MoveBoard;
 use crate::mechanics::Position;
 use crate::mechanics::Square;
+use crate::solvers::Solution;
 use crate::solvers::SolutionStep;
 
 use super::BucketingPriorityQueue;
-use super::CombinedHeuristic;
-// use super::GroupMinMovesBoard;
+// use super::CombinedHeuristic;
+use super::GroupMinMovesBoard;
 use super::Heuristic;
 
 struct VisitedData {
@@ -28,7 +29,7 @@ struct QueueData {
 pub fn solve_position<P: Borrow<Position>>(
   position: P,
   max_depth: usize,
-) -> Option<Vec<SolutionStep>> {
+) -> Option<Solution> {
   let Position {
     walled_board,
     actor_squares,
@@ -43,9 +44,9 @@ pub fn solve(
   goal: Square,
   actor_squares: ActorSquares,
   max_depth: usize,
-) -> Option<Vec<SolutionStep>> {
-  let heuristic_board = CombinedHeuristic::from_move_board(board, goal);
-  // let heuristic_board = GroupMinMovesBoard::from_move_board(board, goal);
+) -> Option<Solution> {
+  // let heuristic_board = CombinedHeuristic::from_move_board(board, goal);
+  let heuristic_board = GroupMinMovesBoard::from_move_board(board, goal);
   // let heuristic_board = ExpensiveCrawlsBoard::from_move_board(board, goal);
   // let heuristic_board = MinAssistsBoard::from_move_board(board, goal);
 
@@ -72,7 +73,7 @@ pub fn solve(
     }
 
     if actor_squares.0.contains(&goal) {
-      let mut solution = Vec::with_capacity(depth as usize);
+      let mut solution_steps = Vec::with_capacity(depth as usize);
       let mut current_actor_squares = actor_squares;
       for _ in 0..depth {
         let visited_key = current_actor_squares.as_sorted_u32();
@@ -82,7 +83,7 @@ pub fn solve(
           .parent;
         for idx in 0..4 {
           if current_actor_squares.0[idx] != parent.0[idx] {
-            solution.push(SolutionStep {
+            solution_steps.push(SolutionStep {
               actor: idx as u8,
               direction: match current_actor_squares.0[idx].0 as i16
                 - parent.0[idx].0 as i16
@@ -98,8 +99,8 @@ pub fn solve(
         }
         current_actor_squares = parent;
       }
-      solution.reverse();
-      return Some(solution);
+      solution_steps.reverse();
+      return Some(Solution(solution_steps));
     }
 
     for actor_index in 0..actor_squares.0.len() {
@@ -170,7 +171,7 @@ mod test {
       ActorSquares([Square(0), Square(1), Square(2), Square(3)]),
       1,
     );
-    assert_eq!(solution, Some(vec![]));
+    assert_eq!(solution, Some(Solution(vec![])));
   }
 
   #[test]
@@ -181,7 +182,7 @@ mod test {
       ActorSquares([Square(1), Square(2), Square(3), Square(4)]),
       1,
     );
-    assert_eq!(solution, Some(vec![(0, Direction::Left).into()]));
+    assert_eq!(solution, Some(Solution(vec![(0, Direction::Left).into()])));
   }
 
   #[test]
@@ -192,7 +193,7 @@ mod test {
       ActorSquares([Square(4), Square(3), Square(2), Square(1)]),
       1,
     );
-    assert_eq!(solution, Some(vec![(3, Direction::Left).into()]));
+    assert_eq!(solution, Some(Solution(vec![(3, Direction::Left).into()])));
   }
 
   #[test]
@@ -203,7 +204,7 @@ mod test {
       ActorSquares([Square(4), Square(3), Square(2), Square(1)]),
       10,
     );
-    assert_eq!(solution, Some(vec![(3, Direction::Left).into()]));
+    assert_eq!(solution, Some(Solution(vec![(3, Direction::Left).into()])));
   }
 
   #[test]
@@ -227,7 +228,10 @@ mod test {
     );
     assert_eq!(
       solution,
-      Some(vec![(3, Direction::Up).into(), (3, Direction::Left).into()])
+      Some(Solution(vec![
+        (3, Direction::Up).into(),
+        (3, Direction::Left).into()
+      ]))
     );
   }
 
@@ -241,11 +245,11 @@ mod test {
     );
     assert_eq!(
       solution,
-      Some(vec![
+      Some(Solution(vec![
         (0, Direction::Left).into(),
         (1, Direction::Left).into(),
         (2, Direction::Up).into()
-      ])
+      ]))
     );
   }
 }

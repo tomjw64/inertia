@@ -1,11 +1,11 @@
 import { Position, SolutionStep } from 'inertia-core';
 
 export type NamedPosition = {
-  name: string;
+  name?: string;
   position: Position;
 };
 
 export type NamedSolution = {
-  name: string;
+  name?: string;
   solution: SolutionStep[];
 };

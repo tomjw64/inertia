@@ -56,15 +56,15 @@ export const RoundSummary = ({
     if (state.last_round_optimal_solution) {
       boardExplorerParams.append(
         'solution',
-        `Optimal solution:${encode_solution(state.last_round_optimal_solution)}`,
+        `${encode_solution(state.last_round_optimal_solution)}:Optimal solution:`,
       );
     }
     if (state.last_round_solution) {
       boardExplorerParams.append(
         'solution',
-        `${lastRoundSolverName}'s solution:${encode_solution(
+        `${encode_solution(
           state.last_round_solution,
-        )}`,
+        )}:${lastRoundSolverName}'s solution`,
       );
     }
     const boardExplorerUrl = `/explore?${boardExplorerParams.toString()}`;

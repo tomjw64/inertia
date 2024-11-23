@@ -1,5 +1,5 @@
 use crate::solvers::difficulty::Difficulty;
-use crate::solvers::SolutionStep;
+use crate::solvers::Solution;
 use crate::state::data::PlayerId;
 use crate::state::data::PlayerName;
 use crate::state::data::PlayerReconnectKey;
@@ -28,7 +28,7 @@ pub enum FromClientMessage {
 #[derive(Deserialize, Debug)]
 #[cfg_attr(feature = "web", derive(Tsify), tsify(from_wasm_abi))]
 pub struct UpdateSolutionMessage {
-  pub solution: Vec<SolutionStep>,
+  pub solution: Solution,
 }
 
 #[derive(Deserialize, Debug)]
