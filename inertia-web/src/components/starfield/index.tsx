@@ -35,7 +35,8 @@ export const NonEmptyStarfield = ({
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const workerRef = useLazyRef(
-    () => new Worker(new URL('./starfield.worker.ts', import.meta.url)),
+    () =>
+      new Worker(new URL('./instanced-starfield.worker.ts', import.meta.url)),
   );
 
   useEffect(() => {
