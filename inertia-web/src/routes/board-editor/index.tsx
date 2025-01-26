@@ -1,14 +1,17 @@
-import { ActorSquares, MetaBoardWrapper, WalledBoard } from 'inertia-core';
 import {
+  ActorSquares,
   encode_position,
   encode_solution,
-  get_min_assists_board,
   get_group_min_moves_board,
-  get_min_moves_board,
-  solve,
+  get_min_assists_board,
   get_min_crawls_board,
+  get_min_moves_board,
+  Position,
+  solve,
+  WalledBoard,
 } from 'inertia-core';
-import { useEffect, useState } from 'preact/hooks';
+import { isEqual } from 'lodash';
+import { useEffect, useMemo, useState } from 'preact/hooks';
 import { Divider } from '../../components/divider';
 import { ErrorPage } from '../../components/error-page';
 import { FlexCenter } from '../../components/flex-center';
@@ -22,53 +25,70 @@ import {
 import { Starfield } from '../../components/starfield';
 import { ThemedButton, ThemedFormLine } from '../../components/themed-form';
 import { ThemedPanel } from '../../components/themed-panel';
+import { NamedPosition } from '../../types';
 import { emptyBoard } from '../../utils/board';
-import {
-  clearUrlParams,
-  useUrlSyncedPositionsState,
-} from '../../utils/url-params';
 import {
   BoardSelection,
   isActorSelection,
   useClickAwayDeselect,
 } from '../../utils/selection';
+import { StateSetter } from '../../utils/types';
+import {
+  clearUrlParams,
+  useUrlSyncedPositionsState,
+} from '../../utils/url-params';
 
-// TODO: use wasm and reuse logic from walled_board.rs (requires internet)?
-const toggleWall = (
-  walls: WalledBoard,
+type WallCoords = {
+  type: keyof WalledBoard;
+  row: number;
+  column: number;
+};
+
+const getWallForRegion = (
   row: number,
   column: number,
   region: SquareRegionType,
-) => {
-  if (region === SquareRegionType.CENTER) {
-    return;
-  }
+): WallCoords | undefined => {
   if (region === SquareRegionType.LEFT && column !== 0) {
-    walls.vertical[row]![column - 1] = !walls.vertical[row]![column - 1];
-  } else if (region === SquareRegionType.RIGHT && column !== 15) {
-    walls.vertical[row]![column] = !walls.vertical[row]![column];
-  } else if (region === SquareRegionType.TOP && row !== 0) {
-    walls.horizontal[column]![row - 1] = !walls.horizontal[column]![row - 1];
-  } else if (region === SquareRegionType.BOTTOM && row !== 15) {
-    walls.horizontal[column]![row] = !walls.horizontal[column]![row];
+    return {
+      type: 'vertical',
+      row,
+      column: column - 1,
+    };
   }
+  if (region === SquareRegionType.RIGHT && column !== 15) {
+    return {
+      type: 'vertical',
+      row,
+      column,
+    };
+  }
+  if (region === SquareRegionType.TOP && row !== 0) {
+    return {
+      type: 'horizontal',
+      row: row - 1,
+      column,
+    };
+  }
+  if (region === SquareRegionType.BOTTOM && row !== 15) {
+    return {
+      type: 'horizontal',
+      row,
+      column,
+    };
+  }
+  return undefined;
+};
+
+const toggleWall = (walls: WalledBoard, coords: WallCoords) => {
+  const { type, column, row } = coords;
+  const indexes: [number, number] =
+    type === 'horizontal' ? [column, row] : [row, column];
+  walls[type][indexes[0]]![indexes[1]] = !walls[type][indexes[0]]![indexes[1]];
 };
 
 export const BoardEditor = () => {
-  const [metaBoardType, setMetaBoardType] = useState('');
-
-  const [selection, setSelection] = useState(BoardSelection.NONE);
-  useClickAwayDeselect(setSelection);
-
   const [positions, setPositions] = useUrlSyncedPositionsState();
-
-  const [mouseOverIndicatorWall, setMouseOverIndicatorWall] =
-    useState(emptyBoard());
-
-  useEffect(() => {
-    clearUrlParams(['solution']);
-  }, []);
-
   const position = positions[0]?.position;
   if (!position) {
     return (
@@ -78,6 +98,49 @@ export const BoardEditor = () => {
       </>
     );
   }
+  return <ValidBoardEditor position={position} setPositions={setPositions} />;
+};
+
+export const ValidBoardEditor = ({
+  position,
+  setPositions,
+}: {
+  position: Position;
+  setPositions: StateSetter<NamedPosition[]>;
+}) => {
+  const [metaBoardType, setMetaBoardType] = useState('');
+
+  const [selection, setSelection] = useState(BoardSelection.NONE);
+  useClickAwayDeselect(setSelection);
+
+  const [indicatorWallCoords, setIndicatorWallCoords] = useState<
+    WallCoords | undefined
+  >(undefined);
+
+  const mouseOverIndicatorWalls = useMemo(() => {
+    const indicatorWalls = emptyBoard();
+    if (!indicatorWallCoords) {
+      return indicatorWalls;
+    }
+    toggleWall(indicatorWalls, indicatorWallCoords);
+    return indicatorWalls;
+  }, [indicatorWallCoords]);
+
+  useEffect(() => {
+    clearUrlParams(['solution']);
+  }, []);
+
+  const metaBoard = useMemo(() => {
+    if (metaBoardType === 'min_moves') {
+      return get_min_moves_board(position);
+    } else if (metaBoardType === 'group_min_moves') {
+      return get_group_min_moves_board(position);
+    } else if (metaBoardType === 'min_assists') {
+      return get_min_assists_board(position);
+    } else if (metaBoardType === 'min_crawls') {
+      return get_min_crawls_board(position);
+    }
+  }, [metaBoardType, position]);
 
   const openBoardExplorer = () => {
     const boardExplorerParams = new URLSearchParams();
@@ -98,7 +161,7 @@ export const BoardEditor = () => {
       );
       boardExplorerParams.append(
         'solution',
-        `Optimal:${encode_solution(solution)}`,
+        `${encode_solution(solution)}:Optimal`,
       );
     }
     const boardExplorerUrl = `/explore?${boardExplorerParams.toString()}`;
@@ -108,12 +171,13 @@ export const BoardEditor = () => {
   const handleClickRegion = (event: SquareMouseEvent) => {
     const { squareIndex, region, row, column } = event;
 
-    if (
-      selection === BoardSelection.NONE &&
-      region !== SquareRegionType.CENTER
-    ) {
+    if (selection === BoardSelection.NONE) {
+      const toggledWall = getWallForRegion(row, column, region);
+      if (!toggledWall) {
+        return;
+      }
       const currentWalls = structuredClone(position.walled_board);
-      toggleWall(currentWalls, row, column, region);
+      toggleWall(currentWalls, toggledWall);
       setPositions([
         {
           name: '',
@@ -182,25 +246,16 @@ export const BoardEditor = () => {
       return;
     }
     const { row, column, region } = event;
-    const indicatorWall = emptyBoard();
-    toggleWall(indicatorWall, row, column, region);
-    setMouseOverIndicatorWall(indicatorWall);
+    if (!isEqual(indicatorWallCoords, getWallForRegion(row, column, region))) {
+      setIndicatorWallCoords(getWallForRegion(row, column, region));
+    }
   };
 
   const handleMouseLeaveBoard = () => {
-    setMouseOverIndicatorWall(emptyBoard());
+    if (indicatorWallCoords) {
+      setIndicatorWallCoords(undefined);
+    }
   };
-
-  let metaBoard: MetaBoardWrapper | undefined;
-  if (metaBoardType === 'min_moves') {
-    metaBoard = get_min_moves_board(position);
-  } else if (metaBoardType === 'group_min_moves') {
-    metaBoard = get_group_min_moves_board(position);
-  } else if (metaBoardType === 'min_assists') {
-    metaBoard = get_min_assists_board(position);
-  } else if (metaBoardType === 'min_crawls') {
-    metaBoard = get_min_crawls_board(position);
-  }
 
   return (
     <>
@@ -242,7 +297,7 @@ export const BoardEditor = () => {
           metaBoard={metaBoard}
           position={position}
           selection={selection}
-          indicatorWalls={mouseOverIndicatorWall}
+          indicatorWalls={mouseOverIndicatorWalls}
           onClickRegion={handleClickRegion}
           onMouseEnterRegion={handleMouseEnterRegion}
           onMouseLeaveBoard={handleMouseLeaveBoard}
