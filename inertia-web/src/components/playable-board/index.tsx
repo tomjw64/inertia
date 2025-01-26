@@ -81,7 +81,7 @@ export const PlayableBoard = ({
       if (movementRaySquares[direction][squareIndex]) {
         onMoveActor?.({
           actor: selection,
-          direction: direction,
+          direction,
         });
         return;
       }

@@ -1,4 +1,4 @@
-import { Dispatch, StateUpdater, useEffect } from 'preact/hooks';
+import { useEffect } from 'preact/hooks';
 import { getActorIndex } from './actor-colors';
 import { StateSetter } from './types';
 
