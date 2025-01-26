@@ -3,28 +3,31 @@ import {
   ExpandedBitBoard,
   get_movement_for_actor,
   get_movement_ray_for_actor,
+  MetaBoardWrapper,
   Position,
   SolutionStep,
   Square,
 } from 'inertia-core';
+import { useMemo, useState } from 'preact/hooks';
+import { fromSquares, removeSquares, union } from '../../utils/bitboard';
+import { DIRECTIONS } from '../../utils/direction';
+import { BoardSelection, useClickAwayDeselect } from '../../utils/selection';
 import {
   SimpleBoard,
   SquareMouseEvent,
   SquareRegionType,
 } from '../simple-board';
-import { useMemo, useState } from 'preact/hooks';
-import { DIRECTIONS } from '../../utils/direction';
-import { BoardSelection, useClickAwayDeselect } from '../../utils/selection';
-import { fromSquares, removeSquares, union } from '../../utils/bitboard';
 
 export const PlayableBoard = ({
   position,
   interactive,
   onMoveActor,
+  metaBoard,
 }: {
   position: Position;
   interactive?: boolean;
   onMoveActor?: (solutionStep: SolutionStep) => void;
+  metaBoard?: MetaBoardWrapper;
 }) => {
   const [selection, setSelection] = useState(BoardSelection.NONE);
   useClickAwayDeselect(setSelection);
@@ -92,6 +95,7 @@ export const PlayableBoard = ({
 
   return (
     <SimpleBoard
+      metaBoard={metaBoard}
       position={position}
       selection={interactive ? selection : BoardSelection.NONE}
       interactive={interactive}
