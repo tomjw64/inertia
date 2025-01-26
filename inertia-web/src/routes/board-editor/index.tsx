@@ -171,7 +171,10 @@ export const ValidBoardEditor = ({
   const handleClickRegion = (event: SquareMouseEvent) => {
     const { squareIndex, region, row, column } = event;
 
-    if (selection === BoardSelection.NONE) {
+    if (
+      selection === BoardSelection.NONE &&
+      region !== SquareRegionType.CENTER
+    ) {
       const toggledWall = getWallForRegion(row, column, region);
       if (!toggledWall) {
         return;
