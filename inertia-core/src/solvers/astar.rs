@@ -16,6 +16,7 @@ use super::BucketingPriorityQueue;
 use super::GroupMinMovesBoard;
 use super::Heuristic;
 
+#[derive(Clone, Copy)]
 struct VisitedData {
   parent: ActorSquares,
   depth: u8,
@@ -103,6 +104,11 @@ pub fn solve(
       return Some(Solution(solution_steps));
     }
 
+    let new_depth = depth + 1;
+    let prospective_value = VisitedData {
+      depth: new_depth,
+      parent: actor_squares,
+    };
     for actor_index in 0..actor_squares.0.len() {
       let actor_square = actor_squares.0[actor_index];
       for direction in Direction::VARIANTS {
@@ -113,24 +119,18 @@ pub fn solve(
           continue;
         }
 
-        let new_depth = depth + 1;
-
         let mut new_actor_squares = actor_squares;
         new_actor_squares.0[actor_index] = move_destination;
 
         let visited_key = new_actor_squares.as_sorted_u32();
-        let prospective_value = VisitedData {
-          depth: new_depth,
-          parent: actor_squares,
-        };
         let visited_entry = visited.entry(visited_key);
         let skippable = match visited_entry {
           Entry::Occupied(mut entry) => {
             let existing: &mut VisitedData = entry.get_mut();
-            if existing.depth <= prospective_value.depth {
+            if existing.depth <= new_depth {
               true
             } else {
-              *existing = prospective_value;
+              entry.insert(prospective_value);
               false
             }
           }

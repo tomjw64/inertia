@@ -262,7 +262,7 @@ export const ValidBoardEditor = ({
 
   return (
     <>
-      <Starfield numStars={500} speed={0.5} />
+      <Starfield numStars={0} speed={0.5} />
       <AppControls />
       <FlexCenter wrap>
         <ThemedPanel>

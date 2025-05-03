@@ -76,6 +76,12 @@ impl<T> BucketingPriorityQueue<T> {
     self.buckets[priority].push(value);
   }
 
+  pub fn swap_push(&mut self, value: T, priority: usize) {
+    self.push(value, priority);
+    let new_size = self.buckets[priority].len();
+    self.buckets[priority].swap(0, new_size - 1);
+  }
+
   pub fn pop(&mut self) -> Option<T> {
     while self.current_bucket < self.buckets.len() {
       let value = self.buckets[self.current_bucket].pop();

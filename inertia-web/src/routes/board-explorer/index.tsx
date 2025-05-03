@@ -1,4 +1,12 @@
-import { apply_solution, Position, SolutionStep } from 'inertia-core';
+import {
+  apply_solution,
+  get_group_min_moves_board,
+  get_min_assists_board,
+  get_min_crawls_board,
+  get_min_moves_board,
+  Position,
+  SolutionStep,
+} from 'inertia-core';
 import { range } from 'lodash';
 import { useMemo, useState } from 'preact/hooks';
 import { Divider } from '../../components/divider';
@@ -8,6 +16,7 @@ import { PanelTitle } from '../../components/panel-title';
 import { PlayableBoard } from '../../components/playable-board';
 import { AppControls } from '../../components/room-controls';
 import { ACTOR_FLIP_ANIMATE_DURATION } from '../../components/simple-board';
+import { SolutionTray } from '../../components/solution-tray';
 import { Starfield } from '../../components/starfield';
 import {
   ThemedButton,
@@ -22,7 +31,6 @@ import {
   useInitialUrlPositions,
   useUrlSyncedSolutionsState,
 } from '../../utils/url-params';
-import { SolutionTray } from '../../components/solution-tray';
 
 const NEW_SOLUTION_NAME = 'New solution';
 const NEW_SOLUTION = { name: NEW_SOLUTION_NAME, solution: [] };
@@ -94,6 +102,8 @@ const NonEmptyBoardExplorer = ({
 }: {
   initialPosition: Position;
 }) => {
+  const [metaBoardType, setMetaBoardType] = useState('');
+
   const [solutions, setSolutions] = useUrlSyncedSolutionsState();
   const [activeSolutionIndex, setActiveSolutionIndex] = useState(-1);
   const [solutionStepIndex, setSolutionStepIndex] = useState(-1);
@@ -147,9 +157,21 @@ const NonEmptyBoardExplorer = ({
     });
   };
 
+  const metaBoard = useMemo(() => {
+    if (metaBoardType === 'min_moves') {
+      return get_min_moves_board(position);
+    } else if (metaBoardType === 'group_min_moves') {
+      return get_group_min_moves_board(position);
+    } else if (metaBoardType === 'min_assists') {
+      return get_min_assists_board(position);
+    } else if (metaBoardType === 'min_crawls') {
+      return get_min_crawls_board(position);
+    }
+  }, [metaBoardType, position]);
+
   return (
     <>
-      <Starfield numStars={500} speed={0.5} />
+      <Starfield numStars={0} speed={0.5} />
       <AppControls />
       <FlexCenter wrap>
         <ThemedPanel>
@@ -204,6 +226,29 @@ const NonEmptyBoardExplorer = ({
                 );
               })}
             </RenderWhen>
+            <RenderWhen when={true}>
+              <Divider />
+              MetaBoard Options
+              <ThemedFormLine>
+                <ThemedButton onClick={() => setMetaBoardType('')}>
+                  None
+                </ThemedButton>
+                <ThemedButton onClick={() => setMetaBoardType('min_assists')}>
+                  Min Assists
+                </ThemedButton>
+                <ThemedButton onClick={() => setMetaBoardType('min_moves')}>
+                  Min Moves
+                </ThemedButton>
+                <ThemedButton
+                  onClick={() => setMetaBoardType('group_min_moves')}
+                >
+                  Group Min Moves
+                </ThemedButton>
+                <ThemedButton onClick={() => setMetaBoardType('min_crawls')}>
+                  Min Crawls
+                </ThemedButton>
+              </ThemedFormLine>
+            </RenderWhen>
             <Divider />
             <FlexCenter>
               <ThemedButton
@@ -247,6 +292,7 @@ const NonEmptyBoardExplorer = ({
           </FlexCenter>
         </ThemedPanel>
         <PlayableBoard
+          metaBoard={metaBoard}
           position={position}
           interactive={!isAnimating}
           onMoveActor={onMoveActor}

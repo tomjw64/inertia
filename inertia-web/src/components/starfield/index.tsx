@@ -1,8 +1,8 @@
-import { useRef, useEffect } from 'preact/hooks';
-import style from './style.module.scss';
 import { debounce } from 'lodash';
-import { RenderWhen } from '../utils/RenderWhen';
+import { useEffect, useRef } from 'preact/hooks';
 import { useLazyRef } from '../../utils/hooks/use-lazy-ref';
+import { RenderWhen } from '../utils/RenderWhen';
+import style from './style.module.scss';
 
 const getCanvasWidth = () =>
   Math.floor(window.innerWidth * window.devicePixelRatio);
