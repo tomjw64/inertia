@@ -10,7 +10,7 @@ export const StarfieldSandbox = () => {
   return (
     <>
       <Starfield numStars={numStars} speed={starSpeed} />
-      <div class={style.room}>
+      <div class={style.sandbox}>
         <StarfieldControls
           numStars={numStars}
           setNumStars={setNumStars}
