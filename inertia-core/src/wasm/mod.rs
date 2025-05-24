@@ -1,8 +1,6 @@
-mod js_ffi;
-mod log;
+pub mod js_ffi;
+pub mod log;
 
-use self::log::console_debug;
-use self::log::console_log;
 use crate::mechanics::ActorSquares;
 use crate::mechanics::B64EncodedCompressedPosition;
 use crate::mechanics::CompressedPosition;

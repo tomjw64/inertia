@@ -6,3 +6,6 @@ pub mod state;
 
 #[cfg(feature = "web")]
 pub mod wasm;
+
+#[cfg(feature = "exploration")]
+pub mod exploration;

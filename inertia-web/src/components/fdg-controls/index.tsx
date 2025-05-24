@@ -4,51 +4,32 @@ import { FlexCenter } from '../flex-center';
 import style from './style.module.scss';
 
 type FdgControlsProps = {
-  numNodes: number;
-  setNumNodes: StateSetter<number>;
-  numEdges: number;
-  setNumEdges: StateSetter<number>;
+  t: number;
+  setT: StateSetter<number>;
 };
 
-export const FdgControls = ({
-  numNodes,
-  setNumNodes,
-  numEdges,
-  setNumEdges,
-}: FdgControlsProps) => {
-  const handleNumNodesChange = (e: JSX.TargetedEvent<HTMLInputElement>) => {
-    setNumNodes(parseInt(e.currentTarget.value));
+export const FdgControls = ({ t, setT }: FdgControlsProps) => {
+  const handleTChange = (e: JSX.TargetedEvent<HTMLInputElement>) => {
+    setT(Number(e.currentTarget.value));
   };
 
-  const handleNumEdgesChange = (e: JSX.TargetedEvent<HTMLInputElement>) => {
-    setNumEdges(parseInt(e.currentTarget.value));
-  };
+  const max = 200;
 
   return (
     <div className={style.controls}>
       <FlexCenter>
-        <label>Number of Nodes</label>
+        <label>T</label>
         <input
           type="range"
-          min="0"
-          max="1024"
-          value={numNodes}
-          step="1"
-          onChange={handleNumNodesChange}
+          min={0}
+          max={max}
+          value={t}
+          step={1}
+          onChange={handleTChange}
         />
-        <div>[{numNodes}]</div>
-      </FlexCenter>
-      <FlexCenter>
-        <label>Number of Edges</label>
-        <input
-          type="range"
-          min="0"
-          max="4096"
-          value={numEdges}
-          step="1"
-          onChange={handleNumEdgesChange}
-        />
-        <div>[{numEdges}]</div>
+        <div>
+          [{t}/{max}]
+        </div>
       </FlexCenter>
     </div>
   );

@@ -1,3 +1,4 @@
+import { GraphEdge, GraphNode } from 'inertia-core';
 import { BaseEvent } from 'three';
 
 export type WorkerMessage =
@@ -21,8 +22,8 @@ export type StartMessage = {
 export type InitGraphMessage = {
   type: 'initGraph';
   payload: {
-    numNodes: number;
-    numEdges: number;
+    nodes: GraphNode[];
+    edges: GraphEdge[];
   };
 };
 

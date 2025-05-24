@@ -11,6 +11,7 @@ import {
   ResizeMessage,
   StartMessage,
 } from './worker-message';
+import { GraphEdge, GraphNode } from 'inertia-core';
 
 const getCanvasWidth = () =>
   Math.floor(window.innerWidth * window.devicePixelRatio);
@@ -62,27 +63,27 @@ class ElementProxy {
 }
 
 export const Fdg = ({
-  numNodes,
-  numEdges,
+  nodes,
+  edges,
 }: {
-  numNodes: number;
-  numEdges: number;
+  nodes: GraphNode[];
+  edges: GraphEdge[];
 }) => {
   return (
     <div className={style.background}>
-      <RenderWhen when={numNodes > 0}>
-        <NonEmptyFdg numNodes={numNodes} numEdges={numEdges} />
+      <RenderWhen when={nodes.length > 0}>
+        <NonEmptyFdg nodes={nodes} edges={edges} />
       </RenderWhen>
     </div>
   );
 };
 
 export const NonEmptyFdg = ({
-  numNodes,
-  numEdges,
+  nodes,
+  edges,
 }: {
-  numNodes: number;
-  numEdges: number;
+  nodes: GraphNode[];
+  edges: GraphEdge[];
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const workerRef = useLazyRef(
@@ -256,12 +257,12 @@ export const NonEmptyFdg = ({
     const initGraphMessage: InitGraphMessage = {
       type: 'initGraph',
       payload: {
-        numNodes,
-        numEdges,
+        nodes,
+        edges,
       },
     };
     worker.postMessage(initGraphMessage);
-  }, [numNodes, numEdges, workerRef]);
+  }, [nodes, edges, workerRef]);
 
   return <canvas className={style.canvas} ref={canvasRef} />;
 };

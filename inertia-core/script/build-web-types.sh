@@ -6,5 +6,5 @@ SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 INERTIA_CORE_DIR=$(dirname $SCRIPT_DIR)
 
 cd $INERTIA_CORE_DIR
-wasm-pack build --features web
+wasm-pack build --features web --features exploration
 cd $ORIGINAL_DIR

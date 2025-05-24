@@ -2,7 +2,7 @@ macro_rules! console_debug {
   ($val:expr) => {
     match $val {
       tmp => {
-        js_ffi::debug(
+        crate::wasm::js_ffi::debug(
           &format_args!(
             "[{}:{}] {} = {:#?}",
             file!(),
@@ -19,15 +19,15 @@ macro_rules! console_debug {
 }
 
 macro_rules! console_log {
-  ($($t:tt)*) => (js_ffi::log(&format_args!($($t)*).to_string()))
+  ($($t:tt)*) => (crate::wasm::js_ffi::log(&format_args!($($t)*).to_string()))
 }
 
 macro_rules! console_warn {
-  ($($t:tt)*) => (js_ffi::warn(&format_args!($($t)*).to_string()))
+  ($($t:tt)*) => (crate::wasm::js_ffi::warn(&format_args!($($t)*).to_string()))
 }
 
 macro_rules! console_error {
-  ($($t:tt)*) => (js_ffi::error(&format_args!($($t)*).to_string()))
+  ($($t:tt)*) => (crate::wasm::js_ffi::error(&format_args!($($t)*).to_string()))
 }
 
 pub(crate) use console_debug;

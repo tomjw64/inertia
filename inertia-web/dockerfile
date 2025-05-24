@@ -4,7 +4,7 @@ RUN cargo install wasm-pack
 COPY inertia-core /build/inertia-core
 WORKDIR /build/inertia-core/
 RUN cargo build --release
-RUN wasm-pack build --release --features web
+RUN ./script/build-web-types.sh
 
 
 FROM node:20-bookworm-slim AS node-common
