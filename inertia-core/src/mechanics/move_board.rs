@@ -197,70 +197,72 @@ impl MoveBoard {
     actor_squares: ActorSquares,
     direction: Direction,
   ) -> Square {
+    let actor_square_row = actor_square.0 / 16;
+    let actor_square_col = actor_square.0 % 16;
     match direction {
       Direction::Up => {
         let unimpeded_move = self.up_moves[actor_square.0 as usize];
         if unimpeded_move == actor_square {
           return unimpeded_move;
         }
-        let mut max = unimpeded_move;
+        let mut max = unimpeded_move.0;
         for square in actor_squares.0 {
-          if square.0 % 16 == actor_square.0 % 16
+          if square.0 % 16 == actor_square_col
             && square.0 < actor_square.0
-            && square.0 + 16 > max.0
+            && square.0 >= max
           {
-            max = Square(square.0 + 16);
+            max = square.0 + 16;
           }
         }
-        max
+        Square(max)
       }
       Direction::Down => {
         let unimpeded_move = self.down_moves[actor_square.0 as usize];
         if unimpeded_move == actor_square {
           return unimpeded_move;
         }
-        let mut min = unimpeded_move;
+        let mut min = unimpeded_move.0;
         for square in actor_squares.0 {
-          if square.0 % 16 == actor_square.0 % 16
+          if square.0 % 16 == actor_square_col
             && square.0 > actor_square.0
-            && square.0 - 16 < min.0
+            && square.0 <= min
           {
-            min = Square(square.0 - 16);
+            min = square.0 - 16;
           }
         }
-        min
+        Square(min)
       }
       Direction::Left => {
         let unimpeded_move = self.left_moves[actor_square.0 as usize];
         if unimpeded_move == actor_square {
           return unimpeded_move;
         }
-        let mut max = unimpeded_move;
+        let mut max = unimpeded_move.0;
         for square in actor_squares.0 {
-          if square.0 / 16 == actor_square.0 / 16
+          if square.0 / 16 == actor_square_row
             && square.0 < actor_square.0
-            && square.0 + 1 > max.0
+            && square.0 >= max
           {
-            max = Square(square.0 + 1);
+            max = square.0 + 1;
           }
         }
-        max
+        Square(max)
       }
       Direction::Right => {
         let unimpeded_move = self.right_moves[actor_square.0 as usize];
         if unimpeded_move == actor_square {
           return unimpeded_move;
         }
-        let mut min = unimpeded_move;
+        let mut min = unimpeded_move.0;
         for square in actor_squares.0 {
-          if square.0 / 16 == actor_square.0 / 16
+          if square.0 / 16 == actor_square_row
             && square.0 > actor_square.0
-            && square.0 - 1 < min.0
+            && square.0 <= min
           {
-            min = Square(square.0 - 1);
+            min = square.0 - 1;
           }
         }
-        min
+        Square(min)
       }
     }
   }

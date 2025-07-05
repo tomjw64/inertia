@@ -1,7 +1,7 @@
 use std::borrow::Borrow;
+use std::collections::hash_map::Entry;
 
-use hashbrown::hash_map::Entry;
-use hashbrown::HashMap;
+use rustc_hash::FxHashMap;
 
 use crate::mechanics::ActorSquares;
 use crate::mechanics::Direction;
@@ -52,7 +52,8 @@ pub fn solve(
 
   // let mut queue = BucketingMonotonicPriorityQueue::with_capacities(256, 1024);
   let mut queue = BucketingPriorityQueue::with_capacities(256, 1024);
-  let mut visited: HashMap<u32, VisitedData> = HashMap::with_capacity(1024);
+  let mut visited: FxHashMap<u32, VisitedData> =
+    FxHashMap::with_capacity_and_hasher(1024, Default::default());
 
   queue.push(
     QueueData {
@@ -103,6 +104,7 @@ pub fn solve(
       return Some(Solution(solution_steps));
     }
 
+    let depth_after_move = depth + 1;
     for actor_index in 0..actor_squares.0.len() {
       let actor_square = actor_squares.0[actor_index];
       for direction in Direction::VARIANTS {
@@ -113,14 +115,12 @@ pub fn solve(
           continue;
         }
 
-        let new_depth = depth + 1;
-
         let mut new_actor_squares = actor_squares;
         new_actor_squares.0[actor_index] = move_destination;
 
         let visited_key = new_actor_squares.as_sorted_u32();
         let prospective_value = VisitedData {
-          depth: new_depth,
+          depth: depth_after_move,
           parent: actor_squares,
         };
         let visited_entry = visited.entry(visited_key);
@@ -147,10 +147,10 @@ pub fn solve(
         queue.push(
           QueueData {
             actor_squares: new_actor_squares,
-            depth: new_depth,
+            depth: depth_after_move,
           },
-          new_depth as usize
-            + heuristic_board.get_heuristic(actor_squares) as usize,
+          depth_after_move as usize
+            + heuristic_board.get_heuristic(new_actor_squares) as usize,
         );
       }
     }
