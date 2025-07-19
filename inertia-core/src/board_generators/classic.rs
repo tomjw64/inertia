@@ -1,9 +1,10 @@
 use std::collections::HashSet;
 use std::ops::Range;
 
+use rand::rng;
+use rand::seq::IndexedRandom;
 use rand::seq::IteratorRandom;
 use rand::seq::SliceRandom;
-use rand::thread_rng;
 use rand::Rng;
 
 use crate::mechanics::ActorSquares;
@@ -30,7 +31,7 @@ impl Default for ClassicFreeGoalBoardGenerator {
 impl PositionGenerator for ClassicFreeGoalBoardGenerator {
   fn generate_position(&self) -> Position {
     let mut walled_board = WalledBoard::EMPTY;
-    let mut rng = thread_rng();
+    let mut rng = rng();
 
     add_central_box(&mut walled_board);
     add_edge_walls(&mut rng, &mut walled_board);
@@ -79,7 +80,7 @@ impl Default for ClassicBoardGenerator {
 impl PositionGenerator for ClassicBoardGenerator {
   fn generate_position(&self) -> Position {
     let mut walled_board = WalledBoard::EMPTY;
-    let mut rng = thread_rng();
+    let mut rng = rng();
 
     add_central_box(&mut walled_board);
     add_edge_walls(&mut rng, &mut walled_board);
@@ -97,7 +98,7 @@ impl PositionGenerator for ClassicBoardGenerator {
       .choose_multiple_fill(&mut rng, &mut actor_squares);
     actor_square_candidates.shuffle(&mut rng);
 
-    let allow_edges = rng.gen_bool(0.25);
+    let allow_edges = rng.random_bool(0.25);
 
     let goal_square = (0..=255)
       .filter(|square| {

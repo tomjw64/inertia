@@ -229,7 +229,7 @@ async fn handle_socket(
           continue;
         }
       };
-      match ws_sender.send(ws::Message::Text(msg_json)).await {
+      match ws_sender.send(ws::Message::Text(msg_json.into())).await {
         Ok(_) => continue,
         Err(err) => {
           ws_debug!("Failed to send WS message: {}", err);

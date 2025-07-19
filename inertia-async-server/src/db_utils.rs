@@ -38,7 +38,7 @@ pub fn get_random_db_position_coordinates_in_difficulty_range(
   min_difficulty: Difficulty,
   max_difficulty: Difficulty,
 ) -> PositionDbCoordinates {
-  let rand = rand::thread_rng();
+  let rand = rand::rng();
   get_db_position_coordinates_in_difficulty_range_from_random(
     rand,
     min_difficulty,
@@ -65,10 +65,11 @@ pub fn get_db_position_coordinates_in_difficulty_range_from_random<T: Rng>(
   max_difficulty: Difficulty,
 ) -> PositionDbCoordinates {
   let difficulty = Difficulty::try_from(
-    rand.gen_range(min_difficulty as u8..max_difficulty as u8),
+    rand.random_range(min_difficulty as u8..max_difficulty as u8),
   )
   .expect("guaranteed to be in range");
-  let ordinal = rand.gen_range(0..num_db_positions_for_difficulty(difficulty));
+  let ordinal =
+    rand.random_range(0..num_db_positions_for_difficulty(difficulty));
   PositionDbCoordinates {
     difficulty,
     ordinal,
