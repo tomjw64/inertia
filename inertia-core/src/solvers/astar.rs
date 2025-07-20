@@ -107,11 +107,10 @@ pub fn solve(
     let depth_after_move = depth + 1;
     for actor_index in 0..actor_squares.0.len() {
       let actor_square = actor_squares.0[actor_index];
-      for direction in Direction::VARIANTS {
-        let move_destination =
-          board.get_move_destination(actor_square, actor_squares, direction);
+      for move_destination in
+        board.get_all_move_destinations(actor_squares, actor_square)
+      {
         if move_destination == actor_square {
-          // No change in position, skip
           continue;
         }
 

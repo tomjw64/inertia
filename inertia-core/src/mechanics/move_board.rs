@@ -191,6 +191,50 @@ impl MoveBoard {
     }
   }
 
+  pub fn get_all_move_destinations(
+    &self,
+    actor_squares: ActorSquares,
+    actor_square: Square,
+  ) -> [Square; 4] {
+    let actor_square_row = actor_square.0 / 16;
+    let actor_square_col = actor_square.0 % 16;
+
+    let mut up_dest = self.up_moves[actor_square.0 as usize];
+    let mut down_dest = self.down_moves[actor_square.0 as usize];
+    let mut left_dest = self.left_moves[actor_square.0 as usize];
+    let mut right_dest = self.right_moves[actor_square.0 as usize];
+
+    for other_square in actor_squares.0 {
+      let other_square_row = other_square.0 / 16;
+      let other_square_col = other_square.0 % 16;
+
+      let same_row = other_square_row == actor_square_row;
+      let same_col = other_square_col == actor_square_col;
+
+      let other_before = other_square.0 < actor_square.0;
+      let other_after = other_square.0 > actor_square.0;
+
+      if same_col && other_before && other_square.0 >= up_dest.0 {
+        up_dest = Square(other_square.0 + 16);
+        continue;
+      }
+      if same_col && other_after && other_square.0 <= down_dest.0 {
+        down_dest = Square(other_square.0 - 16);
+        continue;
+      }
+      if same_row && other_before && other_square.0 >= left_dest.0 {
+        left_dest = Square(other_square.0 + 1);
+        continue;
+      }
+      if same_row && other_after && other_square.0 <= right_dest.0 {
+        right_dest = Square(other_square.0 - 1);
+        continue;
+      }
+    }
+
+    [up_dest, down_dest, left_dest, right_dest]
+  }
+
   pub fn get_move_destination(
     &self,
     actor_square: Square,
