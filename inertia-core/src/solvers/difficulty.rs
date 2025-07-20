@@ -2,7 +2,7 @@ use super::Solution;
 use itertools::Itertools;
 use num_enum::IntoPrimitive;
 use num_enum::TryFromPrimitive;
-use rand::distr::StandardUniform;
+use rand::distributions::Standard;
 use rand::prelude::Distribution;
 use rand::Rng;
 use serde::Deserialize;
@@ -47,9 +47,9 @@ impl Difficulty {
   }
 }
 
-impl Distribution<Difficulty> for StandardUniform {
+impl Distribution<Difficulty> for Standard {
   fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Difficulty {
-    Difficulty::try_from(rng.random_range(0..=4))
+    Difficulty::try_from(rng.gen_range(0..=4))
       .expect("known range of difficulty values")
   }
 }
