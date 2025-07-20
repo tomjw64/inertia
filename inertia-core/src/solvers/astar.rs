@@ -45,12 +45,7 @@ pub fn solve(
   actor_squares: ActorSquares,
   max_depth: usize,
 ) -> Option<Solution> {
-  // let heuristic_board = CombinedHeuristic::from_move_board(board, goal);
   let heuristic_board = GroupMinMovesBoard::from_move_board(board, goal);
-  // let heuristic_board = ExpensiveCrawlsBoard::from_move_board(board, goal);
-  // let heuristic_board = MinAssistsBoard::from_move_board(board, goal);
-
-  // let mut queue = BucketingMonotonicPriorityQueue::with_capacities(256, 1024);
   let mut queue = BucketingPriorityQueue::with_capacities(256, 1024);
   let mut visited: FxHashMap<u32, VisitedData> =
     FxHashMap::with_capacity_and_hasher(1024, Default::default());
