@@ -5,6 +5,6 @@ edition = "2021"
 
 [dependencies]
 inertia-core = { path = "../inertia-core/" }
-base64 = "0.21.5"
-clap = { version = "4.5.18", features = ["derive"] }
-colored = "2.1.0"
+base64 = "0.22.1"
+clap = { version = "4.5.41", features = ["derive"] }
+colored = "3.0.0"
