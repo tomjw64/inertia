@@ -41,4 +41,5 @@ pub use heuristic::*;
 pub mod combined_heuristic;
 pub use combined_heuristic::*;
 
-pub mod fixtures;
+pub mod heuristic_board_format;
+pub use heuristic_board_format::*;

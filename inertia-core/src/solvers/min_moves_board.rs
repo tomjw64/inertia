@@ -4,6 +4,7 @@ use crate::mechanics::ActorSquares;
 use crate::mechanics::Direction;
 use crate::mechanics::MoveBoard;
 use crate::mechanics::Square;
+use crate::solvers::format_square_heuristics;
 
 use super::get_min;
 use super::Heuristic;
@@ -15,15 +16,7 @@ pub struct MinMovesBoard {
 
 impl fmt::Debug for MinMovesBoard {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    let strings = self.squares.map(|x| format!("{:03}", x));
-    let rows = strings.chunks(16).collect::<Vec<_>>();
-    f.write_str("\n")?;
-    for row in rows {
-      f.write_str("[")?;
-      f.write_str(&row.join(", "))?;
-      f.write_str("]\n")?;
-    }
-    Ok(())
+    format_square_heuristics(f, &self.squares)
   }
 }
 
@@ -83,5 +76,32 @@ impl Heuristic for MinMovesBoard {
     actor_index: usize,
   ) -> HeuristicValue {
     self.squares[actor_squares.0[actor_index].0 as usize]
+  }
+}
+
+#[cfg(test)]
+mod test {
+  use super::*;
+  use crate::mechanics::B64EncodedCompressedPosition;
+  use crate::mechanics::CompressedPosition;
+  use crate::mechanics::MoveBoard;
+  use crate::mechanics::Position;
+
+  #[test]
+  fn test_sample_position_heuristics() {
+    for &(name, position_b64, _) in inertia_fixtures::SAMPLE_POSITIONS {
+      let position = Position::try_from(
+        CompressedPosition::try_from(B64EncodedCompressedPosition(
+          position_b64.to_owned(),
+        ))
+        .unwrap(),
+      )
+      .unwrap();
+      let board = MinMovesBoard::from_move_board(
+        &MoveBoard::from(&position.walled_board),
+        position.goal,
+      );
+      insta::assert_debug_snapshot!(name, board);
+    }
   }
 }

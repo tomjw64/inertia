@@ -9,20 +9,6 @@ use std::io;
 use std::io::Write;
 use std::time::Instant;
 
-const POSITIONS: &[(&str, &str, usize)] = &[
-  ("one-move", "ABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQABAAEAAQABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQIDBA", 1),
-  ("shuffle", "AP9_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP9__38AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA_38REiEiiA", 70),
-  ("empty", "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARARiA", 43),
-  ("gauntlet", "AAAAAAAAAAEAAQAFAAUAFQAVAFUAVQBVAVUBVQVVBVUVAAAAAAAAAQABAAUABQAVABUAVQBVAFUBVQFVBVUFVRUBABAR7g", 73),
-  ("gauntlet_guardrail", "AAgAIAAgAIEAgQAFAgUCFQgVCFUgVSBVAVUBVQVVBVUVCAAgACAAgQCBAAUCBQIVCBUIVSBVIFUBVQFVBVUFVRUBABAR7g", 36),
-  ("gauntlet_close", "AAAAAAAAAAEAAQAFAAUAFQAVAFUAVQBVAVUBVQVVBVUVAAAAAAAAAQABAAUABQAVABUAVQBVAFUBVQFVBVUFVRXfAP0R7g", 63),
-  ("gauntlet_close_guardrail", "AAgAIAAgAIEAgQAFAgUCFQgVCFUgVSBVAVUBVQVVBVUVCAAgACAAgQCBAAUCBQIVCBUIVSBVIFUBVQFVBVUFVRXfAP0R7g", 38),
-  ("random_classic_gen_22", "AAgQAAIAAUIAIAAAKBICQAFAISoAACQAEUAAAAAgAJAAQAggAgQAAAAAAUAiEAhIAUAFJAACACACAASQAAAEAgGV0HWjXQ", 22),
-  ("random_classic_gen_21", "AAEBgAACAAAAAAAEBAgIQAFAISQAABEAAggAAAQAAIgAAgQAACQAQAoAAAAAAAJAAUIBAAoQAAAgQAIAAQAAEATvrip5kw", 21),
-  ("random_classic_gen_15", "AEAQCAEAAAAAUAAAAAAwQAFAAQJAQAQAAEAAAAAAIAQQAgEAAgAAAAABABAACAxAAUIBAAAAAgAAIAAAIEABEAQlbDkyuA", 15),
-  ("the_x", "APwf-A_wB-ADwAGAAAAAAAAAAAAAgADAAeAD8Af4D_wf_B_4D_AH4APAAYAAAAAAAAAAAACAAMAB4APwB_gP_B9kAwRT4Q", 70)
-  ];
-
 fn solve_and_time_named_position(
   name: &str,
   position_b64: String,
@@ -72,17 +58,18 @@ fn main() {
   let args = Args::parse();
 
   if let Some(name) = args.name {
-    let &(__, position_b64, expected_moves) = POSITIONS
-      .iter()
-      .find(|item| item.0 == name)
-      .expect(&format!("Position with name '{}' does not exist!", name));
+    let &(_, position_b64, expected_moves) =
+      inertia_fixtures::get_sample_position(&name)
+        .expect(&format!("Position with name '{}' does not exist!", name));
     solve_and_time_named_position(
       &name,
       position_b64.to_owned(),
       expected_moves,
     );
   } else {
-    for &(name, position_b64, expected_moves) in POSITIONS {
+    for &(name, position_b64, expected_moves) in
+      inertia_fixtures::SAMPLE_POSITIONS
+    {
       solve_and_time_named_position(
         name,
         position_b64.to_owned(),

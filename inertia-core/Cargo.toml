@@ -20,7 +20,13 @@ tsify = { version = "0.5.5", optional = true }
 wasm-bindgen  = { version = "0.2.100", optional = true }
 
 [dev-dependencies]
+insta = "1.43.1"
 pretty_assertions = "1.4.1"
+inertia-fixtures = { path = "../inertia-fixtures/" }
+
+[profile.dev.package]
+insta.opt-level = 3
+similar.opt-level = 3
 
 [features]
 default = []
