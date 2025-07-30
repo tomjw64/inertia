@@ -26,3 +26,6 @@ pub use heuristic::*;
 
 pub mod heuristic_board_format;
 pub use heuristic_board_format::*;
+
+pub mod group_min_moves_expensive_crawls_board;
+pub use group_min_moves_expensive_crawls_board::*;
