@@ -27,17 +27,17 @@ impl GroupMinMovesBoard {
   }
 
   pub fn from_move_board(board: &MoveBoard, goal: Square) -> Self {
-    let mut square_min_moves = [HeuristicValue::MAX; 256];
+    let mut group_min_moves_board = [HeuristicValue::MAX; 256];
     let mut queue = VecDeque::new();
     queue.push_back((Square(goal.0), 0));
 
     while let Some((square, value)) = queue.pop_front() {
       let square_index = square.0 as usize;
 
-      if square_min_moves[square_index] <= value {
+      if group_min_moves_board[square_index] <= value {
         continue;
       }
-      square_min_moves[square_index] = value;
+      group_min_moves_board[square_index] = value;
 
       for direction in Direction::VARIANTS {
         let move_destination =
@@ -61,7 +61,7 @@ impl GroupMinMovesBoard {
     }
 
     Self {
-      squares: square_min_moves,
+      squares: group_min_moves_board,
     }
   }
 }

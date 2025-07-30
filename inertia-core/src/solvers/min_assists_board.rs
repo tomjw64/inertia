@@ -27,17 +27,17 @@ impl MinAssistsBoard {
   }
 
   pub fn from_move_board(board: &MoveBoard, goal: Square) -> Self {
-    let mut square_assists = [HeuristicValue::MAX; 256];
+    let mut min_assists_board = [HeuristicValue::MAX; 256];
     let mut queue = VecDeque::new();
     queue.push_back((Square(goal.0), 0));
 
-    while let Some((square, assists)) = queue.pop_front() {
+    while let Some((square, min_assists)) = queue.pop_front() {
       let square_index = square.0 as usize;
 
-      if square_assists[square_index] <= assists {
+      if min_assists_board[square_index] <= min_assists {
         continue;
       }
-      square_assists[square_index] = assists;
+      min_assists_board[square_index] = min_assists;
 
       for direction in Direction::VARIANTS {
         let move_destination =
@@ -47,21 +47,21 @@ impl MinAssistsBoard {
             board
               .get_unimpeded_movement_ray_squares(square, direction.opposite())
               .into_iter()
-              .map(|s| (s, assists)),
+              .map(|s| (s, min_assists)),
           );
         } else {
           queue.extend(
             board
               .get_unimpeded_movement_ray_squares(square, direction)
               .into_iter()
-              .map(|s| (s, assists + 1)),
+              .map(|s| (s, min_assists + 1)),
           );
         }
       }
     }
 
     Self {
-      squares: square_assists,
+      squares: min_assists_board,
     }
   }
 }

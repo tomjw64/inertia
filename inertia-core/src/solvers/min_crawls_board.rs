@@ -24,17 +24,17 @@ impl MinCrawlsBoard {
   }
 
   pub fn from_move_board(board: &MoveBoard, goal: Square) -> Self {
-    let mut square_crawls = [HeuristicValue::MAX; 256];
+    let mut min_crawls_board = [HeuristicValue::MAX; 256];
     let mut queue = VecDeque::new();
     queue.push_back((Square(goal.0), 0));
 
-    while let Some((square, crawls)) = queue.pop_front() {
+    while let Some((square, min_crawls)) = queue.pop_front() {
       let square_index = square.0 as usize;
 
-      if square_crawls[square_index] <= crawls {
+      if min_crawls_board[square_index] <= min_crawls {
         continue;
       }
-      square_crawls[square_index] = crawls;
+      min_crawls_board[square_index] = min_crawls;
 
       for direction in Direction::VARIANTS {
         let move_destination =
@@ -44,21 +44,21 @@ impl MinCrawlsBoard {
             board
               .get_unimpeded_movement_ray_squares(square, direction.opposite())
               .into_iter()
-              .map(|s| (s, crawls)),
+              .map(|s| (s, min_crawls)),
           );
         } else {
           queue.push_back((
             square
               .get_adjacent(direction)
               .expect("Adjacent must exist if movement is unimpeded"),
-            crawls + 1,
+            min_crawls + 1,
           ))
         }
       }
     }
 
     Self {
-      squares: square_crawls,
+      squares: min_crawls_board,
     }
   }
 }
