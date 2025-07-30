@@ -12,7 +12,6 @@ use crate::solvers::Solution;
 use crate::solvers::SolutionStep;
 
 use super::BucketingPriorityQueue;
-// use super::CombinedHeuristic;
 use super::GroupMinMovesBoard;
 use super::Heuristic;
 

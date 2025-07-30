@@ -8,7 +8,6 @@ use {tsify::Tsify, wasm_bindgen::prelude::wasm_bindgen};
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "web", derive(Tsify), tsify(into_wasm_abi, from_wasm_abi))]
-#[repr(align(4))] // Pretty much always accessed together
 pub struct ActorSquares(pub [Square; 4]);
 
 impl ActorSquares {
@@ -29,12 +28,11 @@ impl ActorSquares {
   }
 
   pub fn as_u32(self) -> u32 {
-    u32::from_le_bytes(self.0.map(|square| square.0))
+    u32::from_le_bytes(self.as_bytes())
   }
 
   pub fn as_sorted_u32(self) -> u32 {
-    let bytes = self.0.map(|s| s.0);
-    u32::from_le_bytes(as_sorted(bytes))
+    u32::from_le_bytes(as_sorted(self.as_bytes()))
   }
 }
 
