@@ -98,7 +98,7 @@ export const BoardEditor = () => {
       );
       boardExplorerParams.append(
         'solution',
-        `Optimal:${encode_solution(solution)}`,
+        `${encode_solution(solution)}:Optimal`,
       );
     }
     const boardExplorerUrl = `/explore?${boardExplorerParams.toString()}`;
