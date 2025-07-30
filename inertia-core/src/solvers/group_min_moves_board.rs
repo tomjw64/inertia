@@ -1,4 +1,5 @@
 use core::fmt;
+use std::collections::VecDeque;
 
 use crate::mechanics::ActorSquares;
 use crate::mechanics::Direction;
@@ -27,39 +28,36 @@ impl GroupMinMovesBoard {
 
   pub fn from_move_board(board: &MoveBoard, goal: Square) -> Self {
     let mut square_min_moves = [HeuristicValue::MAX; 256];
-    let mut current_iteration = 0;
-    let mut current_square_set = vec![Square(goal.0)];
-    let mut next_square_set = Vec::new();
+    let mut queue = VecDeque::new();
+    queue.push_back((Square(goal.0), 0));
 
-    while !current_square_set.is_empty() {
-      for &square in current_square_set.iter() {
-        let square_index = square.0 as usize;
+    while let Some((square, value)) = queue.pop_front() {
+      let square_index = square.0 as usize;
 
-        if square_min_moves[square_index] <= current_iteration {
-          continue;
-        }
-        square_min_moves[square_index] = current_iteration;
+      if square_min_moves[square_index] <= value {
+        continue;
+      }
+      square_min_moves[square_index] = value;
 
-        for direction in Direction::VARIANTS {
-          let move_destination =
-            board.get_unimpeded_move_destination(square, direction);
-          if move_destination == square {
-            next_square_set.extend(board.get_unimpeded_movement_ray_squares(
-              square,
-              direction.opposite(),
-            ));
-          } else {
-            next_square_set.push(
-              square
-                .get_adjacent(direction)
-                .expect("Adjacent must exist if movement is unimpeded"),
-            )
-          }
+      for direction in Direction::VARIANTS {
+        let move_destination =
+          board.get_unimpeded_move_destination(square, direction);
+        if move_destination == square {
+          queue.extend(
+            board
+              .get_unimpeded_movement_ray_squares(square, direction.opposite())
+              .into_iter()
+              .map(|s| (s, value + 1)),
+          );
+        } else {
+          queue.push_back((
+            square
+              .get_adjacent(direction)
+              .expect("Adjacent must exist if movement is unimpeded"),
+            value + 1,
+          ))
         }
       }
-      current_iteration += 1;
-      current_square_set = next_square_set;
-      next_square_set = Vec::new();
     }
 
     Self {

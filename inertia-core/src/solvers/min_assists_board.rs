@@ -1,4 +1,5 @@
 use core::fmt;
+use std::collections::VecDeque;
 
 use crate::mechanics::ActorSquares;
 use crate::mechanics::Direction;
@@ -27,43 +28,36 @@ impl MinAssistsBoard {
 
   pub fn from_move_board(board: &MoveBoard, goal: Square) -> Self {
     let mut square_assists = [HeuristicValue::MAX; 256];
-    let mut current_square_set = vec![(Square(goal.0), 0)];
-    let mut next_square_set = Vec::new();
+    let mut queue = VecDeque::new();
+    queue.push_back((Square(goal.0), 0));
 
-    while !current_square_set.is_empty() {
-      for &(square, assists) in current_square_set.iter() {
-        let square_index = square.0 as usize;
+    while let Some((square, assists)) = queue.pop_front() {
+      let square_index = square.0 as usize;
 
-        if square_assists[square_index] <= assists {
-          continue;
-        }
-        square_assists[square_index] = assists;
+      if square_assists[square_index] <= assists {
+        continue;
+      }
+      square_assists[square_index] = assists;
 
-        for direction in Direction::VARIANTS {
-          let move_destination =
-            board.get_unimpeded_move_destination(square, direction);
-          if move_destination == square {
-            next_square_set.extend(
-              board
-                .get_unimpeded_movement_ray_squares(
-                  square,
-                  direction.opposite(),
-                )
-                .into_iter()
-                .map(|s| (s, assists)),
-            );
-          } else {
-            next_square_set.extend(
-              board
-                .get_unimpeded_movement_ray_squares(square, direction)
-                .into_iter()
-                .map(|s| (s, assists + 1)),
-            );
-          }
+      for direction in Direction::VARIANTS {
+        let move_destination =
+          board.get_unimpeded_move_destination(square, direction);
+        if move_destination == square {
+          queue.extend(
+            board
+              .get_unimpeded_movement_ray_squares(square, direction.opposite())
+              .into_iter()
+              .map(|s| (s, assists)),
+          );
+        } else {
+          queue.extend(
+            board
+              .get_unimpeded_movement_ray_squares(square, direction)
+              .into_iter()
+              .map(|s| (s, assists + 1)),
+          );
         }
       }
-      current_square_set = next_square_set;
-      next_square_set = Vec::new();
     }
 
     Self {
