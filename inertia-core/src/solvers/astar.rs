@@ -1,19 +1,45 @@
 use std::borrow::Borrow;
 use std::collections::hash_map::Entry;
-
-use rustc_hash::FxHashMap;
+use std::collections::HashMap;
+use std::hash::BuildHasherDefault;
+use std::hash::Hasher;
 
 use crate::mechanics::ActorSquares;
 use crate::mechanics::Direction;
 use crate::mechanics::MoveBoard;
 use crate::mechanics::Position;
 use crate::mechanics::Square;
+use crate::solvers::roll_zobrist;
+use crate::solvers::zobrist_hash;
+use crate::solvers::BucketingPriorityQueue;
+use crate::solvers::GroupMinMovesBoard;
+use crate::solvers::Heuristic;
 use crate::solvers::Solution;
 use crate::solvers::SolutionStep;
 
-use super::BucketingPriorityQueue;
-use super::GroupMinMovesBoard;
-use super::Heuristic;
+struct NoopHasher(u64);
+
+impl Hasher for NoopHasher {
+  fn finish(&self) -> u64 {
+    self.0
+  }
+
+  fn write(&mut self, _bytes: &[u8]) {
+    unimplemented!()
+  }
+
+  fn write_u64(&mut self, val: u64) {
+    self.0 = val;
+  }
+}
+
+impl Default for NoopHasher {
+  fn default() -> Self {
+    Self(0)
+  }
+}
+
+type NoopHasherBuilder = BuildHasherDefault<NoopHasher>;
 
 struct VisitedData {
   parent: ActorSquares,
@@ -46,8 +72,8 @@ pub fn solve(
 ) -> Option<Solution> {
   let heuristic_board = GroupMinMovesBoard::from_move_board(board, goal);
   let mut queue = BucketingPriorityQueue::with_capacities(256, 1024);
-  let mut visited: FxHashMap<u32, VisitedData> =
-    FxHashMap::with_capacity_and_hasher(1024, Default::default());
+  let mut visited: HashMap<u64, VisitedData, NoopHasherBuilder> =
+    HashMap::with_capacity_and_hasher(1024, NoopHasherBuilder::default());
 
   queue.push(
     QueueData {
@@ -71,7 +97,7 @@ pub fn solve(
       let mut solution_steps = Vec::with_capacity(depth as usize);
       let mut current_actor_squares = actor_squares;
       for _ in 0..depth {
-        let visited_key = current_actor_squares.as_sorted_u32();
+        let visited_key = zobrist_hash(current_actor_squares.as_bytes());
         let parent = visited
           .get(&visited_key)
           .expect("parent must be visited")
@@ -99,6 +125,7 @@ pub fn solve(
     }
 
     let depth_after_move = depth + 1;
+    let parent_hash = zobrist_hash(actor_squares.as_bytes());
     for actor_index in 0..actor_squares.0.len() {
       let actor_square = actor_squares.0[actor_index];
       for move_destination in
@@ -111,7 +138,8 @@ pub fn solve(
         let mut new_actor_squares = actor_squares;
         new_actor_squares.0[actor_index] = move_destination;
 
-        let visited_key = new_actor_squares.as_sorted_u32();
+        let visited_key =
+          roll_zobrist(parent_hash, actor_square.0, move_destination.0);
         let prospective_value = VisitedData {
           depth: depth_after_move,
           parent: actor_squares,
