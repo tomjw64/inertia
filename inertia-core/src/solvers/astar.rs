@@ -126,15 +126,16 @@ pub fn solve(
 
     let depth_after_move = depth + 1;
     let parent_hash = zobrist_hash(actor_squares.as_bytes());
-    for actor_index in 0..actor_squares.0.len() {
+    let move_destinations =
+      board.get_all_actor_move_destinations(actor_squares);
+    for actor_index in 0..4 {
       let actor_square = actor_squares.0[actor_index];
-      for move_destination in
-        board.get_all_move_destinations(actor_squares, actor_square)
-      {
+      let move_destinations = move_destinations[actor_index];
+      for move_index in 0..4 {
+        let move_destination = move_destinations[move_index];
         if move_destination == actor_square {
           continue;
         }
-
         let mut new_actor_squares = actor_squares;
         new_actor_squares.0[actor_index] = move_destination;
 

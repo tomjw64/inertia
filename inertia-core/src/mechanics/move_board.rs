@@ -191,48 +191,110 @@ impl MoveBoard {
     }
   }
 
-  pub fn get_all_move_destinations(
+  pub fn get_all_actor_move_destinations(
     &self,
     actor_squares: ActorSquares,
-    actor_square: Square,
-  ) -> [Square; 4] {
-    let actor_square_row = actor_square.0 / 16;
-    let actor_square_col = actor_square.0 % 16;
+  ) -> [[Square; 4]; 4] {
+    let actor_0_square = actor_squares.0[0];
+    let actor_1_square = actor_squares.0[1];
+    let actor_2_square = actor_squares.0[2];
+    let actor_3_square = actor_squares.0[3];
 
-    let mut up_dest = self.up_moves[actor_square.0 as usize];
-    let mut down_dest = self.down_moves[actor_square.0 as usize];
-    let mut left_dest = self.left_moves[actor_square.0 as usize];
-    let mut right_dest = self.right_moves[actor_square.0 as usize];
+    let actor_unimpeded_up_moves = [
+      (actor_0_square, self.up_moves[actor_0_square.0 as usize]),
+      (actor_1_square, self.up_moves[actor_1_square.0 as usize]),
+      (actor_2_square, self.up_moves[actor_2_square.0 as usize]),
+      (actor_3_square, self.up_moves[actor_3_square.0 as usize]),
+    ];
+    let actor_unimpeded_down_moves = [
+      (actor_0_square, self.down_moves[actor_0_square.0 as usize]),
+      (actor_1_square, self.down_moves[actor_1_square.0 as usize]),
+      (actor_2_square, self.down_moves[actor_2_square.0 as usize]),
+      (actor_3_square, self.down_moves[actor_3_square.0 as usize]),
+    ];
+    let actor_unimpeded_left_moves = [
+      (actor_0_square, self.left_moves[actor_0_square.0 as usize]),
+      (actor_1_square, self.left_moves[actor_1_square.0 as usize]),
+      (actor_2_square, self.left_moves[actor_2_square.0 as usize]),
+      (actor_3_square, self.left_moves[actor_3_square.0 as usize]),
+    ];
+    let actor_unimpeded_right_moves = [
+      (actor_0_square, self.right_moves[actor_0_square.0 as usize]),
+      (actor_1_square, self.right_moves[actor_1_square.0 as usize]),
+      (actor_2_square, self.right_moves[actor_2_square.0 as usize]),
+      (actor_3_square, self.right_moves[actor_3_square.0 as usize]),
+    ];
 
-    for other_square in actor_squares.0 {
-      let other_square_row = other_square.0 / 16;
-      let other_square_col = other_square.0 % 16;
+    let mut result = [[Square(0); 4]; 4];
 
-      let same_row = other_square_row == actor_square_row;
-      let same_col = other_square_col == actor_square_col;
+    for actor_index in 0..4 {
+      let actor_square = actor_squares.0[actor_index];
+      let actor_unimpeded_up_move = actor_unimpeded_up_moves[actor_index].1;
+      let actor_unimpeded_down_move = actor_unimpeded_down_moves[actor_index].1;
+      let actor_unimpeded_left_move = actor_unimpeded_left_moves[actor_index].1;
+      let actor_unimpeded_right_move =
+        actor_unimpeded_right_moves[actor_index].1;
 
-      let other_before = other_square.0 < actor_square.0;
-      let other_after = other_square.0 > actor_square.0;
+      let up_dest = actor_unimpeded_up_moves
+        .iter()
+        .copied()
+        .map(|(other_actor_square, other_actor_unimpeded_up_move)| {
+          if actor_unimpeded_up_move == other_actor_unimpeded_up_move
+            && other_actor_square < actor_square
+          {
+            Square(other_actor_square.0 + 16)
+          } else {
+            actor_unimpeded_up_move
+          }
+        })
+        .max()
+        .unwrap();
+      let down_dest = actor_unimpeded_down_moves
+        .iter()
+        .copied()
+        .map(|(other_actor_square, other_actor_unimpeded_down_move)| {
+          if actor_unimpeded_down_move == other_actor_unimpeded_down_move
+            && other_actor_square > actor_square
+          {
+            Square(other_actor_square.0 - 16)
+          } else {
+            actor_unimpeded_down_move
+          }
+        })
+        .min()
+        .unwrap();
+      let left_dest = actor_unimpeded_left_moves
+        .iter()
+        .copied()
+        .map(|(other_actor_square, other_actor_unimpeded_left_move)| {
+          if actor_unimpeded_left_move == other_actor_unimpeded_left_move
+            && other_actor_square < actor_square
+          {
+            Square(other_actor_square.0 + 1)
+          } else {
+            actor_unimpeded_left_move
+          }
+        })
+        .max()
+        .unwrap();
+      let right_dest = actor_unimpeded_right_moves
+        .iter()
+        .copied()
+        .map(|(other_actor_square, other_actor_unimpeded_right_move)| {
+          if actor_unimpeded_right_move == other_actor_unimpeded_right_move
+            && other_actor_square > actor_square
+          {
+            Square(other_actor_square.0 - 1)
+          } else {
+            actor_unimpeded_right_move
+          }
+        })
+        .min()
+        .unwrap();
 
-      if same_col && other_before && other_square.0 >= up_dest.0 {
-        up_dest = Square(other_square.0 + 16);
-        continue;
-      }
-      if same_col && other_after && other_square.0 <= down_dest.0 {
-        down_dest = Square(other_square.0 - 16);
-        continue;
-      }
-      if same_row && other_before && other_square.0 >= left_dest.0 {
-        left_dest = Square(other_square.0 + 1);
-        continue;
-      }
-      if same_row && other_after && other_square.0 <= right_dest.0 {
-        right_dest = Square(other_square.0 - 1);
-        continue;
-      }
+      result[actor_index] = [up_dest, down_dest, left_dest, right_dest];
     }
-
-    [up_dest, down_dest, left_dest, right_dest]
+    result
   }
 
   pub fn get_move_destination(
