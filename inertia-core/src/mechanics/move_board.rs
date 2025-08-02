@@ -195,38 +195,20 @@ impl MoveBoard {
     &self,
     actor_squares: ActorSquares,
   ) -> [[Square; 4]; 4] {
-    let actor_0_square = actor_squares.0[0];
-    let actor_1_square = actor_squares.0[1];
-    let actor_2_square = actor_squares.0[2];
-    let actor_3_square = actor_squares.0[3];
-
-    let actor_unimpeded_up_moves = [
-      (actor_0_square, self.up_moves[actor_0_square.0 as usize]),
-      (actor_1_square, self.up_moves[actor_1_square.0 as usize]),
-      (actor_2_square, self.up_moves[actor_2_square.0 as usize]),
-      (actor_3_square, self.up_moves[actor_3_square.0 as usize]),
-    ];
-    let actor_unimpeded_down_moves = [
-      (actor_0_square, self.down_moves[actor_0_square.0 as usize]),
-      (actor_1_square, self.down_moves[actor_1_square.0 as usize]),
-      (actor_2_square, self.down_moves[actor_2_square.0 as usize]),
-      (actor_3_square, self.down_moves[actor_3_square.0 as usize]),
-    ];
-    let actor_unimpeded_left_moves = [
-      (actor_0_square, self.left_moves[actor_0_square.0 as usize]),
-      (actor_1_square, self.left_moves[actor_1_square.0 as usize]),
-      (actor_2_square, self.left_moves[actor_2_square.0 as usize]),
-      (actor_3_square, self.left_moves[actor_3_square.0 as usize]),
-    ];
-    let actor_unimpeded_right_moves = [
-      (actor_0_square, self.right_moves[actor_0_square.0 as usize]),
-      (actor_1_square, self.right_moves[actor_1_square.0 as usize]),
-      (actor_2_square, self.right_moves[actor_2_square.0 as usize]),
-      (actor_3_square, self.right_moves[actor_3_square.0 as usize]),
-    ];
+    let actor_unimpeded_up_moves = actor_squares
+      .0
+      .map(|square| (square, self.up_moves[square.0 as usize]));
+    let actor_unimpeded_down_moves = actor_squares
+      .0
+      .map(|square| (square, self.down_moves[square.0 as usize]));
+    let actor_unimpeded_left_moves = actor_squares
+      .0
+      .map(|square| (square, self.left_moves[square.0 as usize]));
+    let actor_unimpeded_right_moves = actor_squares
+      .0
+      .map(|square| (square, self.right_moves[square.0 as usize]));
 
     let mut result = [[Square(0); 4]; 4];
-
     for actor_index in 0..4 {
       let actor_square = actor_squares.0[actor_index];
       let actor_unimpeded_up_move = actor_unimpeded_up_moves[actor_index].1;
