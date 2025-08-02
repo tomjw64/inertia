@@ -32,13 +32,9 @@ impl<T> BucketingMonotonicPriorityQueue<T> {
 
   pub fn pop(&mut self) -> Option<T> {
     while self.current_bucket < self.buckets.len() {
-      let value = self.buckets[self.current_bucket].pop();
-      if value.is_some() {
+      if let value @ Some(_) = self.buckets[self.current_bucket].pop() {
         return value;
       }
-      // The current bucket is empty, and will never be used again. Let's shrink
-      // it to hand memory back to the allocator.
-      self.buckets[self.current_bucket].shrink_to_fit();
       self.current_bucket += 1;
     }
     None
@@ -78,11 +74,9 @@ impl<T> BucketingPriorityQueue<T> {
 
   pub fn pop(&mut self) -> Option<T> {
     while self.current_bucket < self.buckets.len() {
-      let value = self.buckets[self.current_bucket].pop();
-      if value.is_some() {
+      if let value @ Some(_) = self.buckets[self.current_bucket].pop() {
         return value;
       }
-      self.buckets[self.current_bucket].shrink_to(self.capacity_per_bucket);
       self.current_bucket += 1;
     }
     None
