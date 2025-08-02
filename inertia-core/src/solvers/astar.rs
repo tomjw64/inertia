@@ -139,12 +139,12 @@ pub fn solve(
         let mut new_actor_squares = actor_squares;
         new_actor_squares.0[actor_index] = move_destination;
 
-        let visited_key =
-          roll_zobrist(parent_hash, actor_square.0, move_destination.0);
         let prospective_value = VisitedData {
           depth: depth_after_move,
           parent: actor_squares,
         };
+        let visited_key =
+          roll_zobrist(parent_hash, actor_square.0, move_destination.0);
         let visited_entry = visited.entry(visited_key);
         let skippable = match visited_entry {
           Entry::Occupied(mut entry) => {
@@ -161,7 +161,6 @@ pub fn solve(
             false
           }
         };
-
         if skippable {
           continue;
         }
