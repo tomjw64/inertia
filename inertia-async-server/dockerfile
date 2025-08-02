@@ -1,5 +1,6 @@
 FROM rust:slim-bookworm AS dev
 RUN cargo install cargo-watch
+COPY inertia-fixtures /build/inertia-fixtures
 COPY inertia-core /build/inertia-core
 COPY inertia-async-server /build/inertia-async-server
 WORKDIR /build/inertia-async-server

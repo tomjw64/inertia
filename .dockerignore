@@ -1,5 +1,8 @@
 *
 
+!inertia-fixtures
+inertia-fixtures/target
+
 !inertia-core
 inertia-core/pkg
 inertia-core/target

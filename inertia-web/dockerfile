@@ -1,6 +1,7 @@
 FROM rust:slim-bookworm AS rust-deps-build
 RUN cargo install wasm-pack
 
+COPY inertia-fixtures /build/inertia-fixtures
 COPY inertia-core /build/inertia-core
 WORKDIR /build/inertia-core/
 RUN cargo build --release
