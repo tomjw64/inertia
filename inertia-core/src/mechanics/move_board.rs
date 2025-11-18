@@ -89,22 +89,22 @@ impl MoveBoard {
     match direction {
       Direction::Up => {
         for index in (move_destination.0..=actor_square.0).step_by(16) {
-          ray.set_bit(index as usize);
+          ray.set_bit(index);
         }
       }
       Direction::Down => {
         for index in (actor_square.0..=move_destination.0).step_by(16) {
-          ray.set_bit(index as usize);
+          ray.set_bit(index);
         }
       }
       Direction::Left => {
         for index in move_destination.0..=actor_square.0 {
-          ray.set_bit(index as usize);
+          ray.set_bit(index);
         }
       }
       Direction::Right => {
         for index in actor_square.0..=move_destination.0 {
-          ray.set_bit(index as usize);
+          ray.set_bit(index);
         }
       }
     };
@@ -123,22 +123,22 @@ impl MoveBoard {
     match direction {
       Direction::Up => {
         for index in (move_destination.0..=actor_square.0).step_by(16) {
-          ray.set_bit(index as usize);
+          ray.set_bit(index);
         }
       }
       Direction::Down => {
         for index in (actor_square.0..=move_destination.0).step_by(16) {
-          ray.set_bit(index as usize);
+          ray.set_bit(index);
         }
       }
       Direction::Left => {
         for index in move_destination.0..=actor_square.0 {
-          ray.set_bit(index as usize);
+          ray.set_bit(index);
         }
       }
       Direction::Right => {
         for index in actor_square.0..=move_destination.0 {
-          ray.set_bit(index as usize);
+          ray.set_bit(index);
         }
       }
     };

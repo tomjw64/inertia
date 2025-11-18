@@ -1,4 +1,3 @@
-use crate::mechanics::BitBoard;
 use crate::mechanics::Square;
 use serde::Deserialize;
 use serde::Serialize;
@@ -11,14 +10,6 @@ use {tsify::Tsify, wasm_bindgen::prelude::wasm_bindgen};
 pub struct ActorSquares(pub [Square; 4]);
 
 impl ActorSquares {
-  pub fn as_bitboard(self) -> BitBoard {
-    let mut bitboard = BitBoard::ZERO;
-    for Square(index) in self.0 {
-      bitboard.set_bit(index as usize);
-    }
-    bitboard
-  }
-
   pub fn from_bytes(bytes: [u8; 4]) -> Self {
     Self(bytes.map(Square))
   }
