@@ -9,7 +9,7 @@ use crate::mechanics::Direction;
 use crate::mechanics::MoveBoard;
 use crate::mechanics::Position;
 use crate::mechanics::Square;
-use crate::solvers::roll_zobrist;
+use crate::solvers::roll_zobrist_hash;
 use crate::solvers::zobrist_hash;
 use crate::solvers::BucketingPriorityQueue;
 use crate::solvers::GroupMinMovesBoard;
@@ -144,7 +144,7 @@ pub fn solve(
           parent: actor_squares,
         };
         let visited_key =
-          roll_zobrist(parent_hash, actor_square.0, move_destination.0);
+          roll_zobrist_hash(parent_hash, actor_square.0, move_destination.0);
         let visited_entry = visited.entry(visited_key);
         let skippable = match visited_entry {
           Entry::Occupied(mut entry) => {

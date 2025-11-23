@@ -264,7 +264,7 @@ pub fn zobrist_hash(bytes: [u8; 4]) -> u64 {
     ^ ZOBRIST_CONSTANTS[bytes[3] as usize]
 }
 
-pub fn roll_zobrist(hash: u64, out_val: u8, in_val: u8) -> u64 {
+pub fn roll_zobrist_hash(hash: u64, out_val: u8, in_val: u8) -> u64 {
   hash
     ^ ZOBRIST_CONSTANTS[out_val as usize]
     ^ ZOBRIST_CONSTANTS[in_val as usize]
