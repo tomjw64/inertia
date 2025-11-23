@@ -2,7 +2,9 @@ use crate::mechanics::ActorSquares;
 use crate::mechanics::Square;
 use core::fmt;
 use std::ops::BitAnd;
+use std::ops::BitAndAssign;
 use std::ops::BitOr;
+use std::ops::BitOrAssign;
 use std::ops::Not;
 
 #[cfg(feature = "web")]
@@ -12,6 +14,7 @@ use {tsify::declare, wasm_bindgen::prelude::wasm_bindgen};
 pub type ExpandedBitBoard = [bool; 256];
 
 #[derive(Copy, Clone, PartialEq, Eq)]
+
 pub struct BitBoard(pub(crate) [u64; 4]);
 
 impl From<Square> for BitBoard {
@@ -120,6 +123,32 @@ where
       self.0[2] | rhs[2],
       self.0[3] | rhs[3],
     ])
+  }
+}
+
+impl<Rhs> BitOrAssign<Rhs> for BitBoard
+where
+  Rhs: AsRef<[u64; 4]>,
+{
+  fn bitor_assign(&mut self, rhs: Rhs) {
+    let rhs = rhs.as_ref();
+    self.0[0] |= rhs[0];
+    self.0[1] |= rhs[1];
+    self.0[2] |= rhs[2];
+    self.0[3] |= rhs[3];
+  }
+}
+
+impl<Rhs> BitAndAssign<Rhs> for BitBoard
+where
+  Rhs: AsRef<[u64; 4]>,
+{
+  fn bitand_assign(&mut self, rhs: Rhs) {
+    let rhs = rhs.as_ref();
+    self.0[0] &= rhs[0];
+    self.0[1] &= rhs[1];
+    self.0[2] &= rhs[2];
+    self.0[3] &= rhs[3];
   }
 }
 
