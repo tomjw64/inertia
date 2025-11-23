@@ -1,8 +1,6 @@
 use std::borrow::Borrow;
 use std::collections::hash_map::Entry;
 use std::collections::HashMap;
-use std::hash::BuildHasherDefault;
-use std::hash::Hasher;
 
 use crate::mechanics::ActorSquares;
 use crate::mechanics::Direction;
@@ -14,32 +12,9 @@ use crate::solvers::zobrist_hash;
 use crate::solvers::BucketingPriorityQueue;
 use crate::solvers::GroupMinMovesBoard;
 use crate::solvers::Heuristic;
+use crate::solvers::NoopHasherBuilder;
 use crate::solvers::Solution;
 use crate::solvers::SolutionStep;
-
-struct NoopHasher(u64);
-
-impl Hasher for NoopHasher {
-  fn finish(&self) -> u64 {
-    self.0
-  }
-
-  fn write(&mut self, _bytes: &[u8]) {
-    unimplemented!()
-  }
-
-  fn write_u64(&mut self, val: u64) {
-    self.0 = val;
-  }
-}
-
-impl Default for NoopHasher {
-  fn default() -> Self {
-    Self(0)
-  }
-}
-
-type NoopHasherBuilder = BuildHasherDefault<NoopHasher>;
 
 struct VisitedData {
   parent: ActorSquares,
