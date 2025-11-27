@@ -24,23 +24,6 @@ pub trait Heuristic {
 }
 
 // This should be branchless - check godbolt after editing :)
-pub(crate) fn get_min_two<const N: usize>(
-  vals: [HeuristicValue; N],
-) -> [HeuristicValue; 2] {
-  let mut min_two = [HeuristicValue::MAX, HeuristicValue::MAX];
-  for val in vals {
-    if val < min_two[1] {
-      if val < min_two[0] {
-        min_two = [val, min_two[0]]
-      } else {
-        min_two = [min_two[0], val]
-      }
-    }
-  }
-  min_two
-}
-
-// This should be branchless - check godbolt after editing :)
 pub(crate) fn get_min<const N: usize>(
   vals: [HeuristicValue; N],
 ) -> HeuristicValue {
@@ -51,17 +34,4 @@ pub(crate) fn get_min<const N: usize>(
     }
   }
   min
-}
-
-// This should be branchless - check godbolt after editing :)
-pub(crate) fn get_max<const N: usize>(
-  vals: [HeuristicValue; N],
-) -> HeuristicValue {
-  let mut max = HeuristicValue::MIN;
-  for val in vals {
-    if val > max {
-      max = val
-    }
-  }
-  max
 }
