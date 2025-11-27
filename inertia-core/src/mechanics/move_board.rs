@@ -194,7 +194,7 @@ impl MoveBoard {
   pub fn get_all_actor_move_destinations(
     &self,
     actor_squares: ActorSquares,
-  ) -> [[Square; 4]; 4] {
+  ) -> [[(Square, bool); 4]; 4] {
     let actor_unimpeded_up_moves = actor_squares
       .0
       .map(|square| (square, self.up_moves[square.0 as usize]));
@@ -208,7 +208,7 @@ impl MoveBoard {
       .0
       .map(|square| (square, self.right_moves[square.0 as usize]));
 
-    let mut result = [[Square(0); 4]; 4];
+    let mut result = [[(Square(0), false); 4]; 4];
     for actor_index in 0..4 {
       let actor_square = actor_squares.0[actor_index];
       let actor_unimpeded_up_move = actor_unimpeded_up_moves[actor_index].1;
@@ -273,8 +273,12 @@ impl MoveBoard {
         })
         .min()
         .unwrap();
-
-      result[actor_index] = [up_dest, down_dest, left_dest, right_dest];
+      result[actor_index] = [
+        (up_dest, up_dest == actor_unimpeded_up_move),
+        (down_dest, down_dest == actor_unimpeded_down_move),
+        (left_dest, left_dest == actor_unimpeded_left_move),
+        (right_dest, right_dest == actor_unimpeded_right_move),
+      ];
     }
     result
   }

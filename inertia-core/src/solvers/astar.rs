@@ -24,6 +24,8 @@ struct VisitedData {
 struct QueueData {
   actor_squares: ActorSquares,
   depth: u8,
+  last_step: SolutionStep,
+  last_step_unimpeded: bool,
 }
 
 pub fn solve_position<P: Borrow<Position>>(
@@ -54,6 +56,11 @@ pub fn solve(
     QueueData {
       actor_squares,
       depth: 0,
+      last_step: SolutionStep {
+        actor: 0,
+        direction: Direction::Up,
+      },
+      last_step_unimpeded: false,
     },
     heuristic_board.get_heuristic(actor_squares) as usize,
   );
@@ -62,6 +69,8 @@ pub fn solve(
     let QueueData {
       actor_squares,
       depth,
+      last_step_unimpeded,
+      last_step,
     } = queue_data;
 
     if depth as usize > max_depth {
@@ -103,18 +112,38 @@ pub fn solve(
     let parent_hash = zobrist_hash(actor_squares.as_bytes());
     let move_destinations =
       board.get_all_actor_move_destinations(actor_squares);
+
     for actor_index in 0..4 {
       let actor_square = actor_squares.0[actor_index];
-      let move_destinations = move_destinations[actor_index];
+      let move_destinations_for_actor = move_destinations[actor_index];
       for move_index in 0..4 {
-        let move_destination = move_destinations[move_index];
+        let move_direction = Direction::try_from(move_index as u8).unwrap();
+        let (move_destination, move_is_unimpeded) =
+          move_destinations_for_actor[move_index];
+
+        // Prune no-op moves
         if move_destination == actor_square {
           continue;
         }
+
+        // Prune non-canonical move orderings
+        // TODO: This is pretty conservative. There is some room for improvement
+        // here, but this is a pretty cheap check that seems to prune around 1%
+        // of the search space.
+        if (move_direction == last_step.direction
+          || move_direction == last_step.direction.opposite())
+          && move_is_unimpeded
+          && last_step_unimpeded
+          && actor_index <= last_step.actor as usize
+        {
+          continue;
+        }
+
         let mut new_actor_squares = actor_squares;
         new_actor_squares.0[actor_index] = move_destination;
 
-        let prospective_value = VisitedData {
+        // Prune states already visited with equal or shallower depth
+        let prospective_visited_value = VisitedData {
           depth: depth_after_move,
           parent: actor_squares,
         };
@@ -124,15 +153,15 @@ pub fn solve(
         let skippable = match visited_entry {
           Entry::Occupied(mut entry) => {
             let existing: &mut VisitedData = entry.get_mut();
-            if existing.depth <= prospective_value.depth {
+            if existing.depth <= prospective_visited_value.depth {
               true
             } else {
-              *existing = prospective_value;
+              *existing = prospective_visited_value;
               false
             }
           }
           Entry::Vacant(entry) => {
-            entry.insert(prospective_value);
+            entry.insert(prospective_visited_value);
             false
           }
         };
@@ -140,10 +169,20 @@ pub fn solve(
           continue;
         }
 
+        // IMPORTANT: Once we have inserted a state into the visited map, we
+        // must commit to visiting the state. No flow control should be used
+        // here to avoid pushing to the queue.
+
+        let this_step = SolutionStep {
+          actor: actor_index as u8,
+          direction: move_direction,
+        };
         queue.push(
           QueueData {
             actor_squares: new_actor_squares,
             depth: depth_after_move,
+            last_step_unimpeded: move_is_unimpeded,
+            last_step: this_step,
           },
           depth_after_move as usize
             + heuristic_board.get_heuristic(new_actor_squares) as usize,
@@ -157,7 +196,47 @@ pub fn solve(
 
 #[cfg(test)]
 mod test {
+  use crate::mechanics::B64EncodedCompressedPosition;
+  use crate::mechanics::CompressedPosition;
+  use crate::solvers::B64EncodedCompressedSolution;
+  use crate::solvers::CompressedSolution;
+
   use super::*;
+
+  #[test]
+  fn test_unblock_dependency_fixture_board() {
+    let position = Position::try_from(
+      CompressedPosition::try_from(B64EncodedCompressedPosition(
+        inertia_fixtures::get_sample_position("unblock_dependency")
+          .unwrap()
+          .1
+          .to_string(),
+      ))
+      .unwrap(),
+    )
+    .unwrap();
+    let solution = solve_position(&position, 255);
+    assert_eq!(solution.expect("Failed to solve").0.len(), 5);
+  }
+
+  #[test]
+  fn test_shuffle_x_fixture_board() {
+    let position = Position::try_from(
+      CompressedPosition::try_from(B64EncodedCompressedPosition(
+        inertia_fixtures::get_sample_position("shuffle_x")
+          .unwrap()
+          .1
+          .to_string(),
+      ))
+      .unwrap(),
+    )
+    .unwrap();
+    let solution = solve_position(&position, 255).unwrap();
+    println!("{:?}", solution);
+    let encoded_solution =
+      B64EncodedCompressedSolution::from(CompressedSolution::from(solution));
+    println!("{:?}", encoded_solution);
+  }
 
   #[test]
   fn test_already_solved() {
