@@ -58,7 +58,9 @@ pub fn solve(
     heuristic_board.get_heuristic(actor_squares) as usize,
   );
 
+  let mut visited_nodes = 0;
   while let Some(queue_data) = queue.pop() {
+    visited_nodes += 1;
     let QueueData {
       actor_squares,
       depth,
@@ -69,6 +71,7 @@ pub fn solve(
     }
 
     if actor_squares.0.contains(&goal) {
+      print!("[{} visited nodes] ", visited_nodes);
       let mut solution_steps = Vec::with_capacity(depth as usize);
       let mut current_actor_squares = actor_squares;
       for _ in 0..depth {
@@ -152,6 +155,7 @@ pub fn solve(
     }
   }
 
+  print!("[{} visited nodes] ", visited_nodes);
   None
 }
 
