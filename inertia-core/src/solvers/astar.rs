@@ -106,16 +106,16 @@ pub fn solve(
     let parent_hash = zobrist_hash(actor_squares.as_bytes());
     let move_destinations =
       board.get_all_actor_move_destinations(actor_squares);
-    for actor_index in 0..4 {
-      let actor_square = actor_squares.0[actor_index];
-      let move_destinations = move_destinations[actor_index];
-      for move_index in 0..4 {
-        let move_destination = move_destinations[move_index];
+    for (actor_index, (&actor_square, actor_move_destinations)) in actor_squares
+      .0
+      .iter()
+      .zip(move_destinations.iter())
+      .enumerate()
+    {
+      for &move_destination in actor_move_destinations {
         if move_destination == actor_square {
           continue;
         }
-        let mut new_actor_squares = actor_squares;
-        new_actor_squares.0[actor_index] = move_destination;
 
         let prospective_value = VisitedData {
           depth: depth_after_move,
@@ -142,6 +142,9 @@ pub fn solve(
         if skippable {
           continue;
         }
+
+        let mut new_actor_squares = actor_squares;
+        new_actor_squares.0[actor_index] = move_destination;
 
         queue.push(
           QueueData {
