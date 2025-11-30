@@ -117,25 +117,25 @@ pub fn solve(
         let mut new_actor_squares = actor_squares;
         new_actor_squares.0[actor_index] = move_destination;
 
-        let prospective_value = VisitedData {
-          depth: depth_after_move,
-          parent: actor_squares,
-        };
         let visited_key =
           roll_zobrist_hash(parent_hash, actor_square.0, move_destination.0);
         let visited_entry = visited.entry(visited_key);
         let skippable = match visited_entry {
           Entry::Occupied(mut entry) => {
             let existing: &mut VisitedData = entry.get_mut();
-            if existing.depth <= prospective_value.depth {
+            if existing.depth <= depth_after_move {
               true
             } else {
-              *existing = prospective_value;
+              existing.depth = depth_after_move;
+              existing.parent = actor_squares;
               false
             }
           }
           Entry::Vacant(entry) => {
-            entry.insert(prospective_value);
+            entry.insert(VisitedData {
+              depth: depth_after_move,
+              parent: actor_squares,
+            });
             false
           }
         };
