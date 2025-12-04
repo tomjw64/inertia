@@ -72,34 +72,7 @@ pub fn solve(
 
     if actor_squares.0.contains(&goal) {
       print!("[{} visited nodes] ", visited_nodes);
-      let mut solution_steps = Vec::with_capacity(depth as usize);
-      let mut current_actor_squares = actor_squares;
-      for _ in 0..depth {
-        let visited_key = zobrist_hash(current_actor_squares.as_bytes());
-        let parent = visited
-          .get(&visited_key)
-          .expect("parent must be visited")
-          .parent;
-        for idx in 0..4 {
-          if current_actor_squares.0[idx] != parent.0[idx] {
-            solution_steps.push(SolutionStep {
-              actor: idx as u8,
-              direction: match current_actor_squares.0[idx].0 as i16
-                - parent.0[idx].0 as i16
-              {
-                -255..=-16 => Direction::Up,
-                -15..=-1 => Direction::Left,
-                1..=15 => Direction::Right,
-                16..=255 => Direction::Down,
-                _ => unreachable!(),
-              },
-            })
-          }
-        }
-        current_actor_squares = parent;
-      }
-      solution_steps.reverse();
-      return Some(Solution(solution_steps));
+      return Some(reconstruct_solution(actor_squares, depth, &visited));
     }
 
     let depth_after_move = depth + 1;
@@ -157,6 +130,41 @@ pub fn solve(
 
   print!("[{} visited nodes] ", visited_nodes);
   None
+}
+
+fn reconstruct_solution(
+  actor_squares: ActorSquares,
+  depth: u8,
+  visited: &HashMap<u64, VisitedData, NoopHasherBuilder>,
+) -> Solution {
+  let mut solution_steps = Vec::with_capacity(depth as usize);
+  let mut current_actor_squares = actor_squares;
+  for _ in 0..depth {
+    let visited_key = zobrist_hash(current_actor_squares.as_bytes());
+    let parent = visited
+      .get(&visited_key)
+      .expect("parent must be visited")
+      .parent;
+    for idx in 0..4 {
+      if current_actor_squares.0[idx] != parent.0[idx] {
+        solution_steps.push(SolutionStep {
+          actor: idx as u8,
+          direction: match current_actor_squares.0[idx].0 as i16
+            - parent.0[idx].0 as i16
+          {
+            -255..=-16 => Direction::Up,
+            -15..=-1 => Direction::Left,
+            1..=15 => Direction::Right,
+            16..=255 => Direction::Down,
+            _ => unreachable!(),
+          },
+        })
+      }
+    }
+    current_actor_squares = parent;
+  }
+  solution_steps.reverse();
+  Solution(solution_steps)
 }
 
 #[cfg(test)]
