@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -e
+set -euo pipefail
 
 ORIGINAL_DIR=$(pwd)
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
@@ -12,5 +12,5 @@ fi
 if [[ $(cat /proc/sys/kernel/perf_event_paranoid) -ne -1 ]]; then
   echo -1 | sudo tee /proc/sys/kernel/perf_event_paranoid
 fi
-CARGO_PROFILE_RELEASE_DEBUG=true cargo flamegraph $@
+RUSTFLAGS="-C force-frame-pointers=yes" cargo flamegraph $@
 cd $ORIGINAL_DIR

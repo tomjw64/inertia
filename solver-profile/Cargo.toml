@@ -9,3 +9,6 @@ inertia-fixtures = { path = "../inertia-fixtures/" }
 base64 = "0.22.1"
 clap = { version = "4.5.41", features = ["derive"] }
 colored = "3.0.0"
+
+[profile.release]
+debug = true
