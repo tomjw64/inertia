@@ -10,7 +10,7 @@ use crate::mechanics::Square;
 use crate::solvers::roll_zobrist_hash;
 use crate::solvers::zobrist_hash;
 use crate::solvers::BucketingPriorityQueue;
-use crate::solvers::GroupMinMovesBoard;
+use crate::solvers::GroupMinMovesExpensiveCrawlsBoard;
 use crate::solvers::Heuristic;
 use crate::solvers::NoopHasherBuilder;
 use crate::solvers::Solution;
@@ -45,7 +45,8 @@ pub fn solve(
   actor_squares: ActorSquares,
   max_depth: usize,
 ) -> Option<Solution> {
-  let heuristic_board = GroupMinMovesBoard::from_move_board(board, goal);
+  let heuristic_board =
+    GroupMinMovesExpensiveCrawlsBoard::from_move_board(board, goal);
   let mut queue = BucketingPriorityQueue::with_capacities(256, 1024);
   let mut visited: HashMap<u64, VisitedData, NoopHasherBuilder> =
     HashMap::with_capacity_and_hasher(1024, NoopHasherBuilder::default());
